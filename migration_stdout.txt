@@ -1,0 +1,5 @@
+
+   INFO  Running migrations.  
+
+  2026_05_07_104319_optimize_database_indexes .................. 117.78ms DONE
+

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SVMS Admin – Complete Intelligence Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" />
+  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg: #020617;
+      --card: #0f172a;
+      --border: #1e293b;
+      --primary: #6366f1;
+      --accent: #d946ef;
+      --text: #f8fafc;
+      --muted: #64748b;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --basah: #38bdf8;
+      --kering: #4ade80;
+      --kuliner: #fb923c;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ─── Login Gate ─── */
+    #login-gate {
+      position: fixed; inset: 0; background: var(--bg); z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column;
+    }
+    .login-box {
+      width: 420px; padding: 56px; background: var(--card); border: 1px solid var(--border);
+      border-radius: 36px; text-align: center; box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+    }
+    .login-input {
+      width: 100%; padding: 16px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 16px; color: #fff; margin-top: 32px; outline: none; text-align: center;
+      font-size: 24px; letter-spacing: 0.5em;
+    }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px; height: 64px; background: var(--card); border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-icon {
+      width: 42px; height: 42px; border-radius: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; box-shadow: 0 0 40px rgba(99, 102, 241, 0.4);
+    }
+    .logo-text { font-weight: 800; font-size: 26px; letter-spacing: -0.04em; }
+
+    .tabs {
+      display: flex; background: var(--card); border-bottom: 1px solid var(--border);
+      padding: 0 32px; gap: 24px; flex-shrink: 0; overflow-x: auto;
+    }
+    .tab {
+      padding: 16px 4px; font-size: 13px; font-weight: 600; color: var(--muted);
+      cursor: pointer; border-bottom: 2px solid transparent; transition: 0.3s;
+      white-space: nowrap;
+    }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    .main { display: flex; flex: 1; overflow: hidden; }
+
+    .sidebar {
+      width: 500px; background: var(--card); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow-y: auto;
+    }
+    .sidebar-section { padding: 24px; border-bottom: 1px solid var(--border); }
+    .sidebar-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 16px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    /* Stats & Pulse */
+    .pulse-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .pulse-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 18px;
+      padding: 20px; border-top: 4px solid var(--primary);
+    }
+    .pulse-val { font-size: 24px; font-weight: 800; margin-top: 6px; }
+    .pulse-lbl { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+
+    .trend-bar { flex: 1; background: var(--primary); border-radius: 4px 4px 0 0; min-width: 10px; }
+
+    /* Grid & Zoning */
+    .grid-container {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+    }
+    .grid-box {
+      aspect-ratio: 1; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; transition: 0.2s; position: relative;
+    }
+    .grid-box.basah { border-color: var(--basah); color: var(--basah); }
+    .grid-box.kering { border-color: var(--kering); color: var(--kering); }
+    .grid-box.kuliner { border-color: var(--kuliner); color: var(--kuliner); }
+    .grid-box.occupied { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .zone-label { font-size: 7px; font-weight: 800; position: absolute; bottom: 8px; opacity: 0.5; }
+
+    .item-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 16px;
+      padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .btn-edit { color: var(--primary); font-size: 11px; font-weight: 700; cursor: pointer; background: none; border: none; }
+
+    .btn-action {
+      width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary), var(--accent));
+      border: none; border-radius: 14px; color: #fff; font-weight: 700; cursor: pointer;
+    }
+
+    #map { flex: 1; }
+
+    /* Modals */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+      z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(10px);
+    }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 28px; padding: 32px; width: 500px; }
+    .form-input {
+      width: 100%; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 12px; color: var(--text); font-size: 14px; outline: none; margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🛑 Login Gate -->
+  <div id="login-gate">
+    <div class="login-box">
+      <div class="logo-icon" style="margin: 0 auto 32px;">🧠</div>
+      <h2 style="font-size: 32px; font-weight: 800; letter-spacing: -0.04em;">Admin Access</h2>
+      <p style="color: var(--muted); margin-top: 12px;">Authentication Required for Market Governance</p>
+      <input type="password" class="login-input" id="admin-pin" placeholder="••••" maxlength="4">
+      <button class="btn-action" style="margin-top: 40px; padding: 18px;" onclick="checkPin()">UNBLOCK DASHBOARD</button>
+    </div>
+  </div>
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🏢</div>
+      <div class="logo-text">SV<span>MS</span> <small style="font-size: 10px; opacity: 0.5; font-weight: 400; margin-left: 4px;">v5.2 - Intelligence Master</small></div>
+    </div>
+    <div style="font-size:11px; color:var(--danger); font-weight:800; cursor:pointer;" onclick="logout()">🔒 LOGOUT</div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-pulse" onclick="switchTab('pulse')">⚡ EXECUTIVE PULSE</div>
+    <div class="tab" id="tab-grid" onclick="switchTab('grid')">🔳 ZONASI & LAPAK</div>
+    <div class="tab" id="tab-vendors" onclick="switchTab('vendors')">👤 DAFTAR PEDAGANG</div>
+    <div class="tab" id="tab-audit" onclick="switchTab('audit')">🛡️ AUDIT VIEW</div>
+  </div>
+
+  <div class="main">
+    <div class="sidebar">
+      
+      <!-- 1. Executive Pulse -->
+      <div id="sidebar-pulse">
+        <div class="sidebar-section">
+          <div class="sidebar-title">KESEHATAN PASAR HARI INI 📊</div>
+          <div class="pulse-grid">
+            <div class="pulse-card"><div class="pulse-lbl">Revenue Today</div><div class="pulse-val" id="rev-val">Rp 0</div></div>
+            <div class="pulse-card" style="border-top-color:var(--danger)"><div class="pulse-lbl">Tunggakan</div><div class="pulse-val">Rp 450k</div></div>
+            <div class="pulse-card" style="border-top-color:var(--success)"><div class="pulse-lbl">Compliance</div><div class="pulse-val">98.2%</div></div>
+            <div class="pulse-card"><div class="pulse-lbl">Lapak Terisi</div><div class="pulse-val" id="fill-rate">0%</div></div>
+          </div>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-title">TREN PENDAPATAN MINGGUAN 📈</div>
+          <div id="trend-chart" style="height: 100px; display: flex; align-items: flex-end; gap: 8px; padding-top: 10px;">
+            <div class="trend-bar" style="height: 40%;"></div><div class="trend-bar" style="height: 60%;"></div>
+            <div class="trend-bar" style="height: 50%;"></div><div class="trend-bar" style="height: 80%;"></div>
+            <div class="trend-bar" style="height: 90%; background:var(--accent);"></div>
+            <div class="trend-bar" style="height: 10%; background:var(--muted);"></div><div class="trend-bar" style="height: 5%; background:var(--muted);"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:8px; color:var(--muted); margin-top:8px;">
+            <span>SEN</span><span>SEL</span><span>RAB</span><span>KAM</span><span>JUM</span><span>SAB</span><span>MIN</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Grid & Zoning -->
+      <div id="sidebar-grid" style="display: none;">
+        <div class="sidebar-section">
+          <div class="sidebar-title">KONTROL LAPANGAN 🔳 <button onclick="openModal('add-slot')" style="color:var(--primary); font-size:10px; background:none; border:none; cursor:pointer;">+ ADD</button></div>
+          <div class="grid-container" id="grid-view"></div>
+          <div style="display:flex; gap:10px; margin-top:12px; font-size:8px; font-weight:800;">
+            <div style="display:flex; align-items:center; gap:4px;"><div style="width:8px; height:8px; background:var(--basah); border-radius:2px;"></div> BASAH</div>
+            <div style="display:flex; align-items:center; gap:4px;"><div style="width:8px; height:8px; background:var(--kering); border-radius:2px;"></div> KERING</div>
+            <div style="display:flex; align-items:center; gap:4px;"><div style="width:8px; height:8px; background:var(--kuliner); border-radius:2px;"></div> KULINER</div>
+          </div>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-title">DETAIL PENEMPATAN</div>
+          <div id="placement-detail" style="font-size:12px; color:var(--muted)">Klik slot untuk manajemen.</div>
+        </div>
+      </div>
+
+      <!-- 3. Vendors -->
+      <div id="sidebar-vendors" style="display: none;">
+        <div class="sidebar-section"><button class="btn-action" onclick="openModal('vendor')">+ REGISTRASI PEDAGANG BARU</button></div>
+        <div class="sidebar-section"><div class="sidebar-title">DAFTAR PEDAGANG VALID 👤</div><div id="vendor-list"></div></div>
+      </div>
+
+      <!-- 4. Audit -->
+      <div id="sidebar-audit" style="display: none;">
+        <div class="sidebar-section"><div class="sidebar-title">SYSTEM AUDIT LOG 🛡️</div>
+          <div id="audit-list" style="font-family:monospace; font-size:10px; background:var(--bg); padding:15px; border-radius:14px; max-height:500px; overflow-y:auto;">Memuat data audit...</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="map"></div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal"><div class="modal" id="modal-content"></div></div>
+
+  <script>
+    const API = 'http://103.175.219.57:8001/api';
+    let traders = [], slots = [], map;
+
+    // 🔒 Auth Guard
+    function checkPin() {
+      const pin = document.getElementById('admin-pin').value;
+      if (pin === '1234') { localStorage.setItem('svms_auth', 'true'); document.getElementById('login-gate').style.display = 'none'; initApp(); }
+      else { alert('PIN SALAH!'); }
+    }
+    if (localStorage.getItem('svms_auth') === 'true') { document.getElementById('login-gate').style.display = 'none'; initApp(); }
+
+    function logout() { localStorage.removeItem('svms_auth'); location.reload(); }
+
+    function initApp() {
+      map = new maplibregl.Map({
+        container: 'map',
+        style: { version: 8, sources: { osm: { type: 'raster', tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'], tileSize: 256 } }, layers: [{ id: 'osm', type: 'raster', source: 'osm' }] },
+        center: [127.385, 0.793], zoom: 14
+      });
+      map.on('load', () => { refreshAll(); });
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(`tab-${tab}`).classList.add('active');
+      ['pulse', 'grid', 'vendors', 'audit'].forEach(k => document.getElementById(`sidebar-${k}`).style.display = tab === k ? 'block' : 'none');
+      if (tab === 'pulse') fetchIntel();
+      if (tab === 'audit') fetchAudit();
+    }
+
+    async function refreshAll() { fetchIntel(); fetchTraders(); fetchSlots(); }
+
+    async function fetchIntel() {
+      const r = await fetch(`${API}/market/pulse`); const d = await r.json();
+      document.getElementById('fill-rate').textContent = d.compliance_rate + '%';
+      const rP = await fetch(`${API}/market/payments`); const p = await rP.json();
+      let t = 0; p.forEach(x => t += parseFloat(x.amount_paid));
+      document.getElementById('rev-val').textContent = 'Rp ' + t.toLocaleString();
+    }
+
+    async function fetchTraders() {
+      const r = await fetch(`${API}/vendors`); traders = await r.json();
+      document.getElementById('vendor-list').innerHTML = traders.map(t => `
+        <div class="item-card"><div><b>${t.name}</b><br><small>${t.nik} | ${t.type.toUpperCase()}</small></div>
+        <button class="btn-edit" onclick="openEditTrader('${t.id}')">EDIT</button></div>
+      `).join('');
+    }
+
+    async function fetchSlots() {
+      const r = await fetch(`${API}/grid-slots`); slots = await r.json();
+      document.getElementById('grid-view').innerHTML = slots.map(s => `
+        <div class="grid-box ${s.category || 'umum'} ${s.status === 'active' ? '' : 'occupied'}" onclick="selectSlot(${s.id})">
+          <div style="font-size:13px; font-weight:900;">${s.code}</div>
+          <div class="zone-label">${(s.category || 'UMUM').toUpperCase()}</div>
+        </div>
+      `).join('');
+    }
+
+    async function fetchAudit() {
+      const r = await fetch(`${API}/market/audit`); const logs = await r.json();
+      document.getElementById('audit-list').innerHTML = logs.map(l => `
+        <div style="margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:4px;">
+          <span style="color:var(--primary)">[${l.created_at}]</span> <b>${l.action}</b><br>
+          <span style="color:var(--muted)">${l.details}</span>
+        </div>
+      `).join('');
+    }
+
+    function selectSlot(id) {
+      const s = slots.find(x => x.id === id);
+      document.getElementById('placement-detail').innerHTML = `
+        <div class="item-card"><div><b>Slot ${s.code}</b><br><small>Kategori: ${(s.category || 'UMUM').toUpperCase()}</small></div>
+        <button class="btn-edit" onclick="openEditSlot('${s.id}')">EDIT</button></div>
+        <button class="btn-action" style="margin-top:10px;" onclick="openModal('booking', ${s.id})">PROSES IZIN & WHATSAPP</button>
+      `;
+    }
+
+    function openModal(type, slotId) {
+      const m = document.getElementById('modal'); const c = document.getElementById('modal-content');
+      m.classList.add('open');
+      if (type === 'booking') {
+        c.innerHTML = `<h3>Penerbitan Izin & QR</h3>
+          <select class="form-input" id="b-vendor">${traders.map(v=>`<option value="${v.id}">${v.name}</option>`).join('')}</select>
+          <select class="form-input" id="b-shift" style="margin-top:10px"><option value="pagi">Shift Pagi</option><option value="siang">Shift Siang</option><option value="malam">Shift Malam</option><option value="full-day">Full Day</option></select>
+          <div id="qr-display" style="display:none; text-align:center;"><div id="qrcode" style="display:inline-block; padding:15px; background:#fff; margin:20px; border-radius:12px;"></div><br><small style="color:var(--success); font-weight:700">✅ BUKTI BAYAR DIKIRIM KE WHATSAPP</small><br><button class="btn-action" style="background:var(--success); margin-top:15px;" onclick="closeModal()">Selesai</button></div>
+          <div id="booking-actions" style="display:flex;gap:10px;margin-top:20px;"><button class="btn-action" style="background:#334155" onclick="closeModal()">Batal</button><button class="btn-action" onclick="processBooking(${slotId})">Konfirmasi & Kirim WA</button></div>`;
+      } else if (type === 'vendor') {
+        c.innerHTML = `<h3>Registrasi Baru</h3><input class="form-input" id="v-name" placeholder="Nama"><input class="form-input" id="v-nik" placeholder="NIK">
+          <div style="display:flex;gap:10px;margin-top:20px;"><button class="btn-action" style="background:#334155" onclick="closeModal()">Batal</button><button class="btn-action" onclick="saveVendor()">Simpan</button></div>`;
+      }
+    }
+
+    async function processBooking(slotId) {
+      const b = { slot_id:slotId, vendor_id:document.getElementById('b-vendor').value, shift:document.getElementById('b-shift').value, date:new Date().toISOString().split('T')[0] };
+      const r = await fetch(`${API}/grid-book`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body=JSON.stringify(b)) });
+      const d = await r.json();
+      document.getElementById('booking-actions').style.display='none'; document.getElementById('qr-display').style.display='block';
+      new QRCode(document.getElementById("qrcode"), { text: d.qr_code, width: 200, height: 200 });
+    }
+
+    function closeModal() { document.getElementById('modal').classList.remove('open'); }
+  </script>
+</body>
+</html>

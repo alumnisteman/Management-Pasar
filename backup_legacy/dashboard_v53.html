@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SVMS Admin v5.3 – Ultimate Intelligence Control</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" />
+  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg: #020617;
+      --card: #0f172a;
+      --border: #1e293b;
+      --primary: #6366f1;
+      --accent: #d946ef;
+      --text: #f8fafc;
+      --muted: #64748b;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --basah: #38bdf8;
+      --kering: #4ade80;
+      --kuliner: #fb923c;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ─── Login Gate ─── */
+    #login-gate {
+      position: fixed; inset: 0; background: var(--bg); z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .login-box {
+      width: 420px; padding: 56px; background: var(--card); border: 1px solid var(--border);
+      border-radius: 36px; text-align: center; box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+    }
+    .login-input {
+      width: 100%; padding: 16px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 16px; color: #fff; margin-top: 32px; outline: none; text-align: center; font-size: 24px;
+    }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px; height: 64px; background: var(--card); border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .logo-text { font-weight: 800; font-size: 24px; letter-spacing: -0.04em; }
+
+    .tabs {
+      display: flex; background: var(--card); border-bottom: 1px solid var(--border);
+      padding: 0 32px; gap: 24px; flex-shrink: 0;
+    }
+    .tab {
+      padding: 16px 4px; font-size: 13px; font-weight: 600; color: var(--muted);
+      cursor: pointer; border-bottom: 2px solid transparent; transition: 0.3s;
+    }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    .main { display: flex; flex: 1; overflow: hidden; }
+
+    .sidebar {
+      width: 500px; background: var(--card); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow-y: auto;
+    }
+    .sidebar-section { padding: 24px; border-bottom: 1px solid var(--border); }
+    .sidebar-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 16px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    /* Pulse Stats */
+    .pulse-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .pulse-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 18px;
+      padding: 20px; border-top: 4px solid var(--primary);
+    }
+    .pulse-val { font-size: 22px; font-weight: 800; margin-top: 6px; }
+    .pulse-lbl { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+
+    /* Grid Layout (The "Blok-Blok") */
+    .grid-layout {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
+    }
+    .grid-block {
+      aspect-ratio: 1; background: var(--bg); border: 2px solid var(--border);
+      border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; transition: 0.2s; position: relative;
+    }
+    .grid-block:hover { transform: translateY(-4px); border-color: var(--primary); }
+    .grid-block.basah { border-color: var(--basah); box-shadow: 0 0 15px rgba(56, 189, 248, 0.1); }
+    .grid-block.kering { border-color: var(--kering); box-shadow: 0 0 15px rgba(74, 222, 128, 0.1); }
+    .grid-block.kuliner { border-color: var(--kuliner); box-shadow: 0 0 15px rgba(251, 146, 60, 0.1); }
+    .grid-block.occupied { background: var(--primary); color: #fff !important; border-color: var(--primary); }
+    
+    .block-code { font-size: 16px; font-weight: 900; }
+    .block-cat { font-size: 7px; font-weight: 800; margin-top: 4px; opacity: 0.6; }
+
+    .item-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 16px;
+      padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .btn-action {
+      width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary), var(--accent));
+      border: none; border-radius: 14px; color: #fff; font-weight: 700; cursor: pointer;
+    }
+
+    #map { flex: 1; }
+
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+      z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(10px);
+    }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 28px; padding: 32px; width: 500px; }
+  </style>
+</head>
+<body>
+
+  <!-- 🛑 Login Gate -->
+  <div id="login-gate">
+    <div class="login-box">
+      <h2 style="font-weight: 800;">ADMIN LOGIN</h2>
+      <input type="password" class="login-input" id="admin-pin" placeholder="••••">
+      <button class="btn-action" style="margin-top: 24px;" onclick="checkPin()">MASUK</button>
+    </div>
+  </div>
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🏢</div>
+      <div class="logo-text">SV<span>MS</span> <small style="font-size: 10px; opacity: 0.5;">v5.3 Intelligence</small></div>
+    </div>
+    <div style="font-size:11px; color:var(--danger); font-weight:800; cursor:pointer;" onclick="logout()">LOGOUT</div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-grid" onclick="switchTab('grid')">🔳 ZONASI & LAPAK</div>
+    <div class="tab" id="tab-vendors" onclick="switchTab('vendors')">👤 DAFTAR PEDAGANG</div>
+    <div class="tab" id="tab-pulse" onclick="switchTab('pulse')">📈 ANALITIK</div>
+  </div>
+
+  <div class="main">
+    <div class="sidebar">
+      
+      <!-- 1. Zonasi & Lapak (The Physical Blocks) -->
+      <div id="sidebar-grid">
+        <div class="sidebar-section">
+          <div class="sidebar-title">MANAJEMEN BLOK & LAPAK 🔳</div>
+          <div class="grid-layout" id="grid-view">
+            <!-- Blocks will appear here -->
+          </div>
+          <div style="display:flex; gap:10px; margin-top:16px; font-size:8px; font-weight:800; opacity:0.8;">
+            <div style="display:flex; align-items:center; gap:4px;"><div style="width:10px; height:10px; background:var(--basah); border-radius:3px;"></div> BASAH</div>
+            <div style="display:flex; align-items:center; gap:4px;"><div style="width:10px; height:10px; background:var(--kering); border-radius:3px;"></div> KERING</div>
+            <div style="display:flex; align-items:center; gap:4px;"><div style="width:10px; height:10px; background:var(--kuliner); border-radius:3px;"></div> KULINER</div>
+          </div>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-title">KONTROL PENEMPATAN</div>
+          <div id="placement-detail" style="font-size:12px; color:var(--muted)">Pilih salah satu blok lapak di atas.</div>
+        </div>
+      </div>
+
+      <!-- 2. Daftar Pedagang (The CRM/People) -->
+      <div id="sidebar-vendors" style="display: none;">
+        <div class="sidebar-section">
+          <button class="btn-action" onclick="openModal('vendor')">+ REGISTRASI PEDAGANG</button>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-title">DATABASE PEDAGANG 👤</div>
+          <div id="vendor-list"></div>
+        </div>
+      </div>
+
+      <!-- 3. Pulse / Analytics -->
+      <div id="sidebar-pulse" style="display: none;">
+        <div class="sidebar-section">
+          <div class="sidebar-title">PERFORMA EKSEKUTIF 📊</div>
+          <div class="pulse-grid">
+            <div class="pulse-card"><div class="pulse-lbl">Total Revenue</div><div class="pulse-val" id="rev-val">Rp 0</div></div>
+            <div class="pulse-card"><div class="pulse-lbl">Okupansi</div><div class="pulse-val" id="fill-rate">0%</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div id="map"></div>
+  </div>
+
+  <div class="modal-overlay" id="modal"><div class="modal" id="modal-content"></div></div>
+
+  <script>
+    const API = 'http://103.175.219.57:8001/api';
+    let traders = [], slots = [], map;
+
+    function checkPin() {
+      if (document.getElementById('admin-pin').value === '1234') {
+        localStorage.setItem('svms_auth', 'true');
+        document.getElementById('login-gate').style.display = 'none';
+        initApp();
+      } else { alert('PIN Salah!'); }
+    }
+    if (localStorage.getItem('svms_auth') === 'true') {
+      document.getElementById('login-gate').style.display = 'none';
+      initApp();
+    }
+
+    function logout() { localStorage.removeItem('svms_auth'); location.reload(); }
+
+    function initApp() {
+      map = new maplibregl.Map({
+        container: 'map',
+        style: { version: 8, sources: { osm: { type: 'raster', tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'], tileSize: 256 } }, layers: [{ id: 'osm', type: 'raster', source: 'osm' }] },
+        center: [127.385, 0.793], zoom: 14
+      });
+      map.on('load', refreshAll);
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(`tab-${tab}`).classList.add('active');
+      ['grid', 'vendors', 'pulse'].forEach(k => document.getElementById(`sidebar-${k}`).style.display = tab === k ? 'block' : 'none');
+      refreshAll();
+    }
+
+    async function refreshAll() {
+      const resVendors = await fetch(`${API}/vendors`); traders = await resVendors.json();
+      const resSlots = await fetch(`${API}/grid-slots`); slots = await resSlots.json();
+      renderVendors(); renderSlots(); renderPulse();
+    }
+
+    function renderVendors() {
+      document.getElementById('vendor-list').innerHTML = traders.map(t => `
+        <div class="item-card"><div><b>${t.name}</b><br><small>${t.nik}</small></div>
+        <button style="background:none; border:none; color:var(--primary); font-weight:700; cursor:pointer;" onclick="openEditTrader('${t.id}')">EDIT</button></div>
+      `).join('');
+    }
+
+    function renderSlots() {
+      if (slots.length === 0) { document.getElementById('grid-view').innerHTML = '<p style="color:var(--muted); font-size:12px;">Tidak ada data lapak.</p>'; return; }
+      document.getElementById('grid-view').innerHTML = slots.map(s => `
+        <div class="grid-block ${s.category || 'umum'} ${s.status === 'active' ? '' : 'occupied'}" onclick="selectSlot(${s.id})">
+          <div class="block-code">${s.code}</div>
+          <div class="block-cat">${(s.category || 'UMUM').toUpperCase()}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderPulse() {
+      const occupied = slots.filter(s => s.status !== 'active').length;
+      const rate = slots.length > 0 ? (occupied / slots.length * 100).toFixed(1) : 0;
+      document.getElementById('fill-rate').textContent = rate + '%';
+    }
+
+    function selectSlot(id) {
+      const s = slots.find(x => x.id === id);
+      document.getElementById('placement-detail').innerHTML = `
+        <div class="item-card"><div><b>Slot ${s.code}</b><br><small>Status: ${s.status.toUpperCase()}</small></div>
+        <button style="background:none; border:none; color:var(--primary); font-weight:700; cursor:pointer;" onclick="openEditSlot('${s.id}')">EDIT</button></div>
+        <button class="btn-action" style="margin-top:10px;" onclick="openModal('booking', ${s.id})">PENEMPATAN PEDAGANG</button>
+      `;
+    }
+
+    function openModal(type, slotId) {
+      const m = document.getElementById('modal'); const c = document.getElementById('modal-content');
+      m.classList.add('open');
+      if (type === 'booking') {
+        c.innerHTML = `<h3>Penempatan ke Slot</h3>
+          <select class="form-input" id="b-vendor" style="margin-top:16px;">${traders.map(v=>`<option value="${v.id}">${v.name}</option>`).join('')}</select>
+          <div style="display:flex; gap:10px; margin-top:24px;"><button class="btn-action" style="background:#334155" onclick="closeModal()">BATAL</button>
+          <button class="btn-action" onclick="processBooking(${slotId})">KONFIRMASI</button></div>`;
+      }
+    }
+
+    async function processBooking(slotId) {
+      const b = { slot_id:slotId, vendor_id:document.getElementById('b-vendor').value, shift:'pagi', date:new Date().toISOString().split('T')[0] };
+      await fetch(`${API}/grid-book`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(b) });
+      closeModal(); refreshAll();
+    }
+
+    function closeModal() { document.getElementById('modal').classList.remove('open'); }
+  </script>
+</body>
+</html>
