@@ -1,0 +1,22 @@
+import paramiko
+
+def check_steman_nginx():
+    host = "103.175.219.57"
+    user = "root"
+    password = "M4ruw4h3@"
+    
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    
+    try:
+        client.connect(host, username=user, password=password)
+        # Find where the steman nginx config is
+        stdin, stdout, stderr = client.exec_command("find /var/www/steman-alumni -name '*.conf'")
+        print("Steman Nginx configs:")
+        print(stdout.read().decode())
+        client.close()
+    except Exception as e:
+        print(f"Error: {e}")
+
+if __name__ == "__main__":
+    check_steman_nginx()
