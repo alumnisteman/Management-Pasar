@@ -1010,8 +1010,12 @@
       lucide.createIcons();
 
       try {
+        const codeVal = document.getElementById('s-code').value;
+        if (!codeVal) {
+          throw new Error("Kode Lapak harus diisi!");
+        }
         const body = {
-          code: document.getElementById('s-code').value,
+          code: codeVal,
           category: document.getElementById('s-category').value,
           price: document.getElementById('s-price').value
         };
