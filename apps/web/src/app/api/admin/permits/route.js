@@ -1,4 +1,4 @@
-const BACKEND = process.env.BACKEND_URL || "http://svms-app-1:8000";
+const BACKEND = process.env.BACKEND_URL || "http://103.175.219.57:8001";
 
 export async function GET(request) {
   try {
