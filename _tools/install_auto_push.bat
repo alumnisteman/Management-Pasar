@@ -9,3 +9,4 @@ if %errorlevel% equ 0 (
     echo GAGAL! Pastikan Anda menjalankan file ini dengan "Run as Administrator".
 )
 pause
+STOP
