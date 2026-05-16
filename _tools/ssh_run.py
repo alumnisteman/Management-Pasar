@@ -1,6 +1,11 @@
 import paramiko
 import sys
 import os
+import io
+
+# Ensure stdout handles UTF-8 correctly
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
 def run_ssh_command(host, user, password, command):
     try:
