@@ -9,10 +9,14 @@
         "laravel/framework": "^11.0",
         "laravel/tinker": "^2.9",
         "laravel/scout": "^10.8",
+        "laravel/sanctum": "^4.0",
+        "laravel/reverb": "^1.0",
+        "tymon/jwt-auth": "^2.1",
         "meilisearch/meilisearch-php": "^1.7",
         "pusher/pusher-php-server": "^7.2"
     },
     "require-dev": {
+        "barryvdh/laravel-ide-helper": "^3.0",
         "fakerphp/faker": "^1.23",
         "laravel/pint": "^1.13",
         "laravel/sail": "^1.26",
