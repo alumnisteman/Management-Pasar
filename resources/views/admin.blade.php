@@ -971,6 +971,79 @@
     }
 
     // --- Modal Actions ---
+    function openSlotModal() {
+      const overlay = document.getElementById('modal-overlay');
+      const content = document.getElementById('modal-content');
+      content.innerHTML = `
+        <h3 style="font-size:24px; font-weight:800; margin-bottom:24px;">Tambah Slot Lapak Baru</h3>
+        <div class="form-group">
+          <label class="form-label">Kode Lapak (Contoh: A-01)</label>
+          <input type="text" id="s-code" class="form-input" placeholder="Masukkan kode lapak">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Zonasi (Kategori)</label>
+          <select id="s-category" class="form-input">
+            <option value="gold">GOLD ZONE (Premium)</option>
+            <option value="silver" selected>SILVER ZONE (Standard)</option>
+            <option value="bronze">BRONZE ZONE (Basic)</option>
+            <option value="umum">UMUM</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Harga Retribusi Harian (Rp)</label>
+          <input type="number" id="s-price" class="form-input" placeholder="15000" value="15000">
+        </div>
+        <div style="display:flex; gap:12px; margin-top:32px;">
+          <button class="btn btn-ghost" style="flex:1;" onclick="closeModal()">Batal</button>
+          <button class="btn btn-primary" style="flex:2;" onclick="saveSlot()">Simpan Slot</button>
+        </div>
+      `;
+      overlay.classList.add('active');
+      lucide.createIcons();
+    }
+
+    async function saveSlot() {
+      const btn = event.currentTarget;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i data-lucide="loader" class="animate-spin"></i> SAVING...';
+      btn.disabled = true;
+      lucide.createIcons();
+
+      try {
+        const body = {
+          code: document.getElementById('s-code').value,
+          category: document.getElementById('s-category').value,
+          price: document.getElementById('s-price').value
+        };
+        
+        const res = await fetch(`${API_BASE}/stalls`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('token')
+          },
+          body: JSON.stringify(body)
+        });
+        
+        if (res.ok) {
+          closeModal();
+          fetchSlots();
+          Toastify({ text: "Lapak baru berhasil ditambahkan!", backgroundColor: "var(--success)" }).showToast();
+        } else {
+          const err = await res.json();
+          throw new Error(err.message || "Gagal menambah lapak");
+        }
+      } catch (e) {
+        console.error("Save failed:", e);
+        Toastify({ text: e.message, backgroundColor: "var(--danger)" }).showToast();
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        lucide.createIcons();
+      }
+    }
+
     function openVendorModal() {
       const overlay = document.getElementById('modal-overlay');
       const content = document.getElementById('modal-content');

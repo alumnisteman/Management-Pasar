@@ -31,12 +31,14 @@ class StallController extends Controller
     {
         $data = $request->validate([
             'code' => 'required|string|max:50|unique:slots,code',
-            'category' => 'required|string|in:basah,kering,kuliner,umum'
+            'category' => 'required|string|in:gold,silver,bronze,basah,kering,kuliner,umum',
+            'price' => 'nullable|numeric'
         ]);
 
         $slot = Slot::create([
             'code' => $data['code'],
             'category' => $data['category'],
+            'price' => $data['price'] ?? 15000,
             'status' => 'active'
         ]);
 
