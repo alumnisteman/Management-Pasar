@@ -11,6 +11,32 @@ use Illuminate\Support\Str;
 class PermitController extends Controller
 {
     /**
+     * Display a listing of permits.
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function index()
+    {
+        $permits = Permit::with(['trader', 'slot'])
+            ->orderBy('issued_at', 'desc')
+            ->paginate(20);
+
+        return response()->json($permits);
+    }
+
+    /**
+     * Display the specified permit.
+     * 
+     * @param  string  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function show($id)
+    {
+        $permit = Permit::with(['trader', 'slot'])->findOrFail($id);
+        return response()->json($permit);
+    }
+
+    /**
      * Generate a new digital permit for a trader.
      * 
      * @param  \Illuminate\Http\Request  $request
