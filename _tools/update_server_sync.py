@@ -18,9 +18,10 @@ if [[ -n $(git status --porcelain) ]]; then
     git push origin master
 fi
 
-# 2. Pull updates from GitHub
-echo "Pulling updates from GitHub..."
-git pull origin master
+# 2. Pull updates from GitHub (Force sync to master)
+echo "Force syncing from GitHub..."
+git fetch origin master
+git reset --hard origin/master
 """
     
     client = paramiko.SSHClient()
