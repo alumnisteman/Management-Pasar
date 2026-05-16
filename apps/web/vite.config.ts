@@ -82,7 +82,7 @@ export default defineConfig({
   server: {
     allowedHosts: true,
     host: '0.0.0.0',
-    port: 4000,
+    port: Number(process.env.PORT) || 4000,
     fs: {
       allow: ['..', '../../shared'],
     },
