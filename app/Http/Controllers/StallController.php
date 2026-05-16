@@ -8,6 +8,22 @@ use Illuminate\Http\Request;
 
 class StallController extends Controller
 {
+    /**
+     * Display a listing of stalls.
+     */
+    public function index()
+    {
+        return response()->json(Slot::orderBy('code', 'asc')->paginate(30));
+    }
+
+    /**
+     * Display the specified stall.
+     */
+    public function show($id)
+    {
+        return response()->json(Slot::findOrFail($id));
+    }
+
     public function update(Request $request, $id)
     {
         $slot = Slot::findOrFail($id);
