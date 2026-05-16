@@ -1,14 +1,14 @@
 import { useNavigate, useLocation } from 'react-router';
 import { useCallback, useEffect, useState } from 'react';
 
-interface ParentSitemap {
+type ParentSitemap = {
   webPages?: Array<{
     id: string;
     name: string;
     filePath: string;
     cleanRoute?: string;
   }>;
-}
+};
 
 export default function CreateDefaultNotFoundPage() {
   const location = useLocation();
