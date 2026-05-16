@@ -37,6 +37,27 @@ class PermitController extends Controller
     }
 
     /**
+     * Update the specified permit (status / expiry).
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @param  string  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function update(Request $request, $id)
+    {
+        $permit = Permit::findOrFail($id);
+
+        $data = $request->validate([
+            'status'     => 'sometimes|in:active,expired',
+            'expires_at' => 'sometimes|date',
+        ]);
+
+        $permit->update($data);
+
+        return response()->json($permit->load(['trader', 'slot']));
+    }
+
+    /**
      * Generate a new digital permit for a trader.
      * 
      * @param  \Illuminate\Http\Request  $request
