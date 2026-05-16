@@ -140,6 +140,7 @@ if (process.env.AUTH_SECRET) {
                   provider: { label: 'Provider', type: 'text' },
                 },
                 authorize: async (credentials) => {
+                  const { email, name, provider } = credentials;
                   if (!email || typeof email !== 'string' || !adapter) return null;
 
                   const existing = await adapter.getUserByEmail(email);
