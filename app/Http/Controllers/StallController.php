@@ -29,6 +29,7 @@ class StallController extends Controller
 
     public function store(Request $request)
     {
+        \Log::info('Store Slot Request:', $request->all());
         $data = $request->validate([
             'code' => 'required|string|max:50|unique:slots,code',
             'category' => 'required|string|in:gold,silver,bronze,basah,kering,kuliner,umum',

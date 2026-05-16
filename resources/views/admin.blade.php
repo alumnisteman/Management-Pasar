@@ -1016,6 +1016,7 @@
           price: document.getElementById('s-price').value
         };
         
+        console.log("Saving slot:", body);
         const res = await fetch(`${API_BASE}/stalls`, {
           method: 'POST',
           headers: { 
