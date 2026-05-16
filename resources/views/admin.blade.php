@@ -846,7 +846,8 @@
       try {
         const res = await fetch(`${API_BASE}/grid-slots?t=${Date.now()}`);
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        const slots = await res.json();
+        const result = await res.json();
+        const slots = result.data || result; // Handle pagination
         
         if (!slots || slots.length === 0) {
            container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--text-muted);">Tidak ada data lapak ditemukan. Silakan tambah slot baru.</div>';
@@ -928,7 +929,8 @@
         const res = await fetch(`${API_BASE}/permits`, {
           headers: { 'Accept': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('token') }
         });
-        const data = await res.json();
+        const result = await res.json();
+        const data = result.data || result; // Handle paginated or flat arrays
         tbody.innerHTML = data.map(p => `
           <tr>
             <td><div style="font-weight:700;">${p.permit_number}</div><div style="font-size:10px; opacity:0.6;">${p.trader ? p.trader.name : 'Unknown'}</div></td>
