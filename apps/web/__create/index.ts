@@ -35,10 +35,10 @@ for (const method of ['log', 'info', 'warn', 'error', 'debug'] as const) {
   };
 }
 
-const pool = new Pool({
+const pool = process.env.DATABASE_URL ? new Pool({
   connectionString: process.env.DATABASE_URL,
-});
-const adapter = NeonAdapter(pool);
+}) : null;
+const adapter = pool ? NeonAdapter(pool) : null;
 
 const app = new Hono();
 
