@@ -4,7 +4,7 @@ import { reactRouterHonoServer } from 'react-router-hono-server/dev';
 import { defineConfig } from 'vite';
 import babel from 'vite-plugin-babel';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import { addRenderIds } from './plugins/addRenderIds';
+// import { addRenderIds } from './plugins/addRenderIds';
 import { aliases } from './plugins/aliases';
 import consoleToParent from './plugins/console-to-parent';
 import { layoutWrapperPlugin } from './plugins/layouts';
@@ -60,7 +60,7 @@ export default defineConfig({
     }),
     consoleToParent(),
     loadFontsFromTailwindSource(),
-    addRenderIds(),
+    // addRenderIds(),
     reactRouter(),
     tsconfigPaths(),
     aliases(),
