@@ -1,5 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import nodeConsole from 'node:console';
+import crypto from 'node:crypto';
 import { skipCSRFCheck } from '@auth/core';
 import Credentials from '@auth/core/providers/credentials';
 import { authHandler, initAuthConfig } from '@hono/auth-js';
@@ -139,8 +140,7 @@ if (process.env.AUTH_SECRET) {
                   provider: { label: 'Provider', type: 'text' },
                 },
                 authorize: async (credentials) => {
-                  const { email, name, provider } = credentials;
-                  if (!email || typeof email !== 'string') return null;
+                  if (!email || typeof email !== 'string' || !adapter) return null;
 
                   const existing = await adapter.getUserByEmail(email);
                   if (existing) return existing;
@@ -151,6 +151,7 @@ if (process.env.AUTH_SECRET) {
                       ? provider.toLowerCase()
                       : 'google';
                   const newUser = await adapter.createUser({
+                    id: crypto.randomUUID(),
                     emailVerified: null,
                     email,
                     name:
@@ -192,6 +193,7 @@ if (process.env.AUTH_SECRET) {
             }
 
             // logic to verify if user exists
+            if (!adapter) return null;
             const user = await adapter.getUserByEmail(email);
             if (!user) {
               return null;
@@ -238,9 +240,11 @@ if (process.env.AUTH_SECRET) {
             }
 
             // logic to verify if user exists
+            if (!adapter) return null;
             const user = await adapter.getUserByEmail(email);
             if (!user) {
               const newUser = await adapter.createUser({
+                id: crypto.randomUUID(),
                 emailVerified: null,
                 email,
                 name: typeof name === 'string' && name.length > 0 ? name : undefined,
