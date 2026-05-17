@@ -12,7 +12,7 @@ export async function GET(request) {
         FROM porters p 
         WHERE p.id = ${id}
       `;
-      return Response.json(porter[0]);
+      return Response.json(porter[0] || null);
     }
 
     const porters = await sql`SELECT * FROM porters ORDER BY name ASC`;

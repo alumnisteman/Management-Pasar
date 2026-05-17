@@ -374,7 +374,18 @@ export async function executeSQL(queryStr, values = []) {
   }
 
   // ── 6. PORTERS QUERIES ──
-  if (query.includes('FROM porters') && query.includes('SELECT *')) {
+  if (query.includes('FROM porters')) {
+    if (query.includes('WHERE p.id =') || query.includes('WHERE id =')) {
+      const idVal = values[0];
+      const p = db.porters.find(p => p.id === Number(idVal)) || db.porters[0] || null;
+      if (p) {
+        return [{
+          ...p,
+          daily_earnings: 25000
+        }];
+      }
+      return [];
+    }
     return db.porters;
   }
 
