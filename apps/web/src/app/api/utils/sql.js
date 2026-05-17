@@ -73,6 +73,9 @@ function saveDB(data) {
 
 // Custom SQL query parser and executor
 export async function executeSQL(queryStr, values = []) {
+  if (typeof queryStr !== 'string') {
+    return queryStr;
+  }
   const db = loadDB();
   const query = queryStr.trim().replace(/\s+/g, ' ');
 
@@ -454,7 +457,15 @@ const sql = async (stringsOrQuery, ...values) => {
 sql.transaction = async (queries) => {
   const results = [];
   for (const q of queries) {
-    results.push(await executeSQL(q.strings ? q.strings.join('?') : q, q.values || []));
+    if (q instanceof Promise || (q && typeof q.then === 'function')) {
+      results.push(await q);
+    } else if (typeof q === 'string') {
+      results.push(await executeSQL(q));
+    } else if (q && q.strings) {
+      results.push(await executeSQL(q.strings.join('?'), q.values || []));
+    } else {
+      results.push(await q);
+    }
   }
   return results;
 };
