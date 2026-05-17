@@ -1,5 +1,6 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 import { useRole } from "@/app/useRole";
 import {
   LayoutDashboard,
@@ -13,6 +14,8 @@ import {
   X,
   ChevronRight,
   Bell,
+  LogOut,
+  UserCog
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 
@@ -59,18 +62,38 @@ const navItems = [
     icon: ShieldCheck,
     color: "text-gray-500",
   },
+  {
+    href: "/admin/users",
+    label: "Manajemen Akun",
+    icon: UserCog,
+    color: "text-pink-500",
+  },
 ];
 
 export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [role, changeRole] = useRole();
+  const [role, changeRole, , logout, user] = useRole();
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
+  const navigate = useNavigate();
   const [currentPath, setCurrentPath] = useState(
     typeof window !== "undefined" ? window.location.pathname : "/admin",
   );
 
+  // Auth Guard
+  useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("svms_token") : null;
+    if (!token) {
+      navigate("/login");
+    }
+  }, [navigate]);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   const filteredNavItems = navItems.filter((item) => {
-    if (role === "petugas" && item.href === "/admin/audit") {
+    if (role !== "admin" && (item.href === "/admin/audit" || item.href === "/admin/users")) {
       return false;
     }
     return true;
@@ -181,11 +204,11 @@ export default function AdminLayout({ children }) {
                   "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 text-white",
                   role === "admin" ? "bg-blue-600" : "bg-orange-500"
                 )}>
-                  {role === "admin" ? "A" : "P"}
+                  {user?.name ? user.name[0].toUpperCase() : (role === "admin" ? "A" : "P")}
                 </div>
                 <div className="hidden sm:block">
-                  <p className="text-xs font-bold leading-none text-white capitalize">{role}</p>
-                  <p className="text-[9px] text-gray-500 font-medium mt-0.5">Ubah Role</p>
+                  <p className="text-xs font-bold leading-none text-white">{user?.name || "User"}</p>
+                  <p className="text-[9px] text-gray-500 font-medium mt-0.5 capitalize">{role}</p>
                 </div>
               </button>
 
@@ -195,32 +218,28 @@ export default function AdminLayout({ children }) {
                     className="fixed inset-0 z-40" 
                     onClick={() => setRoleMenuOpen(false)}
                   />
-                  <div className="absolute right-0 top-full mt-2 w-40 bg-[#16181F] border border-white/10 rounded-xl shadow-xl py-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-100">
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-[#16181F] border border-white/10 rounded-xl shadow-xl py-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-100">
+                    <div className="px-3 py-2 border-b border-white/5 mb-1">
+                      <p className="text-xs font-bold text-white truncate">{user?.name || "User"}</p>
+                      <p className="text-[10px] text-gray-400 capitalize">{role}</p>
+                    </div>
+                    
+                    {role === "admin" && (
+                      <a
+                        href="/admin/users"
+                        className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-white/5 transition-colors text-gray-300"
+                      >
+                        <UserCog size={14} className="text-gray-400" />
+                        Kelola Akun
+                      </a>
+                    )}
+                    
                     <button
-                      onClick={() => {
-                        changeRole("admin");
-                        setRoleMenuOpen(false);
-                      }}
-                      className={twMerge(
-                        "w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-white/5 transition-colors",
-                        role === "admin" ? "text-blue-400" : "text-gray-400"
-                      )}
+                      onClick={handleLogout}
+                      className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-red-500/10 transition-colors text-red-400 mt-1"
                     >
-                      <span className="w-2 h-2 rounded-full bg-blue-500" />
-                      Administrator
-                    </button>
-                    <button
-                      onClick={() => {
-                        changeRole("petugas");
-                        setRoleMenuOpen(false);
-                      }}
-                      className={twMerge(
-                        "w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-white/5 transition-colors",
-                        role === "petugas" ? "text-orange-400" : "text-gray-400"
-                      )}
-                    >
-                      <span className="w-2 h-2 rounded-full bg-orange-500" />
-                      Petugas Lapangan
+                      <LogOut size={14} />
+                      Logout
                     </button>
                   </div>
                 </>

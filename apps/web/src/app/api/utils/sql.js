@@ -6,6 +6,10 @@ const DB_PATH = path.resolve(process.cwd(), 'svms_db.json');
 
 // Default initial seed data
 const DEFAULT_DB = {
+  users: [
+    { id: 1, username: "admin", name: "Administrator Utama", password: "123", role: "admin", status: "active", created_at: "2026-05-01T00:00:00.000Z" },
+    { id: 2, username: "petugas", name: "Petugas Lapangan", password: "123", role: "petugas", status: "active", created_at: "2026-05-01T00:00:00.000Z" }
+  ],
   traders: [
     { id: 1, name: "Budi Santoso", nik: "3171012345670001", phone: "081234567890", trader_type: "tetap", stall_id: 1, joined_at: "2026-01-15T08:00:00.000Z", status: "active" },
     { id: 2, name: "Siti Aminah", nik: "3171012345670002", phone: "081234567891", trader_type: "tetap", stall_id: 2, joined_at: "2026-02-10T09:30:00.000Z", status: "active" },
@@ -437,6 +441,53 @@ export async function executeSQL(queryStr, values = []) {
     db.audit_logs.push(newLog);
     saveDB(db);
     return [newLog];
+  }
+
+  // ── 9. USERS QUERIES ──
+  if (query.includes('FROM users')) {
+    if (query.includes('WHERE username =')) {
+      const username = values[0];
+      return db.users.filter(u => u.username === username && u.status === 'active');
+    }
+    return db.users;
+  }
+
+  if (query.includes('INSERT INTO users')) {
+    const [username, name, password, role] = values;
+    const newId = db.users.reduce((max, u) => Math.max(max, u.id), 0) + 1;
+    const newUser = {
+      id: newId,
+      username,
+      name,
+      password, // In a real app, hash this!
+      role,
+      status: 'active',
+      created_at: new Date().toISOString()
+    };
+    db.users.push(newUser);
+    saveDB(db);
+    return [newUser];
+  }
+
+  if (query.includes('UPDATE users SET')) {
+    const id = values[4] || values[3] || values[2]; // fallback index depending on query structure
+    // Let's make it robust by checking the values array
+    // Assuming query is UPDATE users SET name = $1, role = $2, status = $3, password = $4 WHERE id = $5
+    // But since it varies, let's parse based on standard indices we'll use in our route.
+    
+    // We will find the user by ID (always the last parameter we pass in our route)
+    const targetId = values[values.length - 1];
+    const user = db.users.find(u => u.id === targetId);
+    
+    if (user) {
+      if (query.includes('name = $')) user.name = values[0];
+      if (query.includes('role = $')) user.role = values[1];
+      if (query.includes('status = $')) user.status = values[2];
+      if (query.includes('password = $')) user.password = values[3];
+      saveDB(db);
+      return [user];
+    }
+    return [];
   }
 
   // Generic fallback: empty array
