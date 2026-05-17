@@ -49,7 +49,10 @@ export default defineConfig({
           ['@babel/preset-react', { runtime: 'automatic' }],
           '@babel/preset-typescript',
         ],
-        plugins: ['styled-jsx/babel'],
+        plugins: [
+          'styled-jsx/babel',
+          'babel-plugin-react-require',
+        ],
       },
     }),
     restart({
