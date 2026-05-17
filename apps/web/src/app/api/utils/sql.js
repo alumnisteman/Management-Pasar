@@ -48,6 +48,15 @@ const DEFAULT_DB = {
     { id: 1, module: "Sistem", action: "LOGIN", user_name: "Admin", description: "Admin masuk ke sistem", ip_address: "127.0.0.1", created_at: "2026-05-17T12:00:00.000Z" },
     { id: 2, module: "Pedagang", action: "CREATE", user_name: "Admin", description: "Pedagang baru terdaftar: Dewi Lestari", ip_address: "127.0.0.1", created_at: "2026-05-17T11:00:00.000Z" },
     { id: 3, module: "Billing", action: "PAYMENT", user_name: "Admin", description: "Tagihan lunas - Budi Santoso", ip_address: "127.0.0.1", created_at: "2026-05-17T10:00:00.000Z" }
+  ],
+  users: [
+    { id: 1, name: "Admin SVMS", email: "admin@svms.id", password: "admin123", role: "admin" },
+    { id: 2, name: "Petugas Pasar", email: "petugas@svms.id", password: "petugas123", role: "petugas" }
+  ],
+  zone_pricing: [
+    { zone: "gold",   base_price: 750000, suggested_price: 862500, min_price: 600000,  max_price: 1200000 },
+    { zone: "silver", base_price: 500000, suggested_price: 500000, min_price: 400000,  max_price: 850000  },
+    { zone: "bronze", base_price: 350000, suggested_price: 350000, min_price: 280000,  max_price: 600000  }
   ]
 };
 
@@ -56,9 +65,11 @@ function loadDB() {
     if (fs.existsSync(DB_PATH)) {
       const content = fs.readFileSync(DB_PATH, 'utf-8');
       const parsed = JSON.parse(content);
-      // Ensure all tables exist (migrate if needed)
+      // Migrate: add any missing tables
       if (!parsed.porter_jobs) parsed.porter_jobs = DEFAULT_DB.porter_jobs;
       if (!parsed.porter_incentives) parsed.porter_incentives = DEFAULT_DB.porter_incentives;
+      if (!parsed.users) parsed.users = DEFAULT_DB.users;
+      if (!parsed.zone_pricing) parsed.zone_pricing = DEFAULT_DB.zone_pricing;
       return parsed;
     }
   } catch (err) {
@@ -727,6 +738,31 @@ export async function executeSQL(queryStr, values = []) {
       if (expiry_val != null) permit.expiry_date = expiry_val;
       saveDB(db);
       return [permit];
+    }
+    return [];
+  }
+
+  // ── USERS: SELECT by email ──
+  if (query.includes('FROM users') && query.includes('WHERE email =')) {
+    const email = values[0];
+    return (db.users || []).filter(u => u.email === email);
+  }
+
+  // ── ZONE PRICING: SELECT ──
+  if (query.includes('FROM zone_pricing')) {
+    if (!db.zone_pricing) db.zone_pricing = DEFAULT_DB.zone_pricing;
+    return [...db.zone_pricing].sort((a, b) => a.zone.localeCompare(b.zone));
+  }
+
+  // ── ZONE PRICING: UPDATE ──
+  if (query.includes('UPDATE zone_pricing SET suggested_price')) {
+    const [suggested_price, zone] = values;
+    if (!db.zone_pricing) db.zone_pricing = DEFAULT_DB.zone_pricing;
+    const zp = db.zone_pricing.find(z => z.zone === zone);
+    if (zp) {
+      zp.suggested_price = Number(suggested_price);
+      saveDB(db);
+      return [zp];
     }
     return [];
   }

@@ -15,6 +15,7 @@ import {
   FileText,
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
+import { useAuth } from "@/utils/auth";
 
 const statusConfig = {
   active: {
@@ -163,6 +164,7 @@ export default function TradersPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const queryClient = useQueryClient();
+  const { isAdmin } = useAuth();
 
   const { data: traders = [], isLoading } = useQuery({
     queryKey: ["adminTraders", search, statusFilter],
@@ -230,12 +232,14 @@ export default function TradersPage() {
             {traders.length} pedagang ditemukan
           </p>
         </div>
-        <button
-          onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-        >
-          <Plus size={16} /> Daftarkan Baru
-        </button>
+        {isAdmin && (
+          <button
+            onClick={() => setShowAdd(true)}
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+          >
+            <Plus size={16} /> Daftarkan Baru
+          </button>
+        )}
       </div>
 
       {/* Filters */}
@@ -378,48 +382,43 @@ export default function TradersPage() {
                       </span>
                     </td>
                     <td className="px-5 py-4">
-                      <div className="flex gap-2">
-                        {t.status !== "warning" && (
+                      {isAdmin ? (
+                        <div className="flex gap-2">
+                          {t.status !== "warning" && (
+                            <button
+                              onClick={() =>
+                                updateMutation.mutate({ id: t.id, status: "warning" })
+                              }
+                              className="p-1.5 hover:bg-yellow-500/10 text-yellow-500 rounded-lg transition-colors"
+                              title="Beri Peringatan"
+                            >
+                              <AlertTriangle size={14} />
+                            </button>
+                          )}
+                          {t.status === "warning" && (
+                            <button
+                              onClick={() =>
+                                updateMutation.mutate({ id: t.id, status: "active" })
+                              }
+                              className="p-1.5 hover:bg-green-500/10 text-green-500 rounded-lg transition-colors"
+                              title="Aktifkan"
+                            >
+                              <CheckCircle2 size={14} />
+                            </button>
+                          )}
                           <button
                             onClick={() =>
-                              updateMutation.mutate({
-                                id: t.id,
-                                status: "warning",
-                              })
+                              updateMutation.mutate({ id: t.id, status: "inactive" })
                             }
-                            className="p-1.5 hover:bg-yellow-500/10 text-yellow-500 rounded-lg transition-colors"
-                            title="Beri Peringatan"
+                            className="p-1.5 hover:bg-red-500/10 text-red-500 rounded-lg transition-colors"
+                            title="Nonaktifkan"
                           >
-                            <AlertTriangle size={14} />
+                            <UserX size={14} />
                           </button>
-                        )}
-                        {t.status === "warning" && (
-                          <button
-                            onClick={() =>
-                              updateMutation.mutate({
-                                id: t.id,
-                                status: "active",
-                              })
-                            }
-                            className="p-1.5 hover:bg-green-500/10 text-green-500 rounded-lg transition-colors"
-                            title="Aktifkan"
-                          >
-                            <CheckCircle2 size={14} />
-                          </button>
-                        )}
-                        <button
-                          onClick={() =>
-                            updateMutation.mutate({
-                              id: t.id,
-                              status: "inactive",
-                            })
-                          }
-                          className="p-1.5 hover:bg-red-500/10 text-red-500 rounded-lg transition-colors"
-                          title="Nonaktifkan"
-                        >
-                          <UserX size={14} />
-                        </button>
-                      </div>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-600 italic">Lihat-saja</span>
+                      )}
                     </td>
                   </tr>
                 );

@@ -17,6 +17,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
+import { useAuth } from "@/utils/auth";
 
 const statusConfig = {
   active: {
@@ -427,6 +428,25 @@ export default function SiptuPage() {
   const [search, setSearch] = useState("");
   const [showIssue, setShowIssue] = useState(false);
   const queryClient = useQueryClient();
+  const { user, loading, isAdmin } = useAuth();
+
+  if (loading) return null;
+  if (!isAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 gap-4">
+        <div className="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center">
+          <FileText size={28} className="text-orange-400" />
+        </div>
+        <div className="text-center">
+          <p className="text-white font-semibold text-lg">Akses Dibatasi</p>
+          <p className="text-gray-500 text-sm mt-1">Halaman Manajemen SIPTU hanya dapat diakses oleh Admin.</p>
+        </div>
+        <a href="/admin" className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-gray-400 hover:bg-white/10 transition-colors">
+          Kembali ke Dashboard
+        </a>
+      </div>
+    );
+  }
 
   const { data: permits = [], isLoading } = useQuery({
     queryKey: ["adminPermits", filter],

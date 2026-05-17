@@ -16,6 +16,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
+import { useAuth } from "@/utils/auth";
 
 const fmtRp = (n) => `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
 
@@ -232,6 +233,7 @@ export default function BillingPage() {
   const [showWABlast, setShowWABlast] = useState(false);
   const queryClient = useQueryClient();
   const { exportPDF, loading: pdfLoading } = useExportPDF();
+  const { isAdmin } = useAuth();
 
   const { data: bills = [], isLoading } = useQuery({
     queryKey: ["adminBills", month, statusFilter],
@@ -324,14 +326,16 @@ export default function BillingPage() {
           >
             <MessageCircle size={16} /> WA Blast ({unpaidBills.length})
           </button>
-          <button
-            onClick={() => generateMutation.mutate()}
-            disabled={generateMutation.isPending}
-            className="flex items-center gap-2 bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-rose-700 transition-colors disabled:opacity-60"
-          >
-            <Zap size={16} />{" "}
-            {generateMutation.isPending ? "Generating..." : "Generate Tagihan"}
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => generateMutation.mutate()}
+              disabled={generateMutation.isPending}
+              className="flex items-center gap-2 bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-rose-700 transition-colors disabled:opacity-60"
+            >
+              <Zap size={16} />{" "}
+              {generateMutation.isPending ? "Generating..." : "Generate Tagihan"}
+            </button>
+          )}
         </div>
       </div>
 
@@ -449,12 +453,14 @@ export default function BillingPage() {
                     <p className="text-gray-500">
                       Belum ada tagihan untuk bulan ini
                     </p>
-                    <button
-                      onClick={() => generateMutation.mutate()}
-                      className="text-xs text-rose-400 hover:underline flex items-center gap-1"
-                    >
-                      <Plus size={12} /> Generate Tagihan Sekarang
-                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => generateMutation.mutate()}
+                        className="text-xs text-rose-400 hover:underline flex items-center gap-1"
+                      >
+                        <Plus size={12} /> Generate Tagihan Sekarang
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

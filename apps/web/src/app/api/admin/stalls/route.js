@@ -75,7 +75,8 @@ export async function PATCH(request) {
               (Number(stats[0].occupied) / Number(stats[0].total)) * 100,
             )
           : 0;
-      const newPrice = calcDynamicPrice(zone, occupancyRate);
+      // Use custom_price override if provided (admin-edited suggested price), else auto-calculate
+      const newPrice = body.custom_price ? Number(body.custom_price) : calcDynamicPrice(zone, occupancyRate);
 
       const updated = await sql`
         UPDATE stalls SET monthly_fee = ${newPrice} WHERE zone = ${zone} RETURNING *
