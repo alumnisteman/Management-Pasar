@@ -98,7 +98,7 @@ export async function PATCH(request) {
     const updated = await sql`
       UPDATE stalls SET
         status = COALESCE(${status ?? null}, status),
-        trader_id = ${trader_id !== undefined ? trader_id || null : sql`trader_id`},
+        trader_id = ${trader_id !== undefined ? (trader_id || null) : null},
         zone = COALESCE(${zone ?? null}, zone),
         category = COALESCE(${category ?? null}, category),
         monthly_fee = COALESCE(${monthly_fee ?? null}, monthly_fee)

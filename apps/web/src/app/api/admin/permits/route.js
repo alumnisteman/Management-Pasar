@@ -1,4 +1,4 @@
-const BACKEND = process.env.BACKEND_URL || "http://103.175.219.57:8001";
+import sql from "@/app/api/utils/sql";
 
 export async function GET(request) {
   try {
@@ -6,40 +6,45 @@ export async function GET(request) {
     const status = searchParams.get("status") || "";
     const token = searchParams.get("token") || "";
 
-    // QR verification mode - call Laravel verify endpoint
     if (token) {
-      const res = await fetch(`${BACKEND}/api/permits/verify/${encodeURIComponent(token)}`);
-      if (!res.ok) return Response.json({ valid: false });
-      const data = await res.json();
+      const found = await sql`SELECT * FROM permits WHERE qr_token = ${token}`;
+      if (!found || !found[0]) return Response.json({ valid: false });
+      const p = found[0];
+      const today = new Date().toISOString().split("T")[0];
+      const isValid = p.status === "active" && p.expiry_date >= today;
+      const traders = await sql`SELECT * FROM traders`;
+      const stalls = await sql`SELECT * FROM stalls`;
+      const trader = traders.find((t) => t.id === p.trader_id) || {};
+      const stall = stalls.find((s) => s.id === trader.stall_id) || {};
       return Response.json({
-        valid: data.is_valid ?? false,
+        valid: isValid,
         permit: {
-          trader_name: data.trader,
-          permit_number: data.permit_number,
-          stall_code: data.slot,
-          expiry_date: data.expires,
+          trader_name: trader.name || "",
+          permit_number: p.permit_number,
+          stall_code: stall.stall_code || "",
+          expiry_date: p.expiry_date,
         },
       });
     }
 
-    // List permits - call Laravel API
-    const params = new URLSearchParams();
-    if (status) params.set("filter[status]", status);
-    const res = await fetch(`${BACKEND}/api/permits?${params}`);
-    if (!res.ok) throw new Error(`Backend error: ${res.status}`);
-    const json = await res.json();
+    const permits = await sql`SELECT * FROM permits`;
+    const traders = await sql`SELECT * FROM traders`;
+    const stalls = await sql`SELECT * FROM stalls`;
 
-    // Normalize paginated or plain array response
-    const rawData = Array.isArray(json) ? json : (json.data ?? []);
+    let rows = permits.map((p) => {
+      const trader = traders.find((t) => t.id === p.trader_id) || {};
+      const stall = stalls.find((s) => s.id === trader.stall_id) || {};
+      return {
+        ...p,
+        trader_name: trader.name || "",
+        stall_code: stall.stall_code || "",
+        zone: stall.zone || "",
+      };
+    });
 
-    // Map Laravel fields to frontend fields
-    const rows = rawData.map((p) => ({
-      ...p,
-      trader_name: p.trader?.name ?? p.trader_name ?? "",
-      stall_code: p.slot?.code ?? p.stall_code ?? "",
-      zone: p.slot?.type ?? p.zone ?? "",
-      expiry_date: p.expires_at ? p.expires_at.split("T")[0] : p.expiry_date,
-    }));
+    if (status) {
+      rows = rows.filter((r) => r.status === status);
+    }
 
     return Response.json(rows);
   } catch (error) {
@@ -53,32 +58,38 @@ export async function POST(request) {
     const body = await request.json();
     const { trader_id, expiry_date } = body;
 
-    // Find first active slot for this trader to satisfy the slot_id requirement
-    const slotRes = await fetch(`${BACKEND}/api/stalls?filter[status]=active`);
-    const slotJson = await slotRes.json();
-    const slots = Array.isArray(slotJson) ? slotJson : (slotJson.data ?? []);
-    const slot = slots[0];
-
-    if (!slot) {
-      return Response.json({ error: "No available stall found" }, { status: 400 });
+    const traders = await sql`SELECT * FROM traders`;
+    const trader = traders.find((t) => t.id === Number(trader_id));
+    if (!trader) {
+      return Response.json({ error: "Trader not found" }, { status: 404 });
     }
 
-    const res = await fetch(`${BACKEND}/api/permits/issue`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        trader_id,
-        slot_id: slot.id,
-        expires_at: expiry_date,
-      }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      return Response.json({ error: err.message || "Failed to create permit" }, { status: res.status });
+    const permits = await sql`SELECT * FROM permits`;
+    const existing = permits.find((p) => p.trader_id === Number(trader_id));
+    if (existing) {
+      return Response.json(
+        { error: "Trader sudah memiliki SIPTU" },
+        { status: 409 }
+      );
     }
 
-    return Response.json(await res.json());
+    const year = new Date().getFullYear();
+    const padId = String(trader_id).padStart(4, "0");
+    const permitNum = `SIPTU-${year}-${padId}`;
+    const qrToken = Math.random().toString(36).slice(2);
+    const issueDate = new Date().toISOString().split("T")[0];
+
+    const newPermit = await sql`
+      INSERT INTO permits (trader_id, permit_number, issue_date, expiry_date, status, qr_token)
+      VALUES (${Number(trader_id)}, ${permitNum}, ${issueDate}, ${expiry_date}, ${"active"}, ${qrToken})
+    `;
+
+    await sql`
+      INSERT INTO audit_logs (module, action, user_name, description)
+      VALUES (${"SIPTU"}, ${"CREATE"}, ${"Admin"}, ${"SIPTU diterbitkan: " + permitNum})
+    `;
+
+    return Response.json(newPermit[0] || { id: Date.now(), trader_id, permit_number: permitNum, status: "active", expiry_date, issue_date: issueDate, qr_token: qrToken });
   } catch (error) {
     console.error("[POST /api/admin/permits]", error);
     return Response.json({ error: "Failed to create permit" }, { status: 500 });
@@ -90,19 +101,16 @@ export async function PATCH(request) {
     const body = await request.json();
     const { id, status, expiry_date } = body;
 
-    // Laravel doesn't have a generic PATCH on /permits yet — call with JSON body
-    const res = await fetch(`${BACKEND}/api/permits/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status, expires_at: expiry_date }),
-    });
+    const updated = await sql`
+      UPDATE permits SET status = ${status}, expiry_date = ${expiry_date} WHERE id = ${Number(id)}
+    `;
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      return Response.json({ error: err.message || "Failed to update permit" }, { status: res.status });
-    }
+    await sql`
+      INSERT INTO audit_logs (module, action, user_name, description)
+      VALUES (${"SIPTU"}, ${"UPDATE"}, ${"Admin"}, ${"SIPTU #" + id + " diperbarui: " + status})
+    `;
 
-    return Response.json(await res.json());
+    return Response.json(updated[0] || { id, status, expiry_date });
   } catch (error) {
     console.error("[PATCH /api/admin/permits]", error);
     return Response.json({ error: "Failed to update permit" }, { status: 500 });
