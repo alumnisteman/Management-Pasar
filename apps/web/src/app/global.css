@@ -6,4 +6,9 @@
   input, textarea, select, button {
     @apply outline-none focus:outline-none;
   }
+  
+  option {
+    background-color: #1C1E27;
+    color: white;
+  }
 }
