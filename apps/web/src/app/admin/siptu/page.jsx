@@ -577,7 +577,7 @@ export default function SiptuPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-white/5">
-                  [
+                  {[
                     "Pedagang",
                     "Nomor SIPTU",
                     "Masa Berlaku",
@@ -590,7 +590,7 @@ export default function SiptuPage() {
                     >
                       {h}
                     </th>
-                  ))
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
