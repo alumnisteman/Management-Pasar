@@ -1,0 +1,32 @@
+=== SVMS System Doctor v1.0 ===
+Running at: 2026-05-17 06:39:27
+
+📋 Checking required tables...
+  ✓ markets (1 rows)
+  ✓ zones (4 rows)
+  ✓ slots (120 rows)
+  ✓ traders (121 rows)
+  ✓ permits (119 rows)
+  ✓ payments (670 rows)
+  ✓ audit_logs (90 rows)
+  ✓ wallets (121 rows)
+  ✓ settings (10 rows)
+🔴 Checking Redis connection...
+  ✓ Redis connection OK
+🔍 Checking orphan records...
+  ✓ No orphan permits
+  ✓ No orphan permit-slot references
+  ✓ No orphan wallets
+🛡️  Checking data integrity...
+  ✓ No expired-but-active permits
+  ✓ No duplicate permit numbers
+  ✓ All traders have market assignment
+⚡ Running table optimization...
+  ✓ Optimized: slots
+  ✓ Optimized: traders
+  ✓ Optimized: permits
+  ✓ Optimized: payments
+  ✓ Optimized: audit_logs
+
+=== DIAGNOSIS COMPLETE ===
+✅ All systems healthy. No issues found.
