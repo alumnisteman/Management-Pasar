@@ -748,6 +748,65 @@ export async function executeSQL(queryStr, values = []) {
     return (db.users || []).filter(u => u.email === email);
   }
 
+  // ── USERS: SELECT by id ──
+  if (query.includes('FROM users') && query.includes('WHERE id =')) {
+    const id = Number(values[0]);
+    const row = (db.users || []).find(u => u.id === id);
+    if (!row) return [];
+    const { password: _pw, ...safe } = row;
+    return [safe];
+  }
+
+  // ── USERS: SELECT all ──
+  if (query.includes('FROM users') && query.includes('ORDER BY id')) {
+    return (db.users || []).map(({ password: _pw, ...safe }) => safe);
+  }
+
+  // ── USERS: SELECT COUNT role=admin ──
+  if (query.includes("FROM users") && query.includes("role = 'admin'")) {
+    const c = (db.users || []).filter(u => u.role === 'admin').length;
+    return [{ c }];
+  }
+
+  // ── USERS: INSERT ──
+  if (query.includes('INSERT INTO users')) {
+    const [name, email, password, role] = values;
+    if (!db.users) db.users = DEFAULT_DB.users;
+    const newId = Math.max(0, ...db.users.map(u => u.id)) + 1;
+    const newUser = { id: newId, name, email, password, role, created_at: new Date().toISOString() };
+    db.users.push(newUser);
+    saveDB(db);
+    const { password: _pw, ...safe } = newUser;
+    return [safe];
+  }
+
+  // ── USERS: UPDATE password ──
+  if (query.includes('UPDATE users SET password =')) {
+    const [password, id] = values;
+    if (!db.users) db.users = DEFAULT_DB.users;
+    const u = db.users.find(u => u.id === Number(id));
+    if (u) { u.password = password; saveDB(db); }
+    return [];
+  }
+
+  // ── USERS: UPDATE name ──
+  if (query.includes('UPDATE users SET name =')) {
+    const [name, id] = values;
+    if (!db.users) db.users = DEFAULT_DB.users;
+    const u = db.users.find(u => u.id === Number(id));
+    if (u) { u.name = name; saveDB(db); }
+    return [];
+  }
+
+  // ── USERS: DELETE ──
+  if (query.includes('DELETE FROM users')) {
+    const id = Number(values[0]);
+    if (!db.users) db.users = DEFAULT_DB.users;
+    db.users = db.users.filter(u => u.id !== id);
+    saveDB(db);
+    return [];
+  }
+
   // ── ZONE PRICING: SELECT ──
   if (query.includes('FROM zone_pricing')) {
     if (!db.zone_pricing) db.zone_pricing = DEFAULT_DB.zone_pricing;

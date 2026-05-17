@@ -14,6 +14,7 @@ import {
   Bell,
   LogOut,
   UserCircle,
+  KeyRound,
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import { useAuth } from "@/utils/auth";
@@ -26,6 +27,7 @@ const ALL_NAV = [
   { href: "/admin/billing",  label: "Tagihan & Bayar",   icon: CreditCard,       color: "text-rose-500",   roles: ["admin", "petugas"] },
   { href: "/admin/porter",   label: "Kuli Panggul",      icon: Package,          color: "text-cyan-500",   roles: ["admin", "petugas"] },
   { href: "/admin/audit",    label: "Audit Log",         icon: ShieldCheck,      color: "text-gray-500",   roles: ["admin"] },
+  { href: "/admin/users",    label: "Kelola Pengguna",   icon: KeyRound,         color: "text-indigo-500", roles: ["admin"] },
 ];
 
 const ROLE_LABELS = {
