@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRole } from "@/app/useRole";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   FileText,
@@ -426,6 +427,7 @@ export default function SiptuPage() {
   const [filter, setFilter] = useState("");
   const [search, setSearch] = useState("");
   const [showIssue, setShowIssue] = useState(false);
+  const [role] = useRole();
   const queryClient = useQueryClient();
 
   const { data: permits = [], isLoading } = useQuery({
@@ -513,12 +515,14 @@ export default function SiptuPage() {
             Surat Izin Penggunaan Tempat Usaha Digital
           </p>
         </div>
-        <button
-          onClick={() => setShowIssue(true)}
-          className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-700 transition-colors"
-        >
-          <Plus size={16} /> Terbitkan SIPTU
-        </button>
+        {role === "admin" && (
+          <button
+            onClick={() => setShowIssue(true)}
+            className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-700 transition-colors"
+          >
+            <Plus size={16} /> Terbitkan SIPTU
+          </button>
+        )}
       </div>
 
       {/* Stats */}
@@ -573,12 +577,12 @@ export default function SiptuPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-white/5">
-                  {[
+                  [
                     "Pedagang",
                     "Nomor SIPTU",
                     "Masa Berlaku",
                     "Status",
-                    "Aksi",
+                    ...(role === "admin" ? ["Aksi"] : []),
                   ].map((h) => (
                     <th
                       key={h}
@@ -586,7 +590,7 @@ export default function SiptuPage() {
                     >
                       {h}
                     </th>
-                  ))}
+                  ))
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -658,29 +662,31 @@ export default function SiptuPage() {
                             <StatusIcon size={11} /> {sc.label}
                           </span>
                         </td>
-                        <td className="px-4 py-3.5">
-                          {(pStatus === "expired" ||
-                            pStatus === "expiring") && (
-                            <button
-                              onClick={() =>
-                                updateMutation.mutate({
-                                  id: p.id,
-                                  status: "active",
-                                  expiry_date: new Date(
-                                    new Date().setFullYear(
-                                      new Date().getFullYear() + 1,
-                                    ),
-                                  )
-                                    .toISOString()
-                                    .split("T")[0],
-                                })
-                              }
-                              className="text-[10px] text-orange-400 border border-orange-500/30 px-2.5 py-1 rounded-lg hover:bg-orange-500/10 transition-colors font-semibold"
-                            >
-                              Perpanjang
-                            </button>
-                          )}
-                        </td>
+                        {role === "admin" && (
+                          <td className="px-4 py-3.5">
+                            {(pStatus === "expired" ||
+                              pStatus === "expiring") && (
+                              <button
+                                onClick={() =>
+                                  updateMutation.mutate({
+                                    id: p.id,
+                                    status: "active",
+                                    expiry_date: new Date(
+                                      new Date().setFullYear(
+                                        new Date().getFullYear() + 1,
+                                      ),
+                                    )
+                                      .toISOString()
+                                      .split("T")[0],
+                                  })
+                                }
+                                className="text-[10px] text-orange-400 border border-orange-500/30 px-2.5 py-1 rounded-lg hover:bg-orange-500/10 transition-colors font-semibold"
+                              >
+                                Perpanjang
+                              </button>
+                            )}
+                          </td>
+                        )}
                       </tr>
                     );
                   })

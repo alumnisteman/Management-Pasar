@@ -61,6 +61,7 @@ export async function PATCH(request) {
       category,
       monthly_fee,
       apply_dynamic_pricing,
+      custom_price,
     } = body;
 
     // Apply dynamic pricing to an entire zone
@@ -75,7 +76,7 @@ export async function PATCH(request) {
               (Number(stats[0].occupied) / Number(stats[0].total)) * 100,
             )
           : 0;
-      const newPrice = calcDynamicPrice(zone, occupancyRate);
+      const newPrice = custom_price ? parseInt(custom_price) : calcDynamicPrice(zone, occupancyRate);
 
       const updated = await sql`
         UPDATE stalls SET monthly_fee = ${newPrice} WHERE zone = ${zone} RETURNING *
@@ -83,7 +84,7 @@ export async function PATCH(request) {
 
       await sql`
         INSERT INTO audit_logs (module, action, description)
-        VALUES ('Grid', 'DYNAMIC_PRICE', ${`Dynamic pricing diterapkan ke zone ${zone}: Rp ${newPrice.toLocaleString("id-ID")} (hunian ${occupancyRate}%)`})
+        VALUES ('Grid', 'DYNAMIC_PRICE', ${`Pricing diterapkan ke zone ${zone}: Rp ${newPrice.toLocaleString("id-ID")} (hunian ${occupancyRate}%)`})
       `;
 
       return Response.json({

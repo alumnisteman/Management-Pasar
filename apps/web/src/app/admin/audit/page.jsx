@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRole } from "@/app/useRole";
 import { ShieldCheck, Search, Filter } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 
@@ -43,6 +44,29 @@ export default function AuditPage() {
   const [moduleFilter, setModuleFilter] = useState("");
   const [search, setSearch] = useState("");
   const [limit, setLimit] = useState(50);
+  const [role] = useRole();
+
+  if (role === "petugas") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] max-w-md mx-auto text-center space-y-6">
+        <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 shadow-lg shadow-red-500/5 animate-pulse">
+          <ShieldCheck size={32} />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-xl font-bold text-white">Akses Ditolak</h2>
+          <p className="text-sm text-gray-400 leading-relaxed">
+            Maaf, halaman Audit Log hanya dapat diakses oleh Administrator utama. Role petugas tidak memiliki izin akses.
+          </p>
+        </div>
+        <a
+          href="/admin"
+          className="px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-semibold rounded-lg text-gray-300 transition-colors"
+        >
+          Kembali ke Dashboard
+        </a>
+      </div>
+    );
+  }
 
   const { data: logs = [], isLoading } = useQuery({
     queryKey: ["auditLogs", moduleFilter, limit],

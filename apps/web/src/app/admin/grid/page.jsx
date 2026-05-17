@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRole } from "@/app/useRole";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Grid3X3,
@@ -59,7 +60,9 @@ const zonePricingInfo = {
 export default function GridPage() {
   const [selected, setSelected] = useState(null);
   const [filter, setFilter] = useState("all");
+  const [role] = useRole();
   const [pricingResult, setPricingResult] = useState({});
+  const [customPrices, setCustomPrices] = useState({ gold: "", silver: "", bronze: "" });
   const queryClient = useQueryClient();
 
   const { data: stalls = [], isLoading } = useQuery({
@@ -85,16 +88,16 @@ export default function GridPage() {
   });
 
   const dynamicPriceMutation = useMutation({
-    mutationFn: (zone) =>
+    mutationFn: ({ zone, custom_price }) =>
       fetch("/api/admin/stalls", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ apply_dynamic_pricing: true, zone }),
+        body: JSON.stringify({ apply_dynamic_pricing: true, zone, custom_price }),
       }).then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       }),
-    onSuccess: (data, zone) => {
+    onSuccess: (data, { zone }) => {
       queryClient.invalidateQueries({ queryKey: ["adminStalls"] });
       queryClient.invalidateQueries({ queryKey: ["adminStats"] });
       setPricingResult((prev) => ({ ...prev, [zone]: data }));
@@ -136,7 +139,11 @@ export default function GridPage() {
         : 0;
     const currentFee = zoneStalls[0]?.monthly_fee || 0;
     const suggestedFee = zoneStalls[0]?.suggested_price || currentFee;
-    const priceDiff = suggestedFee - currentFee;
+    
+    // Fallback to automatically calculated suggested price if not explicitly customized
+    const activePrice = customPrices[zone] ? parseInt(customPrices[zone]) : suggestedFee;
+    const priceDiff = activePrice - currentFee;
+
     return {
       zone,
       total: zoneStalls.length,
@@ -144,6 +151,7 @@ export default function GridPage() {
       occupancyRate,
       currentFee,
       suggestedFee,
+      activePrice,
       priceDiff,
     };
   });
@@ -342,7 +350,7 @@ export default function GridPage() {
             ))}
           </div>
           <div className="flex gap-3">
-            {selected.status === "occupied" && (
+            {selected.status === "occupied" && role === "admin" && (
               <button
                 onClick={() =>
                   updateMutation.mutate({
@@ -450,20 +458,36 @@ export default function GridPage() {
                         Rp {Number(currentFee).toLocaleString("id-ID")}
                       </span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-500">Harga Disarankan</span>
-                      <span
-                        className={twMerge(
-                          "font-bold",
-                          priceUp
-                            ? "text-green-400"
-                            : priceDown
-                              ? "text-red-400"
-                              : "text-gray-400",
-                        )}
-                      >
-                        Rp {Number(suggestedFee).toLocaleString("id-ID")}
-                      </span>
+                      {role === "admin" ? (
+                        <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded px-2 py-0.5">
+                          <span className="text-[10px] text-gray-500 font-bold">Rp</span>
+                          <input
+                            type="text"
+                            value={customPrices[zone] !== undefined && customPrices[zone] !== "" ? customPrices[zone] : suggestedFee}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, "");
+                              setCustomPrices(prev => ({ ...prev, [zone]: val }));
+                            }}
+                            placeholder={suggestedFee.toString()}
+                            className="bg-transparent text-white font-bold text-xs w-20 outline-none text-right placeholder-gray-500"
+                          />
+                        </div>
+                      ) : (
+                        <span
+                          className={twMerge(
+                            "font-bold",
+                            priceUp
+                              ? "text-green-400"
+                              : priceDown
+                                ? "text-red-400"
+                                : "text-gray-400",
+                          )}
+                        >
+                          Rp {Number(suggestedFee).toLocaleString("id-ID")}
+                        </span>
+                      )}
                     </div>
                     {priceDiff !== 0 && (
                       <div className="flex items-center gap-1.5 text-[11px]">
@@ -498,19 +522,26 @@ export default function GridPage() {
                     </div>
                   )}
                   <button
-                    onClick={() => dynamicPriceMutation.mutate(zone)}
-                    disabled={isPending}
+                    onClick={() => {
+                      if (role === "petugas") return;
+                      dynamicPriceMutation.mutate({ zone, custom_price: activePrice });
+                    }}
+                    disabled={isPending || role === "petugas"}
                     className={twMerge(
                       "w-full py-2 text-xs font-semibold rounded-lg border transition-colors flex items-center justify-center gap-1.5",
-                      priceDiff !== 0
-                        ? `${pi.badge} ${pi.text} border-current hover:opacity-80`
-                        : "bg-white/5 text-gray-500 border-white/10 cursor-default",
+                      role === "petugas"
+                        ? "bg-white/5 text-gray-500 border-white/10 cursor-not-allowed"
+                        : priceDiff !== 0
+                          ? `${pi.badge} ${pi.text} border-current hover:opacity-80`
+                          : "bg-white/5 text-gray-500 border-white/10 cursor-default",
                     )}
                   >
                     {isPending ? (
                       <>
                         <Loader2 size={13} /> Menerapkan...
                       </>
+                    ) : role === "petugas" ? (
+                      "Hanya Admin"
                     ) : priceDiff === 0 ? (
                       "✓ Sudah Optimal"
                     ) : (

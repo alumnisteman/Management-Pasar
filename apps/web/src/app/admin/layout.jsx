@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useRole } from "@/app/useRole";
 import {
   LayoutDashboard,
   Grid3X3,
@@ -62,9 +63,18 @@ const navItems = [
 
 export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [role, changeRole] = useRole();
+  const [roleMenuOpen, setRoleMenuOpen] = useState(false);
   const [currentPath, setCurrentPath] = useState(
     typeof window !== "undefined" ? window.location.pathname : "/admin",
   );
+
+  const filteredNavItems = navItems.filter((item) => {
+    if (role === "petugas" && item.href === "/admin/audit") {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <div className="flex min-h-screen bg-[#0F1117] text-white">
@@ -92,7 +102,7 @@ export default function AdminLayout({ children }) {
 
         {/* Nav */}
         <nav className="flex-1 py-4 space-y-1 px-2">
-          {navItems.map(({ href, label, icon: Icon, color }) => {
+          {filteredNavItems.map(({ href, label, icon: Icon, color }) => {
             const active = currentPath === href;
             return (
               <a
@@ -162,11 +172,59 @@ export default function AdminLayout({ children }) {
               <Bell size={16} />
               <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
             </button>
-            <div className="flex items-center gap-2 pl-3 border-l border-white/10">
-              <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold">
-                A
-              </div>
-              <span className="text-sm text-gray-300 font-medium">Admin</span>
+            <div className="relative flex items-center gap-2 pl-3 border-l border-white/10">
+              <button 
+                onClick={() => setRoleMenuOpen(!roleMenuOpen)}
+                className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors text-left"
+              >
+                <div className={twMerge(
+                  "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 text-white",
+                  role === "admin" ? "bg-blue-600" : "bg-orange-500"
+                )}>
+                  {role === "admin" ? "A" : "P"}
+                </div>
+                <div className="hidden sm:block">
+                  <p className="text-xs font-bold leading-none text-white capitalize">{role}</p>
+                  <p className="text-[9px] text-gray-500 font-medium mt-0.5">Ubah Role</p>
+                </div>
+              </button>
+
+              {roleMenuOpen && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setRoleMenuOpen(false)}
+                  />
+                  <div className="absolute right-0 top-full mt-2 w-40 bg-[#16181F] border border-white/10 rounded-xl shadow-xl py-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-100">
+                    <button
+                      onClick={() => {
+                        changeRole("admin");
+                        setRoleMenuOpen(false);
+                      }}
+                      className={twMerge(
+                        "w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-white/5 transition-colors",
+                        role === "admin" ? "text-blue-400" : "text-gray-400"
+                      )}
+                    >
+                      <span className="w-2 h-2 rounded-full bg-blue-500" />
+                      Administrator
+                    </button>
+                    <button
+                      onClick={() => {
+                        changeRole("petugas");
+                        setRoleMenuOpen(false);
+                      }}
+                      className={twMerge(
+                        "w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-white/5 transition-colors",
+                        role === "petugas" ? "text-orange-400" : "text-gray-400"
+                      )}
+                    >
+                      <span className="w-2 h-2 rounded-full bg-orange-500" />
+                      Petugas Lapangan
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </header>

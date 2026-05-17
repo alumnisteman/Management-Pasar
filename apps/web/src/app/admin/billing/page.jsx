@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useRole } from "@/app/useRole";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   CreditCard,
@@ -230,6 +231,7 @@ export default function BillingPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [search, setSearch] = useState("");
   const [showWABlast, setShowWABlast] = useState(false);
+  const [role] = useRole();
   const queryClient = useQueryClient();
   const { exportPDF, loading: pdfLoading } = useExportPDF();
 
@@ -317,21 +319,25 @@ export default function BillingPage() {
             )}{" "}
             Export PDF
           </button>
-          <button
-            onClick={() => setShowWABlast(true)}
-            disabled={!unpaidBills.length}
-            className="flex items-center gap-2 bg-green-600/10 border border-green-500/30 text-green-400 px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-600/20 transition-colors disabled:opacity-40"
-          >
-            <MessageCircle size={16} /> WA Blast ({unpaidBills.length})
-          </button>
-          <button
-            onClick={() => generateMutation.mutate()}
-            disabled={generateMutation.isPending}
-            className="flex items-center gap-2 bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-rose-700 transition-colors disabled:opacity-60"
-          >
-            <Zap size={16} />{" "}
-            {generateMutation.isPending ? "Generating..." : "Generate Tagihan"}
-          </button>
+          {role === "admin" && (
+            <>
+              <button
+                onClick={() => setShowWABlast(true)}
+                disabled={!unpaidBills.length}
+                className="flex items-center gap-2 bg-green-600/10 border border-green-500/30 text-green-400 px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-600/20 transition-colors disabled:opacity-40"
+              >
+                <MessageCircle size={16} /> WA Blast ({unpaidBills.length})
+              </button>
+              <button
+                onClick={() => generateMutation.mutate()}
+                disabled={generateMutation.isPending}
+                className="flex items-center gap-2 bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-rose-700 transition-colors disabled:opacity-60"
+              >
+                <Zap size={16} />{" "}
+                {generateMutation.isPending ? "Generating..." : "Generate Tagihan"}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -420,7 +426,7 @@ export default function BillingPage() {
                 "Tagihan",
                 "Nominal",
                 "Status",
-                "Aksi",
+                ...(role === "admin" ? ["Aksi"] : []),
               ].map((h) => (
                 <th
                   key={h}
@@ -502,22 +508,24 @@ export default function BillingPage() {
                       </span>
                     )}
                   </td>
-                  <td className="px-5 py-4">
-                    {b.status === "unpaid" && (
-                      <button
-                        onClick={() =>
-                          payMutation.mutate({
-                            id: b.id,
-                            trader_name: b.trader_name,
-                          })
-                        }
-                        disabled={payMutation.isPending}
-                        className="text-[10px] text-green-400 border border-green-500/30 px-2.5 py-1.5 rounded-lg hover:bg-green-500/10 transition-colors font-semibold flex items-center gap-1"
-                      >
-                        <CheckCircle2 size={11} /> Tandai Lunas
-                      </button>
-                    )}
-                  </td>
+                  {role === "admin" && (
+                    <td className="px-5 py-4">
+                      {b.status === "unpaid" && (
+                        <button
+                          onClick={() =>
+                            payMutation.mutate({
+                              id: b.id,
+                              trader_name: b.trader_name,
+                            })
+                          }
+                          disabled={payMutation.isPending}
+                          className="text-[10px] text-green-400 border border-green-500/30 px-2.5 py-1.5 rounded-lg hover:bg-green-500/10 transition-colors font-semibold flex items-center gap-1"
+                        >
+                          <CheckCircle2 size={11} /> Tandai Lunas
+                        </button>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))
             )}

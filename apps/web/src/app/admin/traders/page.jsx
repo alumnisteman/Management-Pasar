@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRole } from "@/app/useRole";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Users,
@@ -162,6 +163,7 @@ export default function TradersPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [showAdd, setShowAdd] = useState(false);
+  const [role] = useRole();
   const queryClient = useQueryClient();
 
   const { data: traders = [], isLoading } = useQuery({
@@ -230,12 +232,14 @@ export default function TradersPage() {
             {traders.length} pedagang ditemukan
           </p>
         </div>
-        <button
-          onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-        >
-          <Plus size={16} /> Daftarkan Baru
-        </button>
+        {role === "admin" && (
+          <button
+            onClick={() => setShowAdd(true)}
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+          >
+            <Plus size={16} /> Daftarkan Baru
+          </button>
+        )}
       </div>
 
       {/* Filters */}
@@ -266,7 +270,7 @@ export default function TradersPage() {
         <table className="w-full text-left">
           <thead>
             <tr className="border-b border-white/5">
-              {["Pedagang", "Kontak", "Lapak", "SIPTU", "Status", "Aksi"].map(
+              {["Pedagang", "Kontak", "Lapak", "SIPTU", "Status", ...(role === "admin" ? ["Aksi"] : [])].map(
                 (h) => (
                   <th
                     key={h}
@@ -377,50 +381,52 @@ export default function TradersPage() {
                         {sc.label}
                       </span>
                     </td>
-                    <td className="px-5 py-4">
-                      <div className="flex gap-2">
-                        {t.status !== "warning" && (
+                    {role === "admin" && (
+                      <td className="px-5 py-4">
+                        <div className="flex gap-2">
+                          {t.status !== "warning" && (
+                            <button
+                              onClick={() =>
+                                updateMutation.mutate({
+                                  id: t.id,
+                                  status: "warning",
+                                })
+                              }
+                              className="p-1.5 hover:bg-yellow-500/10 text-yellow-500 rounded-lg transition-colors"
+                              title="Beri Peringatan"
+                            >
+                              <AlertTriangle size={14} />
+                            </button>
+                          )}
+                          {t.status === "warning" && (
+                            <button
+                              onClick={() =>
+                                updateMutation.mutate({
+                                  id: t.id,
+                                  status: "active",
+                                })
+                              }
+                              className="p-1.5 hover:bg-green-500/10 text-green-500 rounded-lg transition-colors"
+                              title="Aktifkan"
+                            >
+                              <CheckCircle2 size={14} />
+                            </button>
+                          )}
                           <button
                             onClick={() =>
                               updateMutation.mutate({
                                 id: t.id,
-                                status: "warning",
+                                status: "inactive",
                               })
                             }
-                            className="p-1.5 hover:bg-yellow-500/10 text-yellow-500 rounded-lg transition-colors"
-                            title="Beri Peringatan"
+                            className="p-1.5 hover:bg-red-500/10 text-red-500 rounded-lg transition-colors"
+                            title="Nonaktifkan"
                           >
-                            <AlertTriangle size={14} />
+                            <UserX size={14} />
                           </button>
-                        )}
-                        {t.status === "warning" && (
-                          <button
-                            onClick={() =>
-                              updateMutation.mutate({
-                                id: t.id,
-                                status: "active",
-                              })
-                            }
-                            className="p-1.5 hover:bg-green-500/10 text-green-500 rounded-lg transition-colors"
-                            title="Aktifkan"
-                          >
-                            <CheckCircle2 size={14} />
-                          </button>
-                        )}
-                        <button
-                          onClick={() =>
-                            updateMutation.mutate({
-                              id: t.id,
-                              status: "inactive",
-                            })
-                          }
-                          className="p-1.5 hover:bg-red-500/10 text-red-500 rounded-lg transition-colors"
-                          title="Nonaktifkan"
-                        >
-                          <UserX size={14} />
-                        </button>
-                      </div>
-                    </td>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 );
               })
