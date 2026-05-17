@@ -1,0 +1,254 @@
+{
+  "traders": [
+    {
+      "id": 1,
+      "name": "Budi Santoso",
+      "nik": "3171012345670001",
+      "phone": "081234567890",
+      "trader_type": "tetap",
+      "stall_id": 1,
+      "joined_at": "2026-01-15T08:00:00.000Z",
+      "status": "active"
+    },
+    {
+      "id": 2,
+      "name": "Siti Aminah",
+      "nik": "3171012345670002",
+      "phone": "081234567891",
+      "trader_type": "tetap",
+      "stall_id": 2,
+      "joined_at": "2026-02-10T09:30:00.000Z",
+      "status": "active"
+    },
+    {
+      "id": 3,
+      "name": "Joko Widodo",
+      "nik": "3171012345670003",
+      "phone": "081234567892",
+      "trader_type": "tetap",
+      "stall_id": 3,
+      "joined_at": "2026-02-20T10:00:00.000Z",
+      "status": "warning"
+    },
+    {
+      "id": 4,
+      "name": "Dewi Lestari",
+      "nik": "3171012345670004",
+      "phone": "081234567893",
+      "trader_type": "tetap",
+      "stall_id": 4,
+      "joined_at": "2026-03-01T11:15:00.000Z",
+      "status": "active"
+    },
+    {
+      "id": 5,
+      "name": "Ahmad Fauzi",
+      "nik": "3171012345670005",
+      "phone": "081234567894",
+      "trader_type": "tetap",
+      "stall_id": 5,
+      "joined_at": "2026-03-12T14:20:00.000Z",
+      "status": "inactive"
+    }
+  ],
+  "stalls": [
+    {
+      "id": 1,
+      "stall_code": "A-01",
+      "zone": "gold",
+      "category": "sembako",
+      "status": "occupied",
+      "trader_id": 1,
+      "monthly_fee": 750000,
+      "row_x": 0,
+      "col_y": 0
+    },
+    {
+      "id": 2,
+      "stall_code": "A-02",
+      "zone": "gold",
+      "category": "sayuran",
+      "status": "occupied",
+      "trader_id": 2,
+      "monthly_fee": 750000,
+      "row_x": 0,
+      "col_y": 1
+    },
+    {
+      "id": 3,
+      "stall_code": "A-03",
+      "zone": "gold",
+      "category": "daging",
+      "status": "occupied",
+      "trader_id": 3,
+      "monthly_fee": 750000,
+      "row_x": 0,
+      "col_y": 2
+    },
+    {
+      "id": 4,
+      "stall_code": "B-01",
+      "zone": "silver",
+      "category": "pakaian",
+      "status": "occupied",
+      "trader_id": 4,
+      "monthly_fee": 500000,
+      "row_x": 1,
+      "col_y": 0
+    },
+    {
+      "id": 5,
+      "stall_code": "B-02",
+      "zone": "silver",
+      "category": "bumbu",
+      "status": "vacant",
+      "trader_id": null,
+      "monthly_fee": 500000,
+      "row_x": 1,
+      "col_y": 1
+    },
+    {
+      "id": 6,
+      "stall_code": "C-01",
+      "zone": "bronze",
+      "category": "jasa",
+      "status": "vacant",
+      "trader_id": null,
+      "monthly_fee": 350000,
+      "row_x": 2,
+      "col_y": 0
+    }
+  ],
+  "bills": [
+    {
+      "id": 1,
+      "trader_id": 1,
+      "stall_id": 1,
+      "bill_month": "2026-05",
+      "amount": 750000,
+      "status": "paid",
+      "paid_at": "2026-05-02T10:00:00.000Z",
+      "created_at": "2026-05-01T00:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "trader_id": 2,
+      "stall_id": 2,
+      "bill_month": "2026-05",
+      "amount": 750000,
+      "status": "paid",
+      "paid_at": "2026-05-03T11:00:00.000Z",
+      "created_at": "2026-05-01T00:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "trader_id": 3,
+      "stall_id": 3,
+      "bill_month": "2026-05",
+      "amount": 750000,
+      "status": "unpaid",
+      "paid_at": null,
+      "created_at": "2026-05-01T00:00:00.000Z"
+    },
+    {
+      "id": 4,
+      "trader_id": 4,
+      "stall_id": 4,
+      "bill_month": "2026-05",
+      "amount": 500000,
+      "status": "paid",
+      "paid_at": "2026-05-05T09:00:00.000Z",
+      "created_at": "2026-05-01T00:00:00.000Z"
+    }
+  ],
+  "porters": [
+    {
+      "id": 1,
+      "name": "Slamet",
+      "phone": "089876543210",
+      "status": "available",
+      "rating": 4.8
+    },
+    {
+      "id": 2,
+      "name": "Koko",
+      "phone": "089876543211",
+      "status": "active",
+      "rating": 4.6
+    },
+    {
+      "id": 3,
+      "name": "Mamat",
+      "phone": "089876543212",
+      "status": "inactive",
+      "rating": 4.5
+    }
+  ],
+  "porter_incentives": [
+    {
+      "id": 1,
+      "porter_id": 1,
+      "tier": "platinum",
+      "bonus_amount": 250000,
+      "week_start": "2026-05-01",
+      "week_end": "2026-05-07"
+    },
+    {
+      "id": 2,
+      "porter_id": 2,
+      "tier": "gold",
+      "bonus_amount": 150000,
+      "week_start": "2026-05-01",
+      "week_end": "2026-05-07"
+    }
+  ],
+  "permits": [
+    {
+      "id": 1,
+      "trader_id": 1,
+      "permit_number": "SIPTU-2026-0001",
+      "issue_date": "2026-01-15",
+      "expiry_date": "2027-01-15",
+      "status": "active",
+      "qr_token": "permit1"
+    },
+    {
+      "id": 2,
+      "trader_id": 2,
+      "permit_number": "SIPTU-2026-0002",
+      "issue_date": "2026-02-10",
+      "expiry_date": "2027-02-10",
+      "status": "active",
+      "qr_token": "permit2"
+    },
+    {
+      "id": 3,
+      "trader_id": 3,
+      "permit_number": "SIPTU-2026-0003",
+      "issue_date": "2026-02-20",
+      "expiry_date": "2026-05-10",
+      "status": "expired",
+      "qr_token": "permit3"
+    }
+  ],
+  "audit_logs": [
+    {
+      "id": 1,
+      "module": "Sistem",
+      "action": "LOGIN",
+      "user_name": "Admin",
+      "description": "Admin masuk ke sistem",
+      "ip_address": "127.0.0.1",
+      "created_at": "2026-05-17T12:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "module": "Pedagang",
+      "action": "CREATE",
+      "user_name": "Admin",
+      "description": "Pedagang baru terdaftar: Dewi Lestari",
+      "ip_address": "127.0.0.1",
+      "created_at": "2026-05-17T11:00:00.000Z"
+    }
+  ]
+}
