@@ -17,18 +17,11 @@ export async function GET() {
       const mStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}`;
       const label = `${monthNames[targetDate.getMonth()]} ${targetDate.getFullYear()}`;
       
-      // Since it's a mock DB, we might not have real historical data. 
-      // We'll create some realistic mock aggregation if empty, or use actual if present.
-      const monthBills = bills.filter(b => b.due_date && b.due_date.startsWith(mStr));
-      
-      let billed = monthBills.reduce((acc, b) => acc + Number(b.amount || 0), 0);
-      let collected = monthBills.filter(b => b.status === 'paid').reduce((acc, b) => acc + Number(b.amount || 0), 0);
+      // Use bill_month field to match billing records
+      const monthBills = bills.filter(b => b.bill_month === mStr);
 
-      // Injecting fake historical data if no bills exist for that month (to make charts look good)
-      if (billed === 0) {
-        billed = Math.floor(Math.random() * 5000000) + 10000000; // 10M - 15M
-        collected = billed - (Math.floor(Math.random() * 3000000));
-      }
+      const billed = monthBills.reduce((acc, b) => acc + Number(b.amount || 0), 0);
+      const collected = monthBills.filter(b => b.status === 'paid').reduce((acc, b) => acc + Number(b.amount || 0), 0);
 
       revenueTrend.push({
         month: label,
@@ -54,13 +47,15 @@ export async function GET() {
     // 3. Billing Status Overview
     const totalPaid = bills.filter(b => b.status === 'paid').length;
     const totalUnpaid = bills.filter(b => b.status === 'unpaid').length;
-    // Mocking an 'overdue' status if due_date is past
-    const todayStr = d.toISOString().split('T')[0];
-    const totalOverdue = bills.filter(b => b.status === 'unpaid' && b.due_date < todayStr).length;
+    // Determine overdue by bill_month age (past months = overdue)
+    const currentMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const unpaidBills = bills.filter(b => b.status === 'unpaid');
+    const totalOverdue = unpaidBills.filter(b => b.bill_month < currentMonth).length;
+    const totalUnpaidCurrent = Math.max(0, bills.filter(b => b.status === 'unpaid').length - totalOverdue);
 
     const billingStats = [
       { name: 'Lunas', value: totalPaid, fill: '#22c55e' },
-      { name: 'Belum Bayar', value: Math.max(0, totalUnpaid - totalOverdue), fill: '#eab308' },
+      { name: 'Belum Bayar', value: totalUnpaidCurrent, fill: '#eab308' },
       { name: 'Jatuh Tempo', value: totalOverdue, fill: '#ef4444' }
     ];
 

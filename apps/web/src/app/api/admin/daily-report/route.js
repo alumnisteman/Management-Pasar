@@ -16,9 +16,9 @@ export async function GET(request) {
     const bills = await sql`SELECT * FROM bills WHERE status = 'paid'`;
     // If the mock db has paid_at dates matching today, filter them. Otherwise just sum them to show data.
     const todaysBills = bills.filter(b => b.paid_at && b.paid_at.startsWith(today));
-    const revenueCollected = todaysBills.reduce((sum, b) => sum + b.amount, 0);
+    const revenueCollected = todaysBills.reduce((sum, b) => sum + Number(b.amount || 0), 0);
     // Fallback revenue if no bills paid today for demo purposes
-    const totalRevenue = revenueCollected > 0 ? revenueCollected : bills.reduce((sum, b) => sum + b.amount, 0);
+    const totalRevenue = revenueCollected > 0 ? revenueCollected : bills.reduce((sum, b) => sum + Number(b.amount || 0), 0);
 
     // 3. New Vendors Today
     const traders = await sql`SELECT * FROM traders`;

@@ -95,11 +95,11 @@ export async function PATCH(request) {
       });
     }
 
-    // Single stall update
+    // Single stall update — pass undefined for unset fields so sql.js skips them
     const updated = await sql`
       UPDATE stalls SET
         status = COALESCE(${status ?? null}, status),
-        trader_id = ${trader_id !== undefined ? trader_id || null : sql`trader_id`},
+        trader_id = ${trader_id !== undefined ? (trader_id || null) : undefined},
         zone = COALESCE(${zone ?? null}, zone),
         category = COALESCE(${category ?? null}, category),
         monthly_fee = COALESCE(${monthly_fee ?? null}, monthly_fee)

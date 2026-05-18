@@ -27,7 +27,7 @@ export default function StallMapPage() {
   const fetchSlots = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/stall-map/data");
+      const res = await fetch("/api/admin/stall-map");
       const data = await res.json();
       if (!data.error) {
         setSlots(data);

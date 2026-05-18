@@ -49,7 +49,7 @@ export default function IotBillingPage() {
 
   const fetchSlots = async () => {
     try {
-      const res = await fetch("/api/admin/stall-map/data");
+      const res = await fetch("/api/admin/stall-map");
       const data = await res.json();
       if (!data.error) {
         setSlots(data);
