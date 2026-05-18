@@ -23,7 +23,9 @@ const DEFAULT_DB = {
     { id: 3, stall_code: "A-03", zone: "gold", category: "daging", status: "occupied", trader_id: 3, monthly_fee: 750000, row_x: 0, col_y: 2 },
     { id: 4, stall_code: "B-01", zone: "silver", category: "pakaian", status: "occupied", trader_id: 4, monthly_fee: 500000, row_x: 1, col_y: 0 },
     { id: 5, stall_code: "B-02", zone: "silver", category: "bumbu", status: "vacant", trader_id: null, monthly_fee: 500000, row_x: 1, col_y: 1 },
-    { id: 6, stall_code: "C-01", zone: "bronze", category: "jasa", status: "vacant", trader_id: null, monthly_fee: 350000, row_x: 2, col_y: 0 }
+    { id: 6, stall_code: "C-01", zone: "bronze", category: "jasa", status: "vacant", trader_id: null, monthly_fee: 350000, row_x: 2, col_y: 0 },
+    { id: 7, stall_code: "A-04", zone: "gold", category: "sembako", status: "vacant", trader_id: null, monthly_fee: 750000, row_x: 0, col_y: 3 },
+    { id: 8, stall_code: "A-05", zone: "gold", category: "sembako", status: "vacant", trader_id: null, monthly_fee: 750000, row_x: 0, col_y: 4 }
   ],
   bills: [
     { id: 1, trader_id: 1, stall_id: 1, bill_month: "2026-05", amount: 750000, status: "paid", paid_at: "2026-05-02T10:00:00.000Z", created_at: "2026-05-01T00:00:00.000Z" },
@@ -296,6 +298,36 @@ export async function executeSQL(queryStr, values = []) {
       if (values[4] !== undefined && values[4] !== null) stall.monthly_fee = values[4];
       saveDB(db);
       return [stall];
+    }
+    return [];
+  }
+
+  if (query.includes('INSERT INTO stalls')) {
+    const [stall_code, zone, category, monthly_fee, row_x, col_y] = values;
+    const newId = db.stalls.reduce((max, s) => Math.max(max, s.id), 0) + 1;
+    const newStall = {
+      id: newId,
+      stall_code,
+      zone,
+      category,
+      status: "vacant",
+      trader_id: null,
+      monthly_fee: parseInt(monthly_fee),
+      row_x: parseInt(row_x),
+      col_y: parseInt(col_y)
+    };
+    db.stalls.push(newStall);
+    saveDB(db);
+    return [newStall];
+  }
+
+  if (query.includes('DELETE FROM stalls')) {
+    const id = values[0];
+    const initialLength = db.stalls.length;
+    db.stalls = db.stalls.filter(s => s.id !== id);
+    saveDB(db);
+    if (db.stalls.length < initialLength) {
+      return [{ success: true }];
     }
     return [];
   }

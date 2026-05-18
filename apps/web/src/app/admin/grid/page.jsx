@@ -12,6 +12,9 @@ import {
   TrendingUp,
   TrendingDown,
   Loader2,
+  Plus,
+  Trash2,
+  Edit2
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 
@@ -63,6 +66,8 @@ export default function GridPage() {
   const [role] = useRole();
   const [pricingResult, setPricingResult] = useState({});
   const [customPrices, setCustomPrices] = useState({ gold: "", silver: "", bronze: "" });
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({ id: null, stall_code: "", zone: "bronze", category: "sembako", monthly_fee: 350000, row_x: 0, col_y: 0, isEdit: false });
   const queryClient = useQueryClient();
 
   const { data: stalls = [], isLoading } = useQuery({
@@ -80,6 +85,31 @@ export default function GridPage() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
+      }).then((r) => r.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminStalls"] });
+      setSelected(null);
+      setShowModal(false);
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) =>
+      fetch("/api/admin/stalls", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }).then((r) => r.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["adminStalls"] });
+      setShowModal(false);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) =>
+      fetch(`/api/admin/stalls?id=${id}`, {
+        method: "DELETE",
       }).then((r) => r.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["adminStalls"] });
@@ -168,6 +198,17 @@ export default function GridPage() {
             Visualisasi dan manajemen lapak pasar berbasis grid spasial
           </p>
         </div>
+        {role === "admin" && (
+          <button
+            onClick={() => {
+              setForm({ id: null, stall_code: "", zone: "bronze", category: "sembako", monthly_fee: 350000, row_x: 0, col_y: 0, isEdit: false });
+              setShowModal(true);
+            }}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg flex items-center gap-2 transition-colors"
+          >
+            <Plus size={16} /> Tambah Lapak
+          </button>
+        )}
       </div>
 
       {/* Stats Row */}
@@ -365,6 +406,44 @@ export default function GridPage() {
                 Kosongkan Lapak
               </button>
             )}
+            
+            {role === "admin" && (
+              <>
+                <button
+                  onClick={() => {
+                    setForm({
+                      id: selected.id,
+                      stall_code: selected.stall_code,
+                      zone: selected.zone,
+                      category: selected.category,
+                      monthly_fee: selected.monthly_fee,
+                      row_x: selected.row_x,
+                      col_y: selected.col_y,
+                      isEdit: true
+                    });
+                    setShowModal(true);
+                  }}
+                  className="px-4 py-2 bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-semibold rounded-lg hover:bg-blue-500/20 transition-colors flex items-center gap-1.5"
+                >
+                  <Edit2 size={13} /> Edit
+                </button>
+
+                {selected.status === "vacant" && (
+                  <button
+                    onClick={() => {
+                      if (confirm("Apakah Anda yakin ingin menghapus lapak ini?")) {
+                        deleteMutation.mutate(selected.id);
+                      }
+                    }}
+                    disabled={deleteMutation.isPending}
+                    className="px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-semibold rounded-lg hover:bg-red-500/20 transition-colors flex items-center gap-1.5"
+                  >
+                    <Trash2 size={13} /> {deleteMutation.isPending ? "Menghapus..." : "Hapus"}
+                  </button>
+                )}
+              </>
+            )}
+
             <a
               href="/admin/traders"
               className="px-4 py-2 bg-white/5 border border-white/10 text-gray-300 text-xs font-semibold rounded-lg hover:bg-white/10 transition-colors flex items-center gap-1.5"
@@ -562,6 +641,141 @@ export default function GridPage() {
           dicatat ke Audit Log.
         </div>
       </div>
+
+      {/* ── Modal Add / Edit Lapak ──────────────────────────────────────── */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#1C1E27] border border-white/10 w-full max-w-md rounded-2xl overflow-hidden shadow-2xl">
+            <div className="p-6 border-b border-white/10 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-white">
+                {form.isEdit ? "Edit Lapak" : "Tambah Lapak Baru"}
+              </h2>
+              <button
+                onClick={() => setShowModal(false)}
+                className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-gray-400 font-bold uppercase block mb-1">Kode Lapak</label>
+                  <input
+                    type="text"
+                    value={form.stall_code}
+                    onChange={(e) => setForm({ ...form, stall_code: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 outline-none"
+                    placeholder="Contoh: A-05"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 font-bold uppercase block mb-1">Zona</label>
+                  <select
+                    value={form.zone}
+                    onChange={(e) => {
+                      const zone = e.target.value;
+                      const defaultFee = zone === 'gold' ? 750000 : zone === 'silver' ? 500000 : 350000;
+                      setForm({ ...form, zone, monthly_fee: defaultFee });
+                    }}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 outline-none"
+                  >
+                    <option value="gold" className="bg-[#1C1E27]">Gold</option>
+                    <option value="silver" className="bg-[#1C1E27]">Silver</option>
+                    <option value="bronze" className="bg-[#1C1E27]">Bronze</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-gray-400 font-bold uppercase block mb-1">Kategori</label>
+                  <select
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 outline-none"
+                  >
+                    <option value="sembako" className="bg-[#1C1E27]">Sembako</option>
+                    <option value="sayuran" className="bg-[#1C1E27]">Sayuran</option>
+                    <option value="daging" className="bg-[#1C1E27]">Daging/Ikan</option>
+                    <option value="pakaian" className="bg-[#1C1E27]">Pakaian</option>
+                    <option value="bumbu" className="bg-[#1C1E27]">Bumbu Dapur</option>
+                    <option value="jasa" className="bg-[#1C1E27]">Jasa / Lainnya</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 font-bold uppercase block mb-1">Sewa Bulanan (Rp)</label>
+                  <input
+                    type="number"
+                    value={form.monthly_fee}
+                    onChange={(e) => setForm({ ...form, monthly_fee: Number(e.target.value) })}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-gray-400 font-bold uppercase block mb-1">Posisi Baris (Row X)</label>
+                  <input
+                    type="number"
+                    value={form.row_x}
+                    onChange={(e) => setForm({ ...form, row_x: Number(e.target.value) })}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 outline-none"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 font-bold uppercase block mb-1">Posisi Kolom (Col Y)</label>
+                  <input
+                    type="number"
+                    value={form.col_y}
+                    onChange={(e) => setForm({ ...form, col_y: Number(e.target.value) })}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 outline-none"
+                    min="0"
+                  />
+                </div>
+              </div>
+
+              <p className="text-[10px] text-gray-500 leading-relaxed bg-white/5 p-3 rounded-lg border border-white/5">
+                💡 <strong className="text-gray-400">Panduan Grid:</strong> Row 0-2 biasanya area Gold, Row 3-4 Silver, Row 5-6 Bronze. Pastikan kombinasi Row & Col tidak bertumpuk dengan lapak lain.
+              </p>
+            </div>
+
+            <div className="p-6 border-t border-white/10 flex justify-end gap-3 bg-black/20">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 text-sm font-semibold text-gray-400 hover:text-white transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={() => {
+                  if (form.isEdit) {
+                    updateMutation.mutate({
+                      id: form.id,
+                      stall_code: form.stall_code,
+                      zone: form.zone,
+                      category: form.category,
+                      monthly_fee: form.monthly_fee,
+                      row_x: form.row_x,
+                      col_y: form.col_y,
+                    });
+                  } else {
+                    createMutation.mutate(form);
+                  }
+                }}
+                disabled={createMutation.isPending || updateMutation.isPending}
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
+              >
+                {(createMutation.isPending || updateMutation.isPending) && <Loader2 size={16} className="animate-spin" />}
+                {form.isEdit ? "Simpan Perubahan" : "Buat Lapak"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

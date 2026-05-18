@@ -118,3 +118,62 @@ export async function PATCH(request) {
     return Response.json({ error: "Failed to update stall" }, { status: 500 });
   }
 }
+
+export async function POST(request) {
+  try {
+    const { stall_code, zone, category, monthly_fee, row_x, col_y } = await request.json();
+
+    if (!stall_code || !zone || !category || monthly_fee === undefined || row_x === undefined || col_y === undefined) {
+      return Response.json({ error: "Semua field wajib diisi" }, { status: 400 });
+    }
+
+    const result = await sql`
+      INSERT INTO stalls (stall_code, zone, category, monthly_fee, row_x, col_y)
+      VALUES (${stall_code}, ${zone}, ${category}, ${monthly_fee}, ${row_x}, ${col_y})
+    `;
+
+    await sql`
+      INSERT INTO audit_logs (module, action, description)
+      VALUES ('Grid', 'CREATE', ${`Lapak baru ditambahkan: ${stall_code} di Zona ${zone}`})
+    `;
+
+    return Response.json({ success: true, stall: result[0] });
+  } catch (error) {
+    console.error(error);
+    return Response.json({ error: "Gagal membuat lapak" }, { status: 500 });
+  }
+}
+
+export async function DELETE(request) {
+  try {
+    const url = new URL(request.url);
+    const id = url.searchParams.get('id');
+
+    if (!id) {
+      return Response.json({ error: "ID lapak tidak valid" }, { status: 400 });
+    }
+
+    // Verify stall exists and is vacant
+    const stalls = await sql`SELECT * FROM stalls WHERE id = ${id}`;
+    if (stalls.length === 0) {
+      return Response.json({ error: "Lapak tidak ditemukan" }, { status: 404 });
+    }
+
+    if (stalls[0].status === 'occupied') {
+      return Response.json({ error: "Lapak yang terisi tidak dapat dihapus" }, { status: 400 });
+    }
+
+    await sql`DELETE FROM stalls WHERE id = ${id}`;
+
+    await sql`
+      INSERT INTO audit_logs (module, action, description)
+      VALUES ('Grid', 'DELETE', ${`Lapak dihapus: ${stalls[0].stall_code}`})
+    `;
+
+    return Response.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    return Response.json({ error: "Gagal menghapus lapak" }, { status: 500 });
+  }
+}
+
