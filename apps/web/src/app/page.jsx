@@ -2,7 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import {
   Shield, Users, Receipt, Map as MapIcon,
-  Truck, BarChart, Menu, X, ArrowRight, Sun, Moon
+  Truck, BarChart, Menu, X, ArrowRight, Sun, Moon,
+  ChevronRight, Building2, MapPin, Package, FileText,
+  CheckCircle2, TrendingUp, Clock, Lock
 } from "lucide-react";
 
 function useCountUp(target, duration = 1800) {
@@ -93,11 +95,112 @@ const DARK = {
   mobileBg: "#0D1117",
 };
 
+const DEMO_FEATURES = [
+  {
+    id: "traders",
+    label: "Manajemen Pedagang",
+    icon: Users,
+    color: "#2563EB",
+    route: "/admin/traders",
+    headline: "Database Pedagang Terpusat",
+    desc: "Kelola seluruh data pedagang, verifikasi identitas, dan pantau status sewa kios dalam satu tampilan.",
+    bullets: ["Data KTP & foto pedagang terverifikasi", "Riwayat sewa & perpanjangan kontrak", "Filter berdasarkan zona, status, dan blok", "Export laporan pedagang ke Excel/PDF"],
+    preview: {
+      rows: [
+        { name: "Siti Rahayu", kios: "A-12", status: "Aktif", color: "#22C55E" },
+        { name: "Budi Santoso", kios: "B-07", status: "Aktif", color: "#22C55E" },
+        { name: "Dewi Lestari", kios: "C-03", status: "Menunggak", color: "#EF4444" },
+        { name: "Ahmad Fauzi", kios: "A-05", status: "Aktif", color: "#22C55E" },
+      ]
+    }
+  },
+  {
+    id: "billing",
+    label: "Tagihan Digital",
+    icon: Receipt,
+    color: "#F59E0B",
+    route: "/admin/billing",
+    headline: "Penagihan Otomatis & Transparan",
+    desc: "Tagih retribusi, pantau pembayaran, dan kirim notifikasi tunggakan secara otomatis.",
+    bullets: ["Tagihan otomatis bulanan/harian", "Notifikasi WhatsApp & SMS", "Rekap pendapatan real-time", "Cetak kwitansi digital"],
+    preview: {
+      stats: [
+        { label: "Terbayar", val: "Rp 48,5 jt", color: "#22C55E" },
+        { label: "Menunggak", val: "Rp 4,2 jt", color: "#EF4444" },
+        { label: "Bulan Ini", val: "Rp 52,7 jt", color: "#F59E0B" },
+      ]
+    }
+  },
+  {
+    id: "grid",
+    label: "Peta Kios GIS",
+    icon: MapIcon,
+    color: "#059669",
+    route: "/admin/grid",
+    headline: "Denah Pasar Interaktif",
+    desc: "Visualisasi denah pasar dalam grid 2D — lihat status setiap kios, blok, dan zona secara real-time.",
+    bullets: ["Grid interaktif per blok & zona", "Warna kode status (aktif/kosong/sengketa)", "Klik kios untuk detail & riwayat", "Kelola penempatan pedagang baru"],
+    preview: {
+      grid: true
+    }
+  },
+  {
+    id: "porter",
+    label: "Porter Management",
+    icon: Truck,
+    color: "#7C3AED",
+    route: "/admin/porter",
+    headline: "Koordinasi Porter Efisien",
+    desc: "Daftarkan, jadwalkan, dan pantau kinerja porter pasar untuk kelancaran logistik harian.",
+    bullets: ["Database porter berlisensi", "Jadwal shift & area tugas", "Lacak jumlah layanan per porter", "Rating & evaluasi kinerja"],
+    preview: {
+      porters: [
+        { name: "Joko Widodo", shift: "Pagi 06:00–14:00", tugas: 12 },
+        { name: "Rudi Hartono", shift: "Siang 14:00–22:00", tugas: 8 },
+        { name: "Suparman", shift: "Pagi 06:00–14:00", tugas: 15 },
+      ]
+    }
+  },
+  {
+    id: "analytics",
+    label: "Laporan & Analitik",
+    icon: BarChart,
+    color: "#E11D48",
+    route: "/admin/analytics",
+    headline: "Insight Berbasis Data",
+    desc: "Dashboard analitik lengkap dengan grafik tren pendapatan, okupansi, dan perbandingan periode.",
+    bullets: ["Grafik pendapatan bulanan", "Tingkat hunian & kekosongan kios", "Komparasi tahun-ke-tahun", "Unduh laporan otomatis"],
+    preview: {
+      bars: [55, 70, 45, 88, 62, 95, 78, 83, 91, 69, 74, 100]
+    }
+  },
+  {
+    id: "audit",
+    label: "Audit Log",
+    icon: Shield,
+    color: "#475569",
+    route: "/admin/audit",
+    headline: "Transparansi & Akuntabilitas",
+    desc: "Setiap perubahan data tercatat otomatis — siapa, kapan, dan apa yang diubah.",
+    bullets: ["Log semua aktivitas pengguna", "Filter berdasarkan modul & tanggal", "Deteksi akses mencurigakan", "Export log untuk audit eksternal"],
+    preview: {
+      logs: [
+        { user: "admin", action: "Edit data pedagang A-12", time: "09:14" },
+        { user: "petugas1", action: "Cetak tagihan bulan Juni", time: "09:08" },
+        { user: "admin", action: "Tambah porter baru", time: "08:55" },
+        { user: "petugas2", action: "Konfirmasi pembayaran", time: "08:30" },
+      ]
+    }
+  },
+];
+
 export default function LandingPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [dark, setDark] = useState(() => {
     try { return localStorage.getItem("svms-dark") === "true"; } catch { return false; }
   });
+  const [showDemo, setShowDemo] = useState(false);
+  const [demoTab, setDemoTab] = useState(0);
   const navigate = useNavigate();
   const [traders, tradersRef] = useCountUp(500);
   const [stalls, stallsRef] = useCountUp(200);
@@ -112,9 +215,227 @@ export default function LandingPage() {
   };
 
   const goToLogin = () => navigate("/login");
+  const openDemo = () => { setDemoTab(0); setShowDemo(true); };
+
+  const featureRoutes = [
+    "/admin/traders",
+    "/admin/billing",
+    "/admin/grid",
+    "/admin/porter",
+    "/admin/analytics",
+    "/admin/audit",
+  ];
 
   return (
     <div style={{ fontFamily: "system-ui, -apple-system, sans-serif", background: t.pageBg, color: t.heading, minHeight: "100vh", overflowX: "hidden", transition: "background 0.3s, color 0.3s" }}>
+
+      {/* Demo Modal */}
+      {showDemo && (
+        <div
+          style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowDemo(false); }}
+        >
+          <div style={{ background: "#0F172A", borderRadius: "20px", border: "1px solid rgba(71,85,105,0.6)", width: "100%", maxWidth: "900px", maxHeight: "90vh", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "0 40px 80px rgba(0,0,0,0.6)" }}>
+            {/* Modal Header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", borderBottom: "1px solid rgba(30,41,59,1)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div style={{ background: "#F59E0B", padding: "6px", borderRadius: "8px" }}>
+                  <Shield style={{ width: "18px", height: "18px", color: "#0F172A" }} />
+                </div>
+                <span style={{ fontWeight: "700", fontSize: "16px", color: "white" }}>SVMS Enterprise — Demo Interaktif</span>
+              </div>
+              <button onClick={() => setShowDemo(false)} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(71,85,105,0.5)", borderRadius: "8px", padding: "6px", cursor: "pointer", color: "#94A3B8", display: "flex" }}>
+                <X style={{ width: "18px", height: "18px" }} />
+              </button>
+            </div>
+
+            {/* Tab Nav */}
+            <div style={{ display: "flex", overflowX: "auto", gap: "4px", padding: "12px 24px 0", borderBottom: "1px solid rgba(30,41,59,1)" }}>
+              {DEMO_FEATURES.map((f, i) => {
+                const Icon = f.icon;
+                return (
+                  <button
+                    key={f.id}
+                    onClick={() => setDemoTab(i)}
+                    style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 14px", borderRadius: "8px 8px 0 0", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: "600", whiteSpace: "nowrap", background: demoTab === i ? "#1E293B" : "transparent", color: demoTab === i ? "white" : "#64748B", borderBottom: demoTab === i ? "2px solid #F59E0B" : "2px solid transparent", transition: "all 0.2s" }}
+                  >
+                    <Icon style={{ width: "14px", height: "14px", color: demoTab === i ? f.color : "#64748B" }} />
+                    {f.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Tab Content */}
+            <div style={{ flex: 1, overflow: "auto", padding: "28px 24px" }}>
+              {(() => {
+                const feat = DEMO_FEATURES[demoTab];
+                const Icon = feat.icon;
+                return (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "28px", alignItems: "start" }}>
+                    {/* Left: Info */}
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+                        <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: `${feat.color}20`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <Icon style={{ width: "24px", height: "24px", color: feat.color }} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "11px", color: "#64748B", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.08em" }}>Modul</div>
+                          <div style={{ fontSize: "18px", fontWeight: "800", color: "white" }}>{feat.label}</div>
+                        </div>
+                      </div>
+                      <h3 style={{ fontSize: "20px", fontWeight: "700", color: "white", marginBottom: "10px" }}>{feat.headline}</h3>
+                      <p style={{ color: "#94A3B8", lineHeight: "1.7", marginBottom: "20px", fontSize: "14px" }}>{feat.desc}</p>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "24px" }}>
+                        {feat.bullets.map((b, i) => (
+                          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
+                            <CheckCircle2 style={{ width: "16px", height: "16px", color: "#22C55E", flexShrink: 0, marginTop: "2px" }} />
+                            <span style={{ color: "#CBD5E1", fontSize: "14px" }}>{b}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => { setShowDemo(false); navigate("/login"); }}
+                        style={{ background: "#F59E0B", color: "#0F172A", fontWeight: "700", padding: "12px 24px", borderRadius: "10px", border: "none", cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", gap: "8px" }}
+                      >
+                        Akses Modul Ini <ChevronRight style={{ width: "16px", height: "16px" }} />
+                      </button>
+                    </div>
+
+                    {/* Right: Preview */}
+                    <div style={{ background: "#020B18", borderRadius: "14px", border: "1px solid rgba(30,41,59,1)", overflow: "hidden" }}>
+                      <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(30,41,59,1)", display: "flex", alignItems: "center", gap: "6px" }}>
+                        {["#334155","#334155","#334155"].map((c, i) => <div key={i} style={{ width: "10px", height: "10px", borderRadius: "50%", background: c }} />)}
+                        <span style={{ fontSize: "11px", color: "#475569", marginLeft: "6px", flex: 1, textAlign: "center" }}>svms.enterprise / {feat.route}</span>
+                      </div>
+                      <div style={{ padding: "16px" }}>
+                        {/* Traders preview */}
+                        {feat.preview.rows && (
+                          <div>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 80px", gap: "6px", padding: "6px 8px", marginBottom: "4px" }}>
+                              {["Nama Pedagang","No. Kios","Status"].map(h => <span key={h} style={{ fontSize: "10px", fontWeight: "700", color: "#475569", textTransform: "uppercase" }}>{h}</span>)}
+                            </div>
+                            {feat.preview.rows.map((r, i) => (
+                              <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 80px 80px", gap: "6px", padding: "8px", background: "rgba(30,41,59,0.4)", borderRadius: "6px", marginBottom: "4px", alignItems: "center" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                  <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#1E293B", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", color: "#94A3B8", fontWeight: "700" }}>{r.name[0]}</div>
+                                  <span style={{ fontSize: "12px", color: "#E2E8F0" }}>{r.name}</span>
+                                </div>
+                                <span style={{ fontSize: "12px", color: "#94A3B8", fontFamily: "monospace" }}>{r.kios}</span>
+                                <span style={{ fontSize: "11px", color: r.color, fontWeight: "600", background: `${r.color}15`, padding: "2px 6px", borderRadius: "4px", textAlign: "center" }}>{r.status}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Billing preview */}
+                        {feat.preview.stats && (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                            {feat.preview.stats.map((s, i) => (
+                              <div key={i} style={{ background: "rgba(30,41,59,0.4)", borderRadius: "10px", padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderLeft: `3px solid ${s.color}` }}>
+                                <span style={{ fontSize: "12px", color: "#94A3B8" }}>{s.label}</span>
+                                <span style={{ fontSize: "16px", fontWeight: "800", color: s.color }}>{s.val}</span>
+                              </div>
+                            ))}
+                            <div style={{ marginTop: "8px" }}>
+                              <div style={{ fontSize: "11px", color: "#475569", marginBottom: "8px" }}>Progres Tagihan Bulan Ini</div>
+                              <div style={{ height: "8px", background: "#1E293B", borderRadius: "4px" }}>
+                                <div style={{ width: "92%", height: "100%", background: "linear-gradient(90deg, #22C55E, #F59E0B)", borderRadius: "4px" }} />
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", marginTop: "4px" }}>
+                                <span style={{ fontSize: "10px", color: "#475569" }}>0%</span>
+                                <span style={{ fontSize: "10px", color: "#F59E0B", fontWeight: "700" }}>92% terbayar</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* GIS Grid preview */}
+                        {feat.preview.grid && (
+                          <div>
+                            <div style={{ display: "flex", gap: "6px", marginBottom: "10px", flexWrap: "wrap" }}>
+                              {[["#22C55E","Aktif"],["#F59E0B","Kosong"],["#EF4444","Sengketa"]].map(([c,l]) => (
+                                <div key={l} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                  <div style={{ width: "8px", height: "8px", borderRadius: "2px", background: c }} />
+                                  <span style={{ fontSize: "10px", color: "#64748B" }}>{l}</span>
+                                </div>
+                              ))}
+                            </div>
+                            <div style={{ display: "grid", gridTemplateColumns: "repeat(8, 1fr)", gap: "3px" }}>
+                              {Array.from({ length: 48 }, (_, i) => {
+                                const r = Math.random();
+                                const color = r > 0.75 ? "#EF444430" : r > 0.15 ? "#22C55E30" : "#F59E0B30";
+                                const border = r > 0.75 ? "#EF4444" : r > 0.15 ? "#22C55E" : "#F59E0B";
+                                return <div key={i} style={{ aspectRatio: "1", borderRadius: "3px", background: color, border: `1px solid ${border}40`, cursor: "pointer" }} title={`Kios ${i+1}`} />;
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Porter preview */}
+                        {feat.preview.porters && (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                            {feat.preview.porters.map((p, i) => (
+                              <div key={i} style={{ background: "rgba(30,41,59,0.4)", borderRadius: "8px", padding: "10px 12px" }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                                  <span style={{ fontSize: "12px", fontWeight: "600", color: "#E2E8F0" }}>{p.name}</span>
+                                  <span style={{ fontSize: "11px", color: "#7C3AED", background: "#7C3AED20", padding: "1px 6px", borderRadius: "4px", fontWeight: "600" }}>{p.tugas} tugas</span>
+                                </div>
+                                <span style={{ fontSize: "11px", color: "#64748B" }}>{p.shift}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Analytics preview */}
+                        {feat.preview.bars && (
+                          <div>
+                            <div style={{ fontSize: "11px", color: "#475569", marginBottom: "10px" }}>Pendapatan Retribusi 2026 (Juta Rp)</div>
+                            <div style={{ display: "flex", alignItems: "flex-end", gap: "4px", height: "100px" }}>
+                              {feat.preview.bars.map((h, i) => (
+                                <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "3px" }}>
+                                  <div style={{ width: "100%", background: i === feat.preview.bars.length - 1 ? "#F59E0B" : "rgba(245,158,11,0.5)", borderRadius: "3px 3px 0 0", height: `${h}%`, transition: "height 0.3s" }} />
+                                  <span style={{ fontSize: "8px", color: "#475569" }}>{["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Ags","Sep","Okt","Nov","Des"][i]}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Audit preview */}
+                        {feat.preview.logs && (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                            {feat.preview.logs.map((l, i) => (
+                              <div key={i} style={{ background: "rgba(30,41,59,0.4)", borderRadius: "6px", padding: "8px 10px", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px" }}>
+                                <div>
+                                  <span style={{ fontSize: "10px", color: "#F59E0B", fontWeight: "600", background: "#F59E0B15", padding: "1px 5px", borderRadius: "3px" }}>{l.user}</span>
+                                  <p style={{ fontSize: "12px", color: "#CBD5E1", marginTop: "4px" }}>{l.action}</p>
+                                </div>
+                                <span style={{ fontSize: "10px", color: "#475569", whiteSpace: "nowrap", marginTop: "2px" }}>{l.time}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{ padding: "16px 24px", borderTop: "1px solid rgba(30,41,59,1)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: "12px", color: "#475569" }}>Demo bersifat ilustratif. Data nyata tersedia setelah login.</span>
+              <button
+                onClick={() => { setShowDemo(false); navigate("/login"); }}
+                style={{ background: "#F59E0B", color: "#0F172A", fontWeight: "700", padding: "10px 20px", borderRadius: "8px", border: "none", cursor: "pointer", fontSize: "13px" }}
+              >
+                Masuk ke Dashboard →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Navbar */}
       <nav style={{ position: "sticky", top: 0, zIndex: 50, width: "100%", background: t.navBg, borderBottom: `1px solid ${t.navBorder}`, backdropFilter: "blur(12px)", transition: "background 0.3s, border-color 0.3s" }}>
@@ -182,7 +503,7 @@ export default function LandingPage() {
         </div>
       )}
 
-      {/* Hero Section — always dark */}
+      {/* Hero Section */}
       <section style={{ position: "relative", paddingTop: "80px", paddingBottom: "128px", overflow: "hidden", background: "#0F172A", color: "white", minHeight: "90vh", display: "flex", alignItems: "center" }}>
         <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
           <img src="/svms-hero-bg.png" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.3 }} />
@@ -210,7 +531,10 @@ export default function LandingPage() {
                 <button onClick={goToLogin} style={{ background: "#F59E0B", color: "#0F172A", fontWeight: "700", padding: "14px 32px", borderRadius: "12px", border: "none", cursor: "pointer", fontSize: "16px", display: "inline-flex", alignItems: "center", gap: "8px", boxShadow: "0 0 24px rgba(245,158,11,0.35)" }}>
                   Mulai Sekarang <ArrowRight style={{ width: "20px", height: "20px" }} />
                 </button>
-                <button onClick={() => document.getElementById("cara-kerja")?.scrollIntoView({ behavior: "smooth" })} style={{ background: "transparent", color: "white", fontWeight: "600", padding: "14px 32px", borderRadius: "12px", border: "1px solid rgba(71,85,105,1)", cursor: "pointer", fontSize: "16px" }}>
+                <button onClick={openDemo} style={{ background: "transparent", color: "white", fontWeight: "600", padding: "14px 32px", borderRadius: "12px", border: "1px solid rgba(71,85,105,1)", cursor: "pointer", fontSize: "16px", display: "inline-flex", alignItems: "center", gap: "8px", transition: "background 0.2s, border-color 0.2s" }}
+                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.borderColor = "rgba(100,116,139,1)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "rgba(71,85,105,1)"; }}
+                >
                   Lihat Demo
                 </button>
               </div>
@@ -294,13 +618,16 @@ export default function LandingPage() {
             </p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px" }}>
-            <FeatureCard t={t} icon={<Users style={{ width: "24px", height: "24px", color: "#2563EB" }} />} title="Manajemen Pedagang" description="Kelola data pedagang secara terpusat dengan verifikasi identitas dan rekam jejak digital yang lengkap." />
-            <FeatureCard t={t} icon={<Receipt style={{ width: "24px", height: "24px", color: "#F59E0B" }} />} title="Tagihan Digital" description="Penagihan otomatis dan pelacakan pembayaran retribusi secara real-time mengurangi tunggakan." />
-            <FeatureCard t={t} icon={<MapIcon style={{ width: "24px", height: "24px", color: "#059669" }} />} title="Peta Kios GIS" description="Visualisasi denah pasar interaktif untuk pemantauan okupansi dan zonasi area pedagang." />
-            <FeatureCard t={t} icon={<Truck style={{ width: "24px", height: "24px", color: "#7C3AED" }} />} title="Porter Management" description="Koordinasi porter dan layanan angkut barang secara efisien untuk kelancaran logistik." />
-            <FeatureCard t={t} icon={<BarChart style={{ width: "24px", height: "24px", color: "#E11D48" }} />} title="Laporan & Analitik" description="Dashboard analitik real-time memberikan insight mendalam untuk pengambilan keputusan strategis." />
-            <FeatureCard t={t} icon={<Shield style={{ width: "24px", height: "24px", color: dark ? "#94A3B8" : "#334155" }} />} title="Audit Log" description="Rekam jejak aktivitas lengkap memastikan transparansi dan akuntabilitas sistem yang tinggi." />
+            <FeatureCard t={t} icon={<Users style={{ width: "24px", height: "24px", color: "#2563EB" }} />} title="Manajemen Pedagang" description="Kelola data pedagang secara terpusat dengan verifikasi identitas dan rekam jejak digital yang lengkap." onClick={() => navigate("/admin/traders")} />
+            <FeatureCard t={t} icon={<Receipt style={{ width: "24px", height: "24px", color: "#F59E0B" }} />} title="Tagihan Digital" description="Penagihan otomatis dan pelacakan pembayaran retribusi secara real-time mengurangi tunggakan." onClick={() => navigate("/admin/billing")} />
+            <FeatureCard t={t} icon={<MapIcon style={{ width: "24px", height: "24px", color: "#059669" }} />} title="Peta Kios GIS" description="Visualisasi denah pasar interaktif untuk pemantauan okupansi dan zonasi area pedagang." onClick={() => navigate("/admin/grid")} />
+            <FeatureCard t={t} icon={<Truck style={{ width: "24px", height: "24px", color: "#7C3AED" }} />} title="Porter Management" description="Koordinasi porter dan layanan angkut barang secara efisien untuk kelancaran logistik." onClick={() => navigate("/admin/porter")} />
+            <FeatureCard t={t} icon={<BarChart style={{ width: "24px", height: "24px", color: "#E11D48" }} />} title="Laporan & Analitik" description="Dashboard analitik real-time memberikan insight mendalam untuk pengambilan keputusan strategis." onClick={() => navigate("/admin/analytics")} />
+            <FeatureCard t={t} icon={<Shield style={{ width: "24px", height: "24px", color: dark ? "#94A3B8" : "#334155" }} />} title="Audit Log" description="Rekam jejak aktivitas lengkap memastikan transparansi dan akuntabilitas sistem yang tinggi." onClick={() => navigate("/admin/audit")} />
           </div>
+          <p style={{ textAlign: "center", marginTop: "28px", fontSize: "13px", color: t.body }}>
+            Klik fitur di atas untuk langsung mengakses — login otomatis diarahkan.
+          </p>
         </div>
       </section>
 
@@ -319,7 +646,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Section — always dark */}
+      {/* CTA Section */}
       <section style={{ padding: "96px 16px", background: "#0F172A", position: "relative", overflow: "hidden" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative", zIndex: 10 }}>
           <div style={{ background: "linear-gradient(135deg, #1E293B, #0F172A)", border: "1px solid rgba(71,85,105,1)", borderRadius: "24px", padding: "clamp(48px, 8vw, 80px)", textAlign: "center", maxWidth: "800px", margin: "0 auto", boxShadow: "0 25px 50px rgba(0,0,0,0.5)" }}>
@@ -329,9 +656,14 @@ export default function LandingPage() {
             <p style={{ fontSize: "18px", color: "#94A3B8", marginBottom: "40px", maxWidth: "500px", margin: "0 auto 40px", lineHeight: "1.7" }}>
               Tingkatkan efisiensi, transparansi, dan pendapatan daerah dengan SVMS Enterprise.
             </p>
-            <button onClick={goToLogin} style={{ background: "#F59E0B", color: "#0F172A", fontWeight: "700", padding: "16px 48px", borderRadius: "12px", border: "none", cursor: "pointer", fontSize: "18px", boxShadow: "0 8px 24px rgba(245,158,11,0.3)" }}>
-              Mulai Sekarang
-            </button>
+            <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
+              <button onClick={goToLogin} style={{ background: "#F59E0B", color: "#0F172A", fontWeight: "700", padding: "16px 48px", borderRadius: "12px", border: "none", cursor: "pointer", fontSize: "18px", boxShadow: "0 8px 24px rgba(245,158,11,0.3)", display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                Mulai Sekarang <ArrowRight style={{ width: "20px", height: "20px" }} />
+              </button>
+              <button onClick={openDemo} style={{ background: "transparent", color: "white", fontWeight: "600", padding: "16px 32px", borderRadius: "12px", border: "1px solid rgba(71,85,105,1)", cursor: "pointer", fontSize: "16px" }}>
+                Lihat Demo
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -350,9 +682,18 @@ export default function LandingPage() {
               </div>
             </div>
             <div style={{ display: "flex", gap: "24px" }}>
-              {["Bantuan","Kebijakan Privasi","Syarat & Ketentuan"].map(link => (
-                <a key={link} href="#" style={{ color: t.footerLink, textDecoration: "none", fontSize: "14px", fontWeight: "500" }}>{link}</a>
-              ))}
+              <a href="/bantuan" style={{ color: t.footerLink, textDecoration: "none", fontSize: "14px", fontWeight: "500", transition: "color 0.2s" }}
+                onMouseEnter={e => e.currentTarget.style.color = "#F59E0B"}
+                onMouseLeave={e => e.currentTarget.style.color = t.footerLink}
+              >Bantuan</a>
+              <a href="/privasi" style={{ color: t.footerLink, textDecoration: "none", fontSize: "14px", fontWeight: "500", transition: "color 0.2s" }}
+                onMouseEnter={e => e.currentTarget.style.color = "#F59E0B"}
+                onMouseLeave={e => e.currentTarget.style.color = t.footerLink}
+              >Kebijakan Privasi</a>
+              <a href="/syarat" style={{ color: t.footerLink, textDecoration: "none", fontSize: "14px", fontWeight: "500", transition: "color 0.2s" }}
+                onMouseEnter={e => e.currentTarget.style.color = "#F59E0B"}
+                onMouseLeave={e => e.currentTarget.style.color = t.footerLink}
+              >Syarat &amp; Ketentuan</a>
             </div>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "16px" }}>
@@ -381,19 +722,25 @@ export default function LandingPage() {
   );
 }
 
-function FeatureCard({ icon, title, description, t }) {
+function FeatureCard({ icon, title, description, t, onClick }) {
   const [hovered, setHovered] = useState(false);
   return (
     <div
-      style={{ background: t.cardBg, padding: "32px", borderRadius: "16px", border: `1px solid ${t.cardBorder}`, boxShadow: hovered ? t.cardShadowHover : t.cardShadow, transform: hovered ? "translateY(-3px)" : "translateY(0)", transition: "box-shadow 0.25s, transform 0.25s, background 0.3s, border-color 0.3s", cursor: "default" }}
+      style={{ background: t.cardBg, padding: "32px", borderRadius: "16px", border: `1px solid ${hovered ? "#F59E0B50" : t.cardBorder}`, boxShadow: hovered ? t.cardShadowHover : t.cardShadow, transform: hovered ? "translateY(-3px)" : "translateY(0)", transition: "box-shadow 0.25s, transform 0.25s, background 0.3s, border-color 0.3s", cursor: "pointer" }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={onClick}
     >
       <div style={{ width: "56px", height: "56px", borderRadius: "12px", background: t.iconBg, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "24px", transition: "background 0.3s" }}>
         {icon}
       </div>
       <h3 style={{ fontSize: "18px", fontWeight: "700", color: t.heading, marginBottom: "12px", transition: "color 0.3s" }}>{title}</h3>
-      <p style={{ color: t.body, lineHeight: "1.7", fontSize: "15px", transition: "color 0.3s" }}>{description}</p>
+      <p style={{ color: t.body, lineHeight: "1.7", fontSize: "15px", transition: "color 0.3s", marginBottom: "16px" }}>{description}</p>
+      {hovered && (
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#F59E0B", fontSize: "13px", fontWeight: "600" }}>
+          Lihat Modul <ChevronRight style={{ width: "14px", height: "14px" }} />
+        </div>
+      )}
     </div>
   );
 }
