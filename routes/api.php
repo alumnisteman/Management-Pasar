@@ -105,6 +105,7 @@ Route::post('/reports/{id}/verify', [ReportController::class, 'verify']);
 
 // Immutable Receipts
 Route::get('/receipt/{id}', [ReceiptController::class, 'generate']);
+Route::get('/receipt/verify/{receiptNumber}', [ReceiptController::class, 'verify']);
 
 // JWT Authentication
 Route::group([

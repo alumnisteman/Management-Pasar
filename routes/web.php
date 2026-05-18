@@ -21,3 +21,5 @@ Route::get('/porter.html', function () {
 Route::get('/trader/{id}/id-card', function () {
     return view('id_card');
 });
+
+Route::get('/verify-receipt/{receiptNumber}', [App\Http\Controllers\ReceiptController::class, 'verify']);

@@ -8,7 +8,6 @@ services:
     volumes:
       - ./backend:/var/www
     ports:
-      - "8002:8000"
       - "8081:8081"
     environment:
       - DB_CONNECTION=mysql
@@ -80,14 +79,26 @@ services:
     command:
       - node
       - build/server/index.js
-    ports:
-      - "8001:4000"
     environment:
       - PORT=4000
       - BACKEND_URL=http://app:8000
     restart: always
     depends_on:
       - app
+
+  nginx:
+    image: macbre/nginx-brotli:latest
+    container_name: svms_nginx
+    restart: always
+    ports:
+      - "8001:8001"
+      - "8002:8002"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - app
+      - frontend
 
 volumes:
   mysql_data: null
