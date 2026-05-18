@@ -92,10 +92,10 @@ function WABlastModal({ unpaidBills, month, onClose }) {
         amount: b.amount,
       }));
     try {
-      const res = await fetch("/api/admin/whatsapp", {
+      const res = await fetch("/api/admin/notifications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "billing_reminder", targets }),
+        body: JSON.stringify({ action: "bulk_reminders", payload: { bills: targets } }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -146,7 +146,7 @@ function WABlastModal({ unpaidBills, month, onClose }) {
                     ✅ Pengiriman selesai
                   </p>
                   <p className="text-gray-300">
-                    Terkirim: {result.sent} · Gagal: {result.failed}
+                    {result.message || "Pesan telah dijadwalkan untuk dikirim"}
                   </p>
                   <p className="text-[10px] text-gray-500">
                     Catatan: Pastikan WA_API_KEY sudah dikonfigurasi untuk
@@ -511,18 +511,43 @@ export default function BillingPage() {
                   {role === "admin" && (
                     <td className="px-5 py-4">
                       {b.status === "unpaid" && (
-                        <button
-                          onClick={() =>
-                            payMutation.mutate({
-                              id: b.id,
-                              trader_name: b.trader_name,
-                            })
-                          }
-                          disabled={payMutation.isPending}
-                          className="text-[10px] text-green-400 border border-green-500/30 px-2.5 py-1.5 rounded-lg hover:bg-green-500/10 transition-colors font-semibold flex items-center gap-1"
-                        >
-                          <CheckCircle2 size={11} /> Tandai Lunas
-                        </button>
+                        <div className="flex gap-2 items-center">
+                          <button
+                            onClick={() =>
+                              payMutation.mutate({
+                                id: b.id,
+                                trader_name: b.trader_name,
+                              })
+                            }
+                            disabled={payMutation.isPending}
+                            className="text-[10px] text-green-400 border border-green-500/30 px-2.5 py-1.5 rounded-lg hover:bg-green-500/10 transition-colors font-semibold flex items-center gap-1"
+                          >
+                            <CheckCircle2 size={11} /> Lunas
+                          </button>
+                          <button
+                            onClick={async (e) => {
+                              const btn = e.currentTarget;
+                              const originalText = btn.innerHTML;
+                              btn.innerHTML = "Mengirim...";
+                              btn.disabled = true;
+                              try {
+                                await fetch("/api/admin/notifications", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ action: "send_bill_reminder", payload: b }),
+                                });
+                                btn.innerHTML = "Terkirim!";
+                                setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+                              } catch(err) {
+                                btn.innerHTML = "Gagal";
+                                setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+                              }
+                            }}
+                            className="text-[10px] text-white bg-green-600 px-2.5 py-1.5 rounded-lg hover:bg-green-700 transition-colors font-semibold flex items-center gap-1 disabled:opacity-50"
+                          >
+                            <MessageCircle size={11} /> Kirim WA
+                          </button>
+                        </div>
                       )}
                     </td>
                   )}
