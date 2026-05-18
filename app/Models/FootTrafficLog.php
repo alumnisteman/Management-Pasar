@@ -19,7 +19,7 @@ class FootTrafficLog extends Model
         'recorded_at' => 'datetime'
     ];
 
-    protected static function boot()
+    public static function boot()
     {
         parent::boot();
         static::creating(function ($model) {

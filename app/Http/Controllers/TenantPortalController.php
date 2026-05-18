@@ -54,7 +54,7 @@ class TenantPortalController extends Controller
 
         $bill = Bill::findOrFail($data['bill_id']);
         $trader = Trader::findOrFail($data['trader_id']);
-        $wallet = Wallet::firstOrCreate(
+        $wallet = Wallet::query()->firstOrCreate(
             ['trader_id' => $trader->id],
             ['balance' => 500000] // default top up for testing
         );

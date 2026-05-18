@@ -56,8 +56,8 @@ class DummyDataSeeder extends Seeder
             $uniqueCode = strtoupper(substr($zone->name, 5, 1)) . '-' . str_pad($i, 3, '0', STR_PAD_LEFT);
             
             // Check if code exists, if so append a suffix
-            if (Slot::where('code', $uniqueCode)->exists()) {
-                $uniqueCode .= '-' . strtoupper(Str::random(3));
+            if (Slot::where('code', $uniqueCode)->count() > 0) {
+                $uniqueCode .= '-' . strtoupper(\Illuminate\Support\Str::random(3));
             }
 
             $slot = Slot::create([
@@ -73,7 +73,7 @@ class DummyDataSeeder extends Seeder
             ]);
 
             // Create a permit for this trader and slot
-            $permitNumber = 'PMT-' . strtoupper(Str::random(8));
+            $permitNumber = 'PMT-' . strtoupper(\Illuminate\Support\Str::random(8));
             Permit::create([
                 'id' => (string) Str::uuid(),
                 'trader_id' => $trader->id,
@@ -97,7 +97,7 @@ class DummyDataSeeder extends Seeder
                         'transaction_id' => null,
                         'payment_method' => rand(1, 100) > 70 ? 'qris' : 'cash',
                         'amount_paid' => 5000,
-                        'paid_at' => Carbon::now()->subDays($daysAgo)->setHour(rand(6, 12)),
+                        'paid_at' => Carbon::now()->modify('-' . $daysAgo . ' days')->setHour(rand(6, 12)),
                         'receipt_url' => null
                     ]);
                 }
@@ -112,7 +112,7 @@ class DummyDataSeeder extends Seeder
                 'user_id' => null,
                 'action' => $events[array_rand($events)],
                 'payload' => json_encode(['info' => 'Aktivitas sistem otomatis by DummyDataSeeder']),
-                'created_at' => Carbon::now()->subHours(rand(1, 48))
+                'created_at' => Carbon::now()->modify('-' . rand(1, 48) . ' hours')
             ]);
         }
 
@@ -126,14 +126,14 @@ class DummyDataSeeder extends Seeder
                 PriceLog::create([
                     'commodity_name' => $commodities[$i],
                     'price' => $basePrices[$i] + $fluctuation,
-                    'recorded_at' => Carbon::now()->subDays($daysAgo)->format('Y-m-d'),
+                    'recorded_at' => Carbon::now()->modify('-' . $daysAgo . ' days')->format('Y-m-d'),
                     'slot_id' => null
                 ]);
             }
         }
 
         // Generate Bills & Smart Meter Readings for Slots
-        $slots = Slot::all();
+        $slots = Slot::query()->get();
         foreach ($slots as $idx => $s) {
             $t = $traders[$idx % count($traders)];
             
@@ -143,7 +143,7 @@ class DummyDataSeeder extends Seeder
             for ($monthAgo = 0; $monthAgo < 4; $monthAgo++) {
                 $status = $statusOptions[$monthAgo];
                 $amount = rand(150000, 300000);
-                $dueDate = Carbon::now()->subMonths($monthAgo)->endOfMonth();
+                $dueDate = Carbon::now()->modify('-' . $monthAgo . ' months')->endOfMonth();
 
                 $bill = \App\Models\Bill::create([
                     'id' => (string) Str::uuid(),
@@ -161,14 +161,14 @@ class DummyDataSeeder extends Seeder
                         'transaction_id' => null,
                         'payment_method' => 'qris',
                         'amount_paid' => $amount,
-                        'paid_at' => $dueDate->subDays(rand(1, 5)),
+                        'paid_at' => (clone $dueDate)->modify('-' . rand(1, 5) . ' days'),
                     ]);
                 }
             }
 
             // Seed IoT Readings for last 30 days
             for ($day = 30; $day >= 0; $day--) {
-                $time = Carbon::now()->subDays($day);
+                $time = Carbon::now()->modify('-' . $day . ' days');
                 
                 // Electricity (cumulative KWh)
                 \App\Models\SmartMeterReading::create([
@@ -195,7 +195,7 @@ class DummyDataSeeder extends Seeder
         // Generate Foot Traffic Logs for each zone for last 30 days
         foreach ($zones as $zone) {
             for ($day = 30; $day >= 0; $day--) {
-                $time = Carbon::now()->subDays($day);
+                $time = Carbon::now()->modify('-' . $day . ' days');
                 
                 // Peak hours simulation (different count per zone)
                 $multiplier = $zone->name === 'ZONA KULINER' ? 1.5 : ($zone->name === 'ZONA BASAH' ? 1.2 : 0.8);

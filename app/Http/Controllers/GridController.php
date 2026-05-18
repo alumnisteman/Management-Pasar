@@ -28,7 +28,7 @@ class GridController extends Controller
         $qrPayload = 'QR-' . (string) \Illuminate\Support\Str::uuid();
         
         // Log the booking action
-        \App\Services\AuditLogger::log('BOOK_SLOT', [
+        AuditLogger::log('BOOK_SLOT', [
             'slot_id' => $slot->id,
             'vendor_id' => $data['vendor_id'],
             'qr' => $qrPayload,
@@ -41,8 +41,7 @@ class GridController extends Controller
 
     public function heatmap()
     {
-        // Fetch slots with a count of transactions in the last 24h as 'intensity'
-        $heatmapData = Slot::select('slots.*', DB::raw('(SELECT COUNT(*) FROM transactions WHERE transactions.slot_id = slots.id AND transactions.created_at >= NOW() - INTERVAL 1 DAY) as intensity'))
+        $heatmapData = Slot::query()->select('slots.*', DB::raw('(SELECT COUNT(*) FROM transactions WHERE transactions.slot_id = slots.id AND transactions.created_at >= NOW() - INTERVAL 1 DAY) as intensity'))
             ->get();
             
         return response()->json($heatmapData);
@@ -50,7 +49,7 @@ class GridController extends Controller
 
     public function exportHeatmap(Request $request)
     {
-        $marketId = $request->query('market_id');
+        $marketId = $request->input('market_id');
         $query = Slot::query();
         if ($marketId) $query->where('market_id', $marketId);
         $slots = $query->get();
@@ -65,7 +64,7 @@ class GridController extends Controller
 
     public function dynamicPricing(Request $request)
     {
-        $marketId = $request->query('market_id');
+        $marketId = $request->input('market_id');
         $query = Slot::query();
         if ($marketId) $query->where('market_id', $marketId);
         
@@ -99,7 +98,7 @@ class GridController extends Controller
         $slot->status = 'active';
         $slot->save();
 
-        \App\Services\AuditLogger::log('VACATE_SLOT', [
+        AuditLogger::log('VACATE_SLOT', [
             'slot_id'   => $slot->id,
             'slot_code' => $slot->code,
         ]);
@@ -123,7 +122,7 @@ class GridController extends Controller
             // Check for unpaid bills
             $hasUnpaidBill = \App\Models\Bill::where('slot_id', $s->id)
                 ->where('status', 'unpaid')
-                ->exists();
+                ->count() > 0;
                 
             return [
                 'id' => $s->id,
@@ -164,7 +163,7 @@ class GridController extends Controller
             }
         });
 
-        \App\Services\AuditLogger::log('UPDATE_STALL_COORDINATES', [
+        AuditLogger::log('UPDATE_STALL_COORDINATES', [
             'count' => count($data['slots'])
         ]);
 

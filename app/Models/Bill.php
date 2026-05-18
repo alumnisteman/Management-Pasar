@@ -13,7 +13,7 @@ class Bill extends Model
         'id', 'trader_id', 'slot_id', 'amount', 'due_date', 'status'
     ];
 
-    protected static function boot()
+    public static function boot()
     {
         parent::boot();
         static::creating(function ($model) {

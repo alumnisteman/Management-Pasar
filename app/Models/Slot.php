@@ -14,7 +14,7 @@ class Slot extends Model
     protected $keyType = 'string';
     protected $fillable = ['id', 'code', 'category', 'zone_id', 'x_position', 'y_position', 'status', 'price'];
 
-    protected static function boot()
+    public static function boot()
     {
         parent::boot();
         static::creating(function ($model) {

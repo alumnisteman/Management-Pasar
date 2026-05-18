@@ -18,7 +18,7 @@ class AiAnalyticsController extends Controller
     {
         // 1. Financial Projection: 6 Months Forecast based on historic payments
         // We will calculate a running average of the last 3 months and project it forwards
-        $threeMonthsAgo = Carbon::now()->subMonths(3);
+        $threeMonthsAgo = Carbon::now()->modify('-3 months');
         $avgMonthlyRevenue = DB::table('payments')
             ->where('paid_at', '>=', $threeMonthsAgo)
             ->sum('amount_paid') / 3;
@@ -27,7 +27,7 @@ class AiAnalyticsController extends Controller
         
         $forecast = [];
         for ($i = 1; $i <= 6; $i++) {
-            $monthName = Carbon::now()->addMonths($i)->format('M Y');
+            $monthName = Carbon::now()->modify('+' . $i . ' months')->format('M Y');
             // Adding a small progressive growth rate (0.5% growth per month + small random noise)
             $growthFactor = 1 + ($i * 0.005);
             $noise = rand(-1500000, 1500000);
@@ -40,7 +40,7 @@ class AiAnalyticsController extends Controller
         }
 
         // 2. Defaulter Risk Score per Trader
-        $traders = Trader::all();
+        $traders = Trader::query()->get();
         $riskScores = [];
         foreach ($traders as $t) {
             $unpaidCount = Bill::where('trader_id', $t->id)->where('status', 'unpaid')->count();
@@ -106,7 +106,7 @@ class AiAnalyticsController extends Controller
 
     public function getFootTraffic()
     {
-        $zones = Zone::all();
+        $zones = Zone::query()->get();
         $trafficStats = [];
         $evacuationAlerts = [];
 
@@ -135,21 +135,19 @@ class AiAnalyticsController extends Controller
                 ];
             }
 
-            // Get historical logs for graph (last 10 days)
             $history = DB::table('foot_traffic_logs')
                 ->where('zone_id', $zone->id)
                 ->orderBy('recorded_at', 'desc')
                 ->take(10)
-                ->get()
-                ->reverse()
-                ->values();
+                ->get();
+            $historyArray = array_reverse($history->toArray());
 
             $trafficStats[] = [
                 'zone_id' => $zone->id,
                 'zone_name' => $zone->name,
                 'average_traffic' => round($avgTraffic),
                 'current_traffic' => $currentCount,
-                'history' => $history
+                'history' => $historyArray
             ];
         }
 

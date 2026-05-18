@@ -48,7 +48,7 @@ Route::get('/ai/brief', [AISummaryController::class, 'brief']);
 Route::get('/gis/stalls', [GISController::class, 'getStalls']);
 Route::get('/market/occupancy', function() {
     return \Cache::remember('market-occupancy', 60, function () {
-        return \app(\App\Services\OccupancyService::class)->calculate();
+        return resolve(\App\Services\OccupancyService::class)->calculate();
     });
 });
 Route::post('/field/scan', [FieldOpsController::class, 'scan']);

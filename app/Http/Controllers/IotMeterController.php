@@ -12,8 +12,8 @@ class IotMeterController extends Controller
 {
     public function index(Request $request)
     {
-        $slotId = $request->query('slot_id');
-        $type = $request->query('type');
+        $slotId = $request->input('slot_id');
+        $type = $request->input('type');
         
         $query = SmartMeterReading::with('slot');
         if ($slotId) $query->where('slot_id', $slotId);
