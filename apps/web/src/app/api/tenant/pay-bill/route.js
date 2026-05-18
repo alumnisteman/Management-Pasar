@@ -1,4 +1,4 @@
-const BACKEND = process.env.BACKEND_URL || "http://103.175.219.57:8001";
+const BACKEND = process.env.BACKEND_URL || "http://103.175.219.57:8002";
 
 export async function POST(request) {
   try {
