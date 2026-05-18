@@ -18,6 +18,22 @@ author = "agent"
 task = "workflow.run"
 args = "Start application"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Redis Server"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Laravel API"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Reverb WebSocket"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Queue Worker"
+
 [[workflows.workflow]]
 name = "Start application"
 author = "agent"
@@ -30,11 +46,99 @@ waitForPort = 5000
 [workflows.workflow.metadata]
 outputType = "webview"
 
+[[workflows.workflow]]
+name = "Redis Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash scripts/start-redis.sh"
+
+[[workflows.workflow]]
+name = "Laravel API"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash scripts/start-laravel.sh"
+waitForPort = 8000
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow]]
+name = "Reverb WebSocket"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash scripts/start-reverb.sh"
+waitForPort = 8080
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow]]
+name = "Queue Worker"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash scripts/start-worker.sh"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 6379
+externalPort = 3000
+
+[[ports]]
+localPort = 8000
+externalPort = 8000
+
+[[ports]]
+localPort = 8080
+externalPort = 8080
 
 [deployment]
 deploymentTarget = "autoscale"
 run = ["bash", "-c", "cd apps/web && PORT=5000 node build/server/index.js"]
 build = ["bash", "-c", "cd apps/web && bun run build"]
+
+[userenv]
+
+[userenv.shared]
+APP_NAME = "SVMS"
+APP_ENV = "local"
+APP_DEBUG = "true"
+APP_URL = "http://localhost:8000"
+LOG_CHANNEL = "stack"
+LOG_LEVEL = "debug"
+DB_CONNECTION = "sqlite"
+BROADCAST_CONNECTION = "reverb"
+CACHE_STORE = "redis"
+CACHE_DRIVER = "redis"
+QUEUE_CONNECTION = "redis"
+SESSION_DRIVER = "file"
+SESSION_LIFETIME = "120"
+REDIS_HOST = "127.0.0.1"
+REDIS_PASSWORD = "null"
+REDIS_PORT = "6379"
+REVERB_APP_ID = "svms-app-001"
+REVERB_APP_KEY = "svms-reverb-key-local"
+REVERB_APP_SECRET = "svms-reverb-secret-local"
+REVERB_HOST = "0.0.0.0"
+REVERB_PORT = "8080"
+REVERB_SCHEME = "http"
+MAIL_MAILER = "log"
+MAIL_FROM_ADDRESS = "noreply@svms.id"
+MAIL_FROM_NAME = "SVMS"
+REDIS_CLIENT = "predis"
