@@ -25,6 +25,11 @@ yarn-debug.log*
 yarn-error.log*
 .phpunit.result.cache
 
+# Database files
+database/database.sqlite
+database/database.sqlite-shm
+database/database.sqlite-wal
+
 # SMOS Deployment
 deploy_ai.py
 *.pyc
