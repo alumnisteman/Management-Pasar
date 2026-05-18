@@ -18,7 +18,8 @@ import {
   UserCog,
   Megaphone,
   FileBarChart,
-  AlertTriangle
+  AlertTriangle,
+  LineChart
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 
@@ -82,6 +83,12 @@ const navItems = [
     label: "Laporan Harian",
     icon: FileBarChart,
     color: "text-emerald-400",
+  },
+  {
+    href: "/admin/analytics",
+    label: "Analitik Real-time",
+    icon: LineChart,
+    color: "text-yellow-400",
   },
 ];
 
