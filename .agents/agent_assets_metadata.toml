@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "n5mYpiOjzpHusBhUIkhxP"
+uri = "file://artifacts/mockup-sandbox/public/images/svms-hero-bg.png"
+type = "image"
+title = "dark abstract geometric hero background"
