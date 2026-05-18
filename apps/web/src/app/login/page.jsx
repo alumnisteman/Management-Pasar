@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { useRole } from "@/app/useRole";
 import { Shield, Lock, User, Loader2, ArrowRight } from "lucide-react";
 import { twMerge } from "tailwind-merge";
@@ -12,7 +12,10 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [, , login] = useRole();
+
+  const redirectTo = searchParams.get("redirect") || "/admin";
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -33,7 +36,7 @@ export default function LoginPage() {
       }
 
       login(data.token, data.user);
-      navigate("/admin");
+      navigate(redirectTo);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -58,6 +61,15 @@ export default function LoginPage() {
             <h1 className="text-2xl font-bold text-white tracking-tight">SVMS Enterprise</h1>
             <p className="text-sm text-gray-400 mt-1">Sistem Manajemen Pasar Terpadu</p>
           </div>
+
+          {redirectTo !== "/admin" && (
+            <div className="mb-6 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center gap-2">
+              <ArrowRight size={14} className="text-blue-400 flex-shrink-0" />
+              <p className="text-xs text-blue-300">
+                Setelah login, Anda akan diarahkan ke <span className="font-semibold text-blue-200">{redirectTo.replace("/admin/", "").replace("/", "")}</span>
+              </p>
+            </div>
+          )}
 
           <form onSubmit={handleLogin} className="space-y-5">
             {error && (
