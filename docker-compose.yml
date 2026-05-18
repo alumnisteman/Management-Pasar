@@ -4,7 +4,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile.prod
     restart: always
-    command: sh -c "php artisan reverb:start --host=0.0.0.0 --port=8081 --no-interaction & ./rr serve -c .rr.yaml & wait"
+    command: sh -c "php artisan octane:start --server=roadrunner --host=0.0.0.0 --port=8000 & php artisan reverb:start --host=0.0.0.0 --port=8081 --no-interaction & wait"
     volumes:
       - ./backend:/var/www
     ports:
