@@ -681,7 +681,11 @@ export default function LandingPage() {
                 <span style={{ color: t.footerLink, fontSize: "13px" }}>Sistem Manajemen Pasar Terpadu</span>
               </div>
             </div>
-            <div style={{ display: "flex", gap: "24px" }}>
+            <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
+              <a href="/pengumuman" style={{ color: t.footerLink, textDecoration: "none", fontSize: "14px", fontWeight: "500", transition: "color 0.2s" }}
+                onMouseEnter={e => e.currentTarget.style.color = "#F59E0B"}
+                onMouseLeave={e => e.currentTarget.style.color = t.footerLink}
+              >Pengumuman</a>
               <a href="/bantuan" style={{ color: t.footerLink, textDecoration: "none", fontSize: "14px", fontWeight: "500", transition: "color 0.2s" }}
                 onMouseEnter={e => e.currentTarget.style.color = "#F59E0B"}
                 onMouseLeave={e => e.currentTarget.style.color = t.footerLink}
