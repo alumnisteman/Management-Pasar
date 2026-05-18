@@ -20,7 +20,7 @@ class SmartMeterReading extends Model
         'recorded_at' => 'datetime'
     ];
 
-    public static function boot()
+    public static function boot(): void
     {
         parent::boot();
         static::creating(function ($model) {
