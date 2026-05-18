@@ -52,9 +52,15 @@ class Trader extends Model
     public function toSearchableArray()
     {
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'nik' => $this->nik,
+            'id'             => $this->id,
+            'name'           => $this->name,
+            'nik'            => $this->nik,
+            'phone'          => $this->phone,
+            'type'           => $this->type,
+            'status'         => $this->status,
+            'scale'          => $this->scale,
+            'location_type'  => $this->location_type,
+            'reputation_score' => $this->reputation_score,
         ];
     }
 }

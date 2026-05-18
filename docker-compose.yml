@@ -22,9 +22,13 @@ services:
       - REVERB_HOST=0.0.0.0
       - REVERB_PORT=8081
       - OCTANE_SERVER=roadrunner
+      - SCOUT_DRIVER=meilisearch
+      - MEILISEARCH_HOST=http://meilisearch:7700
+      - MEILISEARCH_KEY=svosMasterKey2026
     depends_on:
       - mysql
       - redis
+      - meilisearch
       
   worker:
     build:
@@ -60,6 +64,17 @@ services:
     image: redis:alpine
     restart: always
     
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    restart: always
+    environment:
+      - MEILI_MASTER_KEY=svosMasterKey2026
+      - MEILI_NO_ANALYTICS=true
+    volumes:
+      - meilisearch_data:/meili_data
+    ports:
+      - "7701:7700"
+
   frontend:
     image: svms-dashboard:latest
     command:
@@ -76,3 +91,4 @@ services:
 
 volumes:
   mysql_data: null
+  meilisearch_data: null

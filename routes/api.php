@@ -26,8 +26,10 @@ use App\Http\Controllers\PelatihanController;
 use App\Http\Controllers\IotMeterController;
 use App\Http\Controllers\TenantPortalController;
 use App\Http\Controllers\AiAnalyticsController;
+use App\Http\Controllers\SearchController;
 
 Route::get('/ping', function() { return response()->json(['status' => 'pong']); });
+Route::get('/search', [SearchController::class, 'search']);
 
 // SVMS 6.0 Advanced Premium Modules Endpoints
 Route::get('/admin/stall-map/data', [GridController::class, 'getMapData']);
