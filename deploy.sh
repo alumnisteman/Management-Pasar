@@ -20,46 +20,24 @@ echo "📦 1. Pulling latest updates from Git..."
 git pull origin master || { echo "❌ Git pull failed"; exit 1; }
 
 echo "🛠️  2. Installing PHP Dependencies (Composer)..."
-# Check if running inside docker or on host with composer installed
-if command -v composer &> /dev/null; then
-    composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
-else
-    # Fallback to running via the app container if composer isn't on host
-    docker compose exec -T app composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
-fi
+docker exec -w /var/www svms-app-1 composer update laravel/octane spiral/roadrunner-cli spiral/roadrunner-http -W --no-interaction --prefer-dist --optimize-autoloader
+docker exec -w /var/www svms-app-1 composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
 echo "🗄️  3. Running Database Migrations..."
-if command -v php &> /dev/null; then
-    php artisan migrate --force
-else
-    docker compose exec -T app php artisan migrate --force
-fi
+docker exec -w /var/www svms-app-1 php artisan migrate --force
 
 echo "🧹 4. Clearing and Rebuilding Cache..."
-if command -v php &> /dev/null; then
-    php artisan optimize:clear
-    php artisan config:cache
-    php artisan event:cache
-    php artisan route:cache
-    php artisan view:cache
-else
-    docker compose exec -T app php artisan optimize:clear
-    docker compose exec -T app php artisan config:cache
-    docker compose exec -T app php artisan event:cache
-    docker compose exec -T app php artisan route:cache
-    docker compose exec -T app php artisan view:cache
-fi
+docker exec -w /var/www svms-app-1 php artisan optimize:clear
+docker exec -w /var/www svms-app-1 php artisan config:cache
+docker exec -w /var/www svms-app-1 php artisan event:cache
+docker exec -w /var/www svms-app-1 php artisan route:cache
+docker exec -w /var/www svms-app-1 php artisan view:cache
 
 echo "🔄 5. Restarting Workers & WebSockets..."
-if command -v php &> /dev/null; then
-    php artisan queue:restart
-else
-    docker compose exec -T app php artisan queue:restart
-fi
+docker exec -w /var/www svms-app-1 php artisan queue:restart
 
-echo "✨ 6. Restarting Octane Server..."
-# Restart octane gracefully if it's running
-docker compose restart app || echo "⚠️  Could not restart app container automatically."
+echo "✨ 6. Restarting Application Container (to pick up Octane/Reverb changes)..."
+cd /var/www/svms && docker compose restart app || echo "⚠️  Could not restart app container automatically."
 
 echo "============================================================"
 echo "✅ Deployment completed successfully!"
