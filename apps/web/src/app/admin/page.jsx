@@ -623,6 +623,6 @@ export default function AdminDashboard() {
           />
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
