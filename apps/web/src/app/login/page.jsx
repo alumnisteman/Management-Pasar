@@ -130,7 +130,31 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-white/5">
+          <div className="mt-6 pt-5 border-t border-white/5">
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center mb-3">Demo Akun</p>
+            <div className="grid grid-cols-3 gap-1.5">
+              {[
+                { username: "admin", label: "Admin", color: "bg-blue-600/20 border-blue-500/30 text-blue-300 hover:bg-blue-600/30" },
+                { username: "kepala", label: "Kepala Pasar", color: "bg-amber-500/20 border-amber-500/30 text-amber-300 hover:bg-amber-500/30" },
+                { username: "operator", label: "Operator", color: "bg-emerald-500/20 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/30" },
+                { username: "auditor", label: "Auditor", color: "bg-violet-500/20 border-violet-500/30 text-violet-300 hover:bg-violet-500/30" },
+                { username: "pemda", label: "Pemda", color: "bg-sky-500/20 border-sky-500/30 text-sky-300 hover:bg-sky-500/30" },
+                { username: "petugas", label: "Petugas", color: "bg-orange-500/20 border-orange-500/30 text-orange-300 hover:bg-orange-500/30" },
+              ].map(({ username: u, label, color }) => (
+                <button
+                  key={u}
+                  type="button"
+                  onClick={() => { setUsername(u); setPassword("123"); }}
+                  className={twMerge("py-1.5 px-2 rounded-lg border text-[10px] font-semibold transition-colors text-center", color)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[9px] text-center text-gray-600 mt-2">Klik untuk isi otomatis · Password: 123</p>
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-white/5">
             <p className="text-xs text-center text-gray-500">
               SVMS Version 6.0 &copy; 2026<br/>Dinas Pengelolaan Pasar
             </p>

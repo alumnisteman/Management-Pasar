@@ -65,19 +65,25 @@ function UserModal({ onClose, onSubmit, initialData, isLoading }) {
 
             <div>
               <label className="text-[10px] text-gray-500 font-bold uppercase">Role Akses</label>
-              <div className="flex gap-2 mt-1">
-                {["admin", "petugas"].map((r) => (
+              <div className="grid grid-cols-3 gap-2 mt-1">
+                {[
+                  { role: "admin", label: "Admin", color: "bg-blue-600 border-blue-500" },
+                  { role: "kepala_pasar", label: "Kepala Pasar", color: "bg-amber-600 border-amber-500" },
+                  { role: "operator", label: "Operator", color: "bg-emerald-600 border-emerald-500" },
+                  { role: "auditor", label: "Auditor", color: "bg-violet-600 border-violet-500" },
+                  { role: "pemda", label: "Pemda", color: "bg-sky-600 border-sky-500" },
+                  { role: "petugas", label: "Petugas", color: "bg-orange-600 border-orange-500" },
+                ].map(({ role: r, label, color }) => (
                   <button
                     key={r}
                     onClick={() => setForm((f) => ({ ...f, role: r }))}
                     className={twMerge(
-                      "flex-1 py-2 flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold border transition-colors capitalize",
-                      form.role === r
-                        ? (r === "admin" ? "bg-blue-600 text-white border-blue-500" : "bg-orange-600 text-white border-orange-500")
-                        : "bg-white/5 text-gray-400 border-white/10"
+                      "py-2 px-2 flex items-center justify-center gap-1 rounded-lg text-[10px] font-semibold border transition-colors",
+                      form.role === r ? `${color} text-white` : "bg-white/5 text-gray-400 border-white/10 hover:bg-white/10"
                     )}
                   >
-                    {r === "admin" ? <Shield size={14} /> : <User size={14} />} {r}
+                    {form.role === r ? <Shield size={11} /> : <User size={11} />}
+                    {label}
                   </button>
                 ))}
               </div>

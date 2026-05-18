@@ -17,6 +17,42 @@
       "role": "petugas",
       "status": "active",
       "created_at": "2026-05-01T00:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "username": "kepala",
+      "name": "Kepala Pasar",
+      "password": "123",
+      "role": "kepala_pasar",
+      "status": "active",
+      "created_at": "2026-05-01T00:00:00.000Z"
+    },
+    {
+      "id": 4,
+      "username": "operator",
+      "name": "Operator Harian",
+      "password": "123",
+      "role": "operator",
+      "status": "active",
+      "created_at": "2026-05-01T00:00:00.000Z"
+    },
+    {
+      "id": 5,
+      "username": "auditor",
+      "name": "Auditor Keuangan",
+      "password": "123",
+      "role": "auditor",
+      "status": "active",
+      "created_at": "2026-05-01T00:00:00.000Z"
+    },
+    {
+      "id": 6,
+      "username": "pemda",
+      "name": "Dinas Pemda",
+      "password": "123",
+      "role": "pemda",
+      "status": "active",
+      "created_at": "2026-05-01T00:00:00.000Z"
     }
   ],
   "traders": [
@@ -300,6 +336,42 @@
       "description": "Administrator Utama masuk ke sistem",
       "ip_address": "127.0.0.1",
       "created_at": "2026-05-18T06:10:20.782Z"
+    },
+    {
+      "id": 4,
+      "module": "Sistem",
+      "action": "LOGIN",
+      "user_name": "Kepala Pasar",
+      "description": "Kepala Pasar masuk ke sistem",
+      "ip_address": "127.0.0.1",
+      "created_at": "2026-05-18T06:20:28.725Z"
+    },
+    {
+      "id": 5,
+      "module": "Sistem",
+      "action": "LOGIN",
+      "user_name": "Operator Harian",
+      "description": "Operator Harian masuk ke sistem",
+      "ip_address": "127.0.0.1",
+      "created_at": "2026-05-18T06:20:28.771Z"
+    },
+    {
+      "id": 6,
+      "module": "Sistem",
+      "action": "LOGIN",
+      "user_name": "Auditor Keuangan",
+      "description": "Auditor Keuangan masuk ke sistem",
+      "ip_address": "127.0.0.1",
+      "created_at": "2026-05-18T06:20:28.807Z"
+    },
+    {
+      "id": 7,
+      "module": "Sistem",
+      "action": "LOGIN",
+      "user_name": "Dinas Pemda",
+      "description": "Dinas Pemda masuk ke sistem",
+      "ip_address": "127.0.0.1",
+      "created_at": "2026-05-18T06:20:28.849Z"
     }
   ],
   "announcements": [
