@@ -125,7 +125,8 @@ class CommandCenterController extends Controller
         }
 
         // 5. System Uptime Info (Request processing time)
-        $checks['laravel_uptime'] = round(microtime(true) - LARAVEL_START, 4) . 's';
+        $startTime = defined('LARAVEL_START') ? LARAVEL_START : request()->server('REQUEST_TIME_FLOAT', microtime(true));
+        $checks['laravel_uptime'] = round(microtime(true) - $startTime, 4) . 's';
 
         return response()->json([
             'status' => $status,
