@@ -106,4 +106,68 @@ class GridController extends Controller
 
         return response()->json(['message' => 'Slot berhasil dikosongkan.', 'slot' => $slot]);
     }
+
+    public function getMapData()
+    {
+        // Eager load active permit and its trader, and bills
+        $slots = Slot::with(['priceLogs'])->get();
+        
+        $mapData = $slots->map(function($s) {
+            // Find active permit
+            $permit = \App\Models\Permit::where('slot_id', $s->id)
+                ->where('status', 'active')
+                ->first();
+                
+            $trader = $permit ? Trader::find($permit->trader_id) : null;
+            
+            // Check for unpaid bills
+            $hasUnpaidBill = \App\Models\Bill::where('slot_id', $s->id)
+                ->where('status', 'unpaid')
+                ->exists();
+                
+            return [
+                'id' => $s->id,
+                'code' => $s->code,
+                'x_position' => $s->x_position,
+                'y_position' => $s->y_position,
+                'type' => $s->type,
+                'category' => $s->category,
+                'status' => $s->status,
+                'has_unpaid_bill' => $hasUnpaidBill,
+                'trader' => $trader ? [
+                    'id' => $trader->id,
+                    'name' => $trader->name,
+                    'phone' => $trader->phone,
+                    'reputation' => $trader->reputation_score
+                ] : null
+            ];
+        });
+
+        return response()->json($mapData);
+    }
+
+    public function updateCoordinates(Request $request)
+    {
+        $data = $request->validate([
+            'slots' => 'required|array',
+            'slots.*.id' => 'required|exists:slots,id',
+            'slots.*.x_position' => 'required|integer',
+            'slots.*.y_position' => 'required|integer',
+        ]);
+
+        DB::transaction(function () use ($data) {
+            foreach ($data['slots'] as $sData) {
+                Slot::where('id', $sData['id'])->update([
+                    'x_position' => $sData['x_position'],
+                    'y_position' => $sData['y_position'],
+                ]);
+            }
+        });
+
+        \App\Services\AuditLogger::log('UPDATE_STALL_COORDINATES', [
+            'count' => count($data['slots'])
+        ]);
+
+        return response()->json(['message' => 'Tata letak kios berhasil disimpan!']);
+    }
 }

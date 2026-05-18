@@ -5,14 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
-use Laravel\Scout\Searchable;
-
-class Slot extends Model
+class FootTrafficLog extends Model
 {
-    use Searchable;
     public $incrementing = false;
     protected $keyType = 'string';
-    protected $fillable = ['id', 'code', 'category', 'zone_id', 'x_position', 'y_position', 'status', 'price'];
+    
+    protected $fillable = [
+        'id', 'zone_id', 'crowd_count', 'recorded_at'
+    ];
+
+    protected $casts = [
+        'crowd_count' => 'integer',
+        'recorded_at' => 'datetime'
+    ];
 
     protected static function boot()
     {
@@ -21,12 +26,9 @@ class Slot extends Model
             if (empty($model->id)) $model->id = (string) Str::uuid();
         });
     }
-    public function priceLogs()
+
+    public function zone()
     {
-        return $this->hasMany(PriceLog::class);
-    }
-    public function smartMeterReadings()
-    {
-        return $this->hasMany(SmartMeterReading::class);
+        return $this->belongsTo(Zone::class);
     }
 }

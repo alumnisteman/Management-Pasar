@@ -131,5 +131,83 @@ class DummyDataSeeder extends Seeder
                 ]);
             }
         }
+
+        // Generate Bills & Smart Meter Readings for Slots
+        $slots = Slot::all();
+        foreach ($slots as $idx => $s) {
+            $t = $traders[$idx % count($traders)];
+            
+            // Link Trader to Slot via assignments (already created Permit, let's also create bills)
+            // Generate 3 past bills (paid) and 1 current/future bill (unpaid or paid)
+            $statusOptions = ['paid', 'paid', 'paid', 'unpaid'];
+            for ($monthAgo = 0; $monthAgo < 4; $monthAgo++) {
+                $status = $statusOptions[$monthAgo];
+                $amount = rand(150000, 300000);
+                $dueDate = Carbon::now()->subMonths($monthAgo)->endOfMonth();
+
+                $bill = \App\Models\Bill::create([
+                    'id' => (string) Str::uuid(),
+                    'trader_id' => $t->id,
+                    'slot_id' => $s->id,
+                    'amount' => $amount,
+                    'due_date' => $dueDate,
+                    'status' => $status
+                ]);
+
+                if ($status === 'paid') {
+                    Payment::create([
+                        'id' => (string) Str::uuid(),
+                        'bill_id' => $bill->id,
+                        'transaction_id' => null,
+                        'payment_method' => 'qris',
+                        'amount_paid' => $amount,
+                        'paid_at' => $dueDate->subDays(rand(1, 5)),
+                    ]);
+                }
+            }
+
+            // Seed IoT Readings for last 30 days
+            for ($day = 30; $day >= 0; $day--) {
+                $time = Carbon::now()->subDays($day);
+                
+                // Electricity (cumulative KWh)
+                \App\Models\SmartMeterReading::create([
+                    'id' => (string) Str::uuid(),
+                    'slot_id' => $s->id,
+                    'type' => 'electricity',
+                    'reading' => 100 + (30 - $day) * rand(8, 15) + (rand(0, 100) / 10), // increasing KWh
+                    'cost' => rand(2000, 5000),
+                    'recorded_at' => $time
+                ]);
+
+                // Water (cumulative cubic meters)
+                \App\Models\SmartMeterReading::create([
+                    'id' => (string) Str::uuid(),
+                    'slot_id' => $s->id,
+                    'type' => 'water',
+                    'reading' => 10 + (30 - $day) * rand(1, 3) + (rand(0, 100) / 100), // increasing volume
+                    'cost' => rand(500, 1500),
+                    'recorded_at' => $time
+                ]);
+            }
+        }
+
+        // Generate Foot Traffic Logs for each zone for last 30 days
+        foreach ($zones as $zone) {
+            for ($day = 30; $day >= 0; $day--) {
+                $time = Carbon::now()->subDays($day);
+                
+                // Peak hours simulation (different count per zone)
+                $multiplier = $zone->name === 'ZONA KULINER' ? 1.5 : ($zone->name === 'ZONA BASAH' ? 1.2 : 0.8);
+                $baseTraffic = rand(150, 400);
+
+                \App\Models\FootTrafficLog::create([
+                    'id' => (string) Str::uuid(),
+                    'zone_id' => $zone->id,
+                    'crowd_count' => round($baseTraffic * $multiplier),
+                    'recorded_at' => $time
+                ]);
+            }
+        }
     }
 }

@@ -23,8 +23,25 @@ use App\Http\Controllers\TraderVerificationController;
 use App\Http\Controllers\AISummaryController;
 use App\Http\Controllers\CommandCenterController;
 use App\Http\Controllers\PelatihanController;
+use App\Http\Controllers\IotMeterController;
+use App\Http\Controllers\TenantPortalController;
+use App\Http\Controllers\AiAnalyticsController;
 
 Route::get('/ping', function() { return response()->json(['status' => 'pong']); });
+
+// SVMS 6.0 Advanced Premium Modules Endpoints
+Route::get('/admin/stall-map/data', [GridController::class, 'getMapData']);
+Route::post('/admin/stall-map/update-coordinates', [GridController::class, 'updateCoordinates']);
+
+Route::get('/admin/iot/readings', [IotMeterController::class, 'index']);
+Route::post('/iot/sim-reading', [IotMeterController::class, 'storeSimulation']);
+
+Route::get('/tenant/dashboard/{trader_id}', [TenantPortalController::class, 'getDashboard']);
+Route::post('/tenant/pay-bill', [TenantPortalController::class, 'payBill']);
+Route::post('/tenant/complaint', [TenantPortalController::class, 'submitComplaint']);
+
+Route::get('/admin/analytics/predictive', [AiAnalyticsController::class, 'getPredictions']);
+Route::get('/admin/analytics/foot-traffic', [AiAnalyticsController::class, 'getFootTraffic']);
 
 // SMOS Intelligence Endpoints
 Route::get('/ai/brief', [AISummaryController::class, 'brief']);
