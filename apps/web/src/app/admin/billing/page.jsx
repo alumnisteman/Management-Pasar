@@ -15,6 +15,7 @@ import {
   Send,
   X,
   Loader2,
+  Sheet,
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 
@@ -318,6 +319,12 @@ export default function BillingPage() {
               <FileDown size={16} />
             )}{" "}
             Export PDF
+          </button>
+          <button
+            onClick={() => { window.location.href = `/api/admin/export?type=billing&month=${month}`; }}
+            className="flex items-center gap-2 bg-emerald-600/10 border border-emerald-500/30 text-emerald-400 px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-600/20 transition-colors"
+          >
+            <FileDown size={16} /> Export Excel
           </button>
           {role === "admin" && (
             <>

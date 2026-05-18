@@ -55,7 +55,13 @@ const DEFAULT_DB = {
     { id: 1, title: "Pembersihan Rutin Saluran Air", body: "Diberitahukan kepada seluruh pedagang bahwa besok akan diadakan pembersihan saluran air. Mohon rapikan barang dagangan Anda.", urgency: "INFO", target_zone: "all", start_date: "2026-05-10T00:00:00.000Z", end_date: "2026-05-20T23:59:59.000Z", created_at: "2026-05-10T08:00:00.000Z" },
     { id: 2, title: "Peringatan Tunggakan SIPTU", body: "Bagi pedagang di zona Bronze yang belum memperpanjang SIPTU, segera lakukan pembayaran sebelum akhir bulan untuk menghindari sanksi penutupan lapak.", urgency: "PENTING", target_zone: "bronze", start_date: "2026-05-15T00:00:00.000Z", end_date: "2026-05-31T23:59:59.000Z", created_at: "2026-05-15T09:00:00.000Z" },
     { id: 3, title: "KEBAKARAN KECIL DI ZONA SILVER!", body: "Harap evakuasi segera! Sedang dilakukan penanganan darurat oleh pihak damkar di Blok Silver B-01.", urgency: "DARURAT", target_zone: "all", start_date: "2026-05-18T00:00:00.000Z", end_date: null, created_at: "2026-05-18T08:30:00.000Z" }
-  ]
+  ],
+  contracts: [
+    { id: 1, trader_id: 1, start_date: "2026-01-15", end_date: "2027-01-14", rent_amount: 750000, terms: "Pembayaran dilakukan setiap tanggal 1. Dilarang mengubah struktur lapak tanpa izin.", status: "active", created_at: "2026-01-15T08:00:00.000Z" },
+    { id: 2, trader_id: 2, start_date: "2026-02-10", end_date: "2027-02-09", rent_amount: 750000, terms: "Pedagang wajib menjaga kebersihan area lapak.", status: "active", created_at: "2026-02-10T09:00:00.000Z" },
+    { id: 3, trader_id: 3, start_date: "2025-06-01", end_date: "2026-05-31", rent_amount: 750000, terms: "Kontrak satu tahun. Perpanjangan 30 hari sebelum kedaluwarsa.", status: "expired", created_at: "2025-06-01T08:00:00.000Z" }
+  ],
+  porter_requests: []
 };
 
 // Read database helper
@@ -583,6 +589,71 @@ export async function executeSQL(queryStr, values = []) {
     db.announcements = db.announcements.filter(a => a.id !== id);
     saveDB(db);
     return [{ success: true }];
+  }
+
+  // ── CONTRACTS QUERIES ──
+  if (query.includes('FROM contracts') && query.includes('SELECT')) {
+    const rows = (db.contracts || []).map(c => ({...c}));
+    rows.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    return rows;
+  }
+
+  if (query.includes('INSERT INTO contracts')) {
+    const [trader_id, start_date, end_date, rent_amount, terms, status, created_at] = values;
+    if (!db.contracts) db.contracts = [];
+    const newId = db.contracts.reduce((max, c) => Math.max(max, c.id), 0) + 1;
+    const newContract = { id: newId, trader_id, start_date, end_date, rent_amount, terms, status, created_at };
+    db.contracts.push(newContract);
+    saveDB(db);
+    return [newContract];
+  }
+
+  if (query.includes('UPDATE contracts SET')) {
+    const id = values[2] || values[1];
+    const contract = (db.contracts || []).find(c => c.id === id);
+    if (contract) {
+      if (values[0] !== undefined) contract.status = values[0];
+      if (values[1] !== undefined) contract.end_date = values[1];
+      saveDB(db);
+      return [contract];
+    }
+    return [];
+  }
+
+  if (query.includes('DELETE FROM contracts')) {
+    const id = values[0];
+    if (db.contracts) db.contracts = db.contracts.filter(c => c.id !== id);
+    saveDB(db);
+    return [{ success: true }];
+  }
+
+  // ── PORTER REQUESTS QUERIES ──
+  if (query.includes('FROM porter_requests') && query.includes('SELECT')) {
+    const rows = (db.porter_requests || []).map(r => ({...r}));
+    rows.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    return rows;
+  }
+
+  if (query.includes('INSERT INTO porter_requests')) {
+    const [trader_name, location_from, location_to, weight_category, notes] = values;
+    if (!db.porter_requests) db.porter_requests = [];
+    const newId = db.porter_requests.reduce((max, r) => Math.max(max, r.id), 0) + 1;
+    const req = { id: newId, trader_name, location_from, location_to, weight_category, notes: notes || '', status: 'pending', porter_id: null, created_at: new Date().toISOString() };
+    db.porter_requests.push(req);
+    saveDB(db);
+    return [req];
+  }
+
+  if (query.includes('UPDATE porter_requests SET')) {
+    const id = values[values.length - 1];
+    const req = (db.porter_requests || []).find(r => r.id === id);
+    if (req) {
+      if (values[0] !== undefined) req.status = values[0];
+      if (values[1] !== undefined) req.porter_id = values[1];
+      saveDB(db);
+      return [req];
+    }
+    return [];
   }
 
   // Fallback

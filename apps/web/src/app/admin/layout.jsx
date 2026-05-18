@@ -19,7 +19,8 @@ import {
   Megaphone,
   FileBarChart,
   AlertTriangle,
-  LineChart
+  LineChart,
+  FileSignature
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import { motion, AnimatePresence } from "motion/react";
@@ -60,6 +61,12 @@ const navItems = [
     label: "Kuli Panggul",
     icon: Package,
     color: "text-cyan-500",
+  },
+  {
+    href: "/admin/contracts",
+    label: "Kontrak Digital",
+    icon: FileSignature,
+    color: "text-violet-400",
   },
   {
     href: "/admin/audit",

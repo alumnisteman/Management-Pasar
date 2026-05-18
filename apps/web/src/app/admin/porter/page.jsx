@@ -1,9 +1,10 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Package, Star, Award, Plus, X, Phone, User } from "lucide-react";
+import { Package, Star, Award, Plus, X, Phone, User, Bell, CheckCircle2, Clock, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
+import { motion } from "motion/react";
 
 const tierConfig = {
   platinum: {
@@ -129,6 +130,15 @@ export default function AdminPorterPage() {
     queryFn: () => fetch("/api/jobs").then((r) => r.json()),
   });
 
+  const { data: porterRequests = [] } = useQuery({
+    queryKey: ["porterRequests"],
+    queryFn: () => fetch("/api/admin/porter-requests").then((r) => r.json()),
+    refetchInterval: 10000,
+  });
+
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [reqForm, setReqForm] = useState({ trader_name: "", location_from: "", location_to: "", weight_category: "ringan", notes: "" });
+
   const { data: incentiveAll = [] } = useQuery({
     queryKey: ["incentiveAll"],
     queryFn: () => fetch("/api/incentives").then((r) => r.json()),
@@ -159,6 +169,16 @@ export default function AdminPorterPage() {
       }).then((r) => r.json()),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["allPorters"] }),
+  });
+
+  const createRequestMutation = useMutation({
+    mutationFn: (data) => fetch("/api/admin/porter-requests", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then(r => r.json()),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["porterRequests"] }); setShowRequestForm(false); setReqForm({ trader_name: "", location_from: "", location_to: "", weight_category: "ringan", notes: "" }); },
+  });
+
+  const updateRequestMutation = useMutation({
+    mutationFn: (data) => fetch("/api/admin/porter-requests", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then(r => r.json()),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["porterRequests"] }),
   });
 
   const stats = {
@@ -400,6 +420,96 @@ export default function AdminPorterPage() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Porter Queue Panel */}
+      <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6 shadow-xl">
+        <div className="flex justify-between items-center mb-5">
+          <h3 className="text-base font-semibold text-white flex items-center gap-2">
+            <Bell size={16} className="text-cyan-400" /> Antrian Request Porter
+            {porterRequests.filter(r => r.status === "pending").length > 0 && (
+              <span className="ml-1 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                {porterRequests.filter(r => r.status === "pending").length} baru
+              </span>
+            )}
+          </h3>
+          <button onClick={() => setShowRequestForm((v) => !v)}
+            className="flex items-center gap-1.5 text-xs font-semibold bg-cyan-600/10 border border-cyan-500/30 text-cyan-400 px-3 py-1.5 rounded-lg hover:bg-cyan-600/20 transition-colors">
+            <Plus size={13} /> Buat Request
+          </button>
+        </div>
+
+        {showRequestForm && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="mb-5 overflow-hidden">
+            <div className="bg-black/30 rounded-xl border border-white/10 p-4 space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] text-gray-500 uppercase font-bold block mb-1">Nama Pedagang</label>
+                  <input value={reqForm.trader_name} onChange={(e) => setReqForm(f => ({ ...f, trader_name: e.target.value }))} placeholder="Nama pedagang..."
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500" />
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-500 uppercase font-bold block mb-1">Berat Muatan</label>
+                  <select value={reqForm.weight_category} onChange={(e) => setReqForm(f => ({ ...f, weight_category: e.target.value }))}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500">
+                    <option value="ringan" className="bg-[#13151f]">Ringan (&lt;10kg)</option>
+                    <option value="sedang" className="bg-[#13151f]">Sedang (10-30kg)</option>
+                    <option value="berat" className="bg-[#13151f]">Berat (&gt;30kg)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-500 uppercase font-bold block mb-1">Dari</label>
+                  <input value={reqForm.location_from} onChange={(e) => setReqForm(f => ({ ...f, location_from: e.target.value }))} placeholder="Lokasi asal..."
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500" />
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-500 uppercase font-bold block mb-1">Ke</label>
+                  <input value={reqForm.location_to} onChange={(e) => setReqForm(f => ({ ...f, location_to: e.target.value }))} placeholder="Lokasi tujuan..."
+                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500" />
+                </div>
+              </div>
+              <button onClick={() => createRequestMutation.mutate(reqForm)} disabled={!reqForm.trader_name || !reqForm.location_from || !reqForm.location_to || createRequestMutation.isPending}
+                className="w-full py-2 bg-cyan-600 text-white text-sm font-semibold rounded-lg hover:bg-cyan-700 disabled:opacity-40 transition-colors flex items-center justify-center gap-2">
+                {createRequestMutation.isPending && <Loader2 size={14} className="animate-spin" />}
+                {createRequestMutation.isPending ? "Mengirim..." : "Kirim Request"}
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        <div className="space-y-2">
+          {porterRequests.length === 0 ? (
+            <p className="text-center text-sm text-gray-600 py-8">Belum ada request porter</p>
+          ) : porterRequests.slice(0, 10).map((req) => (
+            <div key={req.id} className={twMerge(
+              "flex items-center justify-between px-4 py-3 rounded-xl border transition-all",
+              req.status === "pending" ? "bg-cyan-500/5 border-cyan-500/20" : req.status === "in_progress" ? "bg-blue-500/5 border-blue-500/20" : "bg-white/[0.02] border-white/5"
+            )}>
+              <div className="flex items-center gap-3">
+                <div className={twMerge("w-2 h-2 rounded-full", req.status === "pending" ? "bg-yellow-400" : req.status === "in_progress" ? "bg-blue-400" : "bg-green-400")} />
+                <div>
+                  <p className="text-sm font-medium text-white">{req.trader_name} · {req.location_from} → {req.location_to}</p>
+                  <p className="text-[10px] text-gray-500">{req.weight_category} · {req.status === "pending" ? "Menunggu" : req.status === "in_progress" ? "Sedang berjalan" : "Selesai"}</p>
+                </div>
+              </div>
+              {req.status === "pending" && (
+                <div className="flex gap-2">
+                  <select onChange={(e) => updateRequestMutation.mutate({ id: req.id, status: "in_progress", porter_id: Number(e.target.value) })}
+                    className="bg-cyan-600/10 border border-cyan-500/30 text-cyan-400 text-xs rounded-lg px-2 py-1 focus:outline-none">
+                    <option value="">Tugaskan ke...</option>
+                    {porters.filter(p => p.status === "available").map(p => (
+                      <option key={p.id} value={p.id} className="bg-[#13151f]">{p.name}</option>
+                    ))}
+                  </select>
+                  <button onClick={() => updateRequestMutation.mutate({ id: req.id, status: "completed", porter_id: req.porter_id })}
+                    className="text-[10px] text-green-400 border border-green-500/30 px-2 py-1 rounded-lg hover:bg-green-500/10">
+                    <CheckCircle2 size={12} />
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Today's Active Jobs */}
