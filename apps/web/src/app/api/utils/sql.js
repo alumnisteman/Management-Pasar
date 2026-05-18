@@ -50,6 +50,11 @@ const DEFAULT_DB = {
   audit_logs: [
     { id: 1, module: "Sistem", action: "LOGIN", user_name: "Admin", description: "Admin masuk ke sistem", ip_address: "127.0.0.1", created_at: "2026-05-17T12:00:00.000Z" },
     { id: 2, module: "Pedagang", action: "CREATE", user_name: "Admin", description: "Pedagang baru terdaftar: Dewi Lestari", ip_address: "127.0.0.1", created_at: "2026-05-17T11:00:00.000Z" }
+  ],
+  announcements: [
+    { id: 1, title: "Pembersihan Rutin Saluran Air", body: "Diberitahukan kepada seluruh pedagang bahwa besok akan diadakan pembersihan saluran air. Mohon rapikan barang dagangan Anda.", urgency: "INFO", target_zone: "all", start_date: "2026-05-10T00:00:00.000Z", end_date: "2026-05-20T23:59:59.000Z", created_at: "2026-05-10T08:00:00.000Z" },
+    { id: 2, title: "Peringatan Tunggakan SIPTU", body: "Bagi pedagang di zona Bronze yang belum memperpanjang SIPTU, segera lakukan pembayaran sebelum akhir bulan untuk menghindari sanksi penutupan lapak.", urgency: "PENTING", target_zone: "bronze", start_date: "2026-05-15T00:00:00.000Z", end_date: "2026-05-31T23:59:59.000Z", created_at: "2026-05-15T09:00:00.000Z" },
+    { id: 3, title: "KEBAKARAN KECIL DI ZONA SILVER!", body: "Harap evakuasi segera! Sedang dilakukan penanganan darurat oleh pihak damkar di Blok Silver B-01.", urgency: "DARURAT", target_zone: "all", start_date: "2026-05-18T00:00:00.000Z", end_date: null, created_at: "2026-05-18T08:30:00.000Z" }
   ]
 };
 
@@ -522,7 +527,66 @@ export async function executeSQL(queryStr, values = []) {
     return [];
   }
 
-  // Generic fallback: empty array
+  // ── 8. ANNOUNCEMENTS QUERIES ──
+  if (query.includes('FROM announcements') && query.includes('SELECT')) {
+    let rows = db.announcements.map(a => ({...a}));
+    if (query.includes('ORDER BY')) {
+      if (query.includes('created_at DESC')) {
+        rows.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      }
+    }
+    return rows;
+  }
+
+  if (query.includes('INSERT INTO announcements')) {
+    const [title, body, urgency, target_zone, start_date, end_date] = values;
+    const newId = db.announcements.reduce((max, a) => Math.max(max, a.id), 0) + 1;
+    const newAnn = {
+      id: newId,
+      title,
+      body,
+      urgency,
+      target_zone,
+      start_date,
+      end_date,
+      created_at: new Date().toISOString()
+    };
+    db.announcements.push(newAnn);
+    saveDB(db);
+    return [newAnn];
+  }
+
+  if (query.includes('UPDATE announcements')) {
+    const id = values[values.length - 1]; // id is the last parameter
+    const ann = db.announcements.find(a => a.id === id);
+    if (!ann) return [];
+    
+    // Simple positional mapping based on typical query structure
+    if (query.includes('title = $')) ann.title = values[0];
+    if (query.includes('body = $')) ann.body = values[1];
+    if (query.includes('urgency = $')) ann.urgency = values[2];
+    if (query.includes('target_zone = $')) ann.target_zone = values[3];
+    if (query.includes('start_date = $')) ann.start_date = values[4];
+    if (query.includes('end_date = $')) ann.end_date = values[5];
+    
+    // For single field updates (like archiving/restoring)
+    if (query.includes('end_date = $1 WHERE id = $2')) {
+      ann.end_date = values[0];
+    }
+    
+    saveDB(db);
+    return [ann];
+  }
+
+  if (query.includes('DELETE FROM announcements')) {
+    const id = values[0];
+    db.announcements = db.announcements.filter(a => a.id !== id);
+    saveDB(db);
+    return [{ success: true }];
+  }
+
+  // Fallback
+  console.log('Unmatched Query:', query);
   return [];
 }
 

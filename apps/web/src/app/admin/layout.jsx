@@ -15,7 +15,10 @@ import {
   ChevronRight,
   Bell,
   LogOut,
-  UserCog
+  UserCog,
+  Megaphone,
+  FileBarChart,
+  AlertTriangle
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 
@@ -68,6 +71,18 @@ const navItems = [
     icon: UserCog,
     color: "text-pink-500",
   },
+  {
+    href: "/admin/announcements",
+    label: "Pengumuman",
+    icon: Megaphone,
+    color: "text-blue-400",
+  },
+  {
+    href: "/admin/reports",
+    label: "Laporan Harian",
+    icon: FileBarChart,
+    color: "text-emerald-400",
+  },
 ];
 
 export default function AdminLayout({ children }) {
@@ -78,6 +93,26 @@ export default function AdminLayout({ children }) {
   const [currentPath, setCurrentPath] = useState(
     typeof window !== "undefined" ? window.location.pathname : "/admin",
   );
+  const [announcements, setAnnouncements] = useState([]);
+  const [dismissDarurat, setDismissDarurat] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/admin/announcements')
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error) setAnnouncements(data);
+      })
+      .catch(err => console.error("Failed to load announcements", err));
+  }, []);
+
+  const activeAnnouncements = announcements.filter(a => {
+    const now = new Date();
+    const start = new Date(a.start_date);
+    const end = a.end_date ? new Date(a.end_date) : null;
+    return now >= start && (!end || now <= end);
+  });
+
+  const daruratAnn = activeAnnouncements.find(a => a.urgency === 'DARURAT');
 
   // Auth Guard
   useEffect(() => {
@@ -147,9 +182,16 @@ export default function AdminLayout({ children }) {
                   )}
                 />
                 {sidebarOpen && (
-                  <span className="truncate font-medium">{label}</span>
+                  <span className="truncate font-medium flex-1 flex justify-between items-center">
+                    {label}
+                    {href === "/admin/announcements" && activeAnnouncements.length > 0 && (
+                      <span className="bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                        {activeAnnouncements.length}
+                      </span>
+                    )}
+                  </span>
                 )}
-                {sidebarOpen && active && (
+                {sidebarOpen && active && href !== "/admin/announcements" && (
                   <ChevronRight size={14} className="ml-auto text-gray-400" />
                 )}
               </a>
@@ -247,6 +289,26 @@ export default function AdminLayout({ children }) {
             </div>
           </div>
         </header>
+
+        {daruratAnn && !dismissDarurat && (
+          <div className="bg-red-500/20 border-b border-red-500/50 px-6 py-3 flex items-start sm:items-center justify-between animate-in fade-in slide-in-from-top-2 shrink-0">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center animate-pulse shrink-0">
+                <AlertTriangle size={16} className="text-red-400" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-red-400 uppercase tracking-wide">🚨 {daruratAnn.title}</p>
+                <p className="text-xs text-gray-300 mt-0.5">{daruratAnn.body}</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setDismissDarurat(true)}
+              className="text-xs font-semibold text-gray-400 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors whitespace-nowrap"
+            >
+              ✕ TUTUP
+            </button>
+          </div>
+        )}
 
         {/* Page Content */}
         <main className="flex-1 overflow-auto p-6">{children}</main>
