@@ -1,4 +1,4 @@
-modules = ["php-8.2", "nodejs-20", "web", "python-3.12"]
+modules = ["php-8.2", "nodejs-20", "web", "python-3.12", "postgresql-16"]
 [agent]
 expertMode = true
 stack = "BEST_EFFORT_FALLBACK"
@@ -35,6 +35,10 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
+localPort = 5001
+externalPort = 3002
+
+[[ports]]
 localPort = 23636
 externalPort = 3001
 
@@ -42,3 +46,10 @@ externalPort = 3001
 deploymentTarget = "autoscale"
 run = ["bash", "-c", "cd apps/web && bun run build && node build/server/index.js"]
 build = ["bash", "-c", "cd apps/web && bun install"]
+
+[userenv]
+
+[userenv.shared]
+AUTH_URL = "https://8123bf7a-bb2a-4506-97be-5135f5ccecb1-00-1vq22xwvohels.pike.replit.dev"
+NEXT_PUBLIC_CREATE_ENV = "DEVELOPMENT"
+PORT = "5000"
