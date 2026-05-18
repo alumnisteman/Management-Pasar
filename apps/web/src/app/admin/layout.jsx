@@ -26,6 +26,7 @@ import {
   Eye,
   Building2,
   HardHat,
+  Sparkles,
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import { motion, AnimatePresence } from "motion/react";
@@ -43,6 +44,7 @@ const ALL_NAV = [
   { href: "/admin/announcements", label: "Pengumuman", icon: Megaphone, color: "text-blue-400", roles: ["admin", "kepala_pasar", "operator", "pemda", "petugas"] },
   { href: "/admin/reports", label: "Laporan Harian", icon: FileBarChart, color: "text-emerald-400", roles: ["admin", "kepala_pasar", "auditor", "pemda"] },
   { href: "/admin/analytics", label: "Analitik Real-time", icon: LineChart, color: "text-yellow-400", roles: ["admin", "kepala_pasar", "auditor", "pemda"] },
+  { href: "/admin/financial", label: "Intelijen Keuangan", icon: Sparkles, color: "text-emerald-400", roles: ["admin", "kepala_pasar", "auditor"] },
 ];
 
 const ROLE_META = {
