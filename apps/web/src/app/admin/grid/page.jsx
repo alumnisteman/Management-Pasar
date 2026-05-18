@@ -17,6 +17,7 @@ import {
   Edit2
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
+import { motion, AnimatePresence } from "motion/react";
 
 const zoneColors = {
   gold: {
@@ -68,6 +69,8 @@ export default function GridPage() {
   const [customPrices, setCustomPrices] = useState({ gold: "", silver: "", bronze: "" });
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ id: null, stall_code: "", zone: "bronze", category: "sembako", monthly_fee: 350000, row_x: 0, col_y: 0, isEdit: false });
+  const [hoveredStall, setHoveredStall] = useState(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const queryClient = useQueryClient();
 
   const { data: stalls = [], isLoading } = useQuery({
@@ -135,12 +138,8 @@ export default function GridPage() {
   });
 
   // Build grid structure
-  const rows = {};
-  stalls.forEach((s) => {
-    if (!rows[s.row_x]) rows[s.row_x] = [];
-    rows[s.row_x].push(s);
-  });
-  const sortedRows = Object.keys(rows).sort((a, b) => Number(a) - Number(b));
+  const maxRow = stalls.length > 0 ? Math.max(...stalls.map(s => s.row_x)) : 1;
+  const maxCol = stalls.length > 0 ? Math.max(...stalls.map(s => s.col_y)) : 1;
 
   const filtered =
     filter === "all"
@@ -264,84 +263,105 @@ export default function GridPage() {
           <p className="text-gray-500 text-sm">Memuat grid...</p>
         </div>
       ) : (
-        <div className="bg-[#1C1E27] rounded-xl border border-white/5 p-6 overflow-x-auto">
-          <div className="flex gap-4 mb-4 text-[11px] text-gray-500 flex-wrap">
+        <div 
+          className="bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-6 shadow-[0_8px_32px_rgba(0,0,0,0.2)] overflow-x-auto relative"
+          onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
+        >
+          <div className="flex gap-4 mb-6 text-[11px] text-gray-500 flex-wrap">
             <span className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-sm bg-yellow-500/80" /> Zone Gold
-              (Baris 1-2)
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-sm bg-gray-500/80" /> Zone Silver
-              (Baris 3-4)
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-sm bg-orange-700/80" /> Zone
-              Bronze (Baris 5-6)
+              <span className="w-3 h-3 rounded-sm bg-orange-700/80" /> Zone Bronze
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-sm border border-dashed border-gray-600" />{" "}
-              Kosong
+              <span className="w-3 h-3 rounded-sm border border-dashed border-gray-600 bg-black/20" /> Kosong
             </span>
           </div>
 
-          <div className="space-y-2 min-w-max">
-            {/* Column headers */}
-            <div className="flex gap-2 pl-12">
-              {stalls
-                .filter((s) => s.row_x === 1)
-                .sort((a, b) => a.col_y - b.col_y)
-                .map((s) => (
-                  <div
-                    key={s.col_y}
-                    className="w-16 text-center text-[10px] text-gray-600"
-                  >
-                    K{s.col_y}
-                  </div>
-                ))}
-            </div>
+          <div className="min-w-max p-4 relative z-10 bg-black/20 rounded-xl border border-white/5 inline-block">
+            {/* Grid Container */}
+            <div 
+              className="grid gap-3"
+              style={{
+                gridTemplateColumns: `repeat(${maxCol}, minmax(80px, 80px))`,
+                gridTemplateRows: `repeat(${maxRow}, minmax(80px, 80px))`
+              }}
+            >
+              {stalls.map(s => {
+                const isVacant = s.status === "vacant";
+                const isSelected = selected?.id === s.id;
+                const highlighted = filter === "all" || (filter === "vacant" && isVacant) || (filter === "occupied" && !isVacant) || (filter === s.zone);
+                const zc = zoneColors[s.zone] || zoneColors.bronze;
 
-            {sortedRows.map((rowKey) => {
-              const rowStalls = rows[rowKey].sort((a, b) => a.col_y - b.col_y);
-              const zone = rowStalls[0]?.zone;
-              const zc = zoneColors[zone] || zoneColors.bronze;
-              return (
-                <div key={rowKey} className="flex gap-2 items-center">
-                  <span
+                return (
+                  <motion.button
+                    key={s.id}
+                    onMouseEnter={() => setHoveredStall(s)}
+                    onMouseLeave={() => setHoveredStall(null)}
+                    onClick={() => setSelected(s)}
+                    whileHover={{ scale: 1.08, zIndex: 20 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    style={{ gridRow: s.row_x, gridColumn: s.col_y }}
                     className={twMerge(
-                      "w-10 text-[10px] font-bold text-center py-1 rounded",
-                      zc.bg,
-                      "text-gray-900",
+                      "relative rounded-xl border flex flex-col items-center justify-center transition-all duration-300",
+                      !highlighted && "opacity-10 grayscale",
+                      isVacant 
+                        ? "bg-black/40 border-dashed border-gray-600 text-gray-500 hover:border-gray-400"
+                        : `${zc.bg} border-transparent text-gray-900 shadow-[0_4px_15px_rgba(0,0,0,0.5)] hover:shadow-lg`,
+                      isSelected && `ring-4 ${zc.ring} scale-105 z-10`
                     )}
                   >
-                    B{rowKey}
-                  </span>
-                  {rowStalls.map((s) => {
-                    const highlighted = filtered.find((f) => f.id === s.id);
-                    const isVacant = s.status === "vacant";
-                    const isSelected = selected?.id === s.id;
-
-                    return (
-                      <button
-                        key={s.id}
-                        onClick={() => setSelected(s)}
-                        title={`${s.stall_code} · ${s.trader_name || "Kosong"}`}
-                        className={twMerge(
-                          "w-16 h-10 rounded border text-[10px] font-semibold transition-all duration-100",
-                          !highlighted ? "opacity-20" : "",
-                          isVacant
-                            ? "bg-transparent border-dashed border-gray-600 text-gray-600 hover:border-gray-400"
-                            : `${zc.bg} border-transparent text-gray-900 hover:opacity-90`,
-                          isSelected ? `ring-2 ${zc.ring} scale-110` : "",
-                        )}
-                      >
-                        {s.stall_code?.slice(-3)}
-                      </button>
-                    );
-                  })}
-                </div>
-              );
-            })}
+                    <span className="text-sm font-black tracking-tight">{s.stall_code?.slice(-3)}</span>
+                    {!isVacant && (
+                      <span className="text-[9px] font-bold mt-1 max-w-[90%] truncate opacity-80">
+                        {s.trader_name?.split(' ')[0] || "Terisi"}
+                      </span>
+                    )}
+                  </motion.button>
+                );
+              })}
+            </div>
           </div>
+          
+          {/* Smart Tooltip Hover */}
+          <AnimatePresence>
+            {hoveredStall && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                transition={{ duration: 0.15 }}
+                className="fixed z-50 pointer-events-none bg-black/70 backdrop-blur-xl border border-white/20 rounded-xl p-4 shadow-2xl w-56"
+                style={{ 
+                  left: mousePos.x + 20, 
+                  top: mousePos.y + 20,
+                  transform: 'translate(0, 0)' // avoid cursor blocking
+                }}
+              >
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-bold text-white text-base">{hoveredStall.stall_code}</span>
+                  <span className={twMerge("text-[10px] px-2 py-0.5 rounded font-bold uppercase", zoneColors[hoveredStall.zone]?.bg, "text-gray-900")}>
+                    {hoveredStall.zone}
+                  </span>
+                </div>
+                {hoveredStall.status === "occupied" ? (
+                  <div className="space-y-1">
+                    <p className="text-xs text-green-400 font-semibold flex items-center gap-1"><Users size={12}/> {hoveredStall.trader_name}</p>
+                    <p className="text-[10px] text-gray-400 border-t border-white/10 pt-1 mt-1">Kat: {hoveredStall.category}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <p className="text-xs text-gray-400 italic">Lapak Kosong</p>
+                    <p className="text-[10px] text-gray-500 border-t border-white/10 pt-1 mt-1">Sewa: Rp {Number(hoveredStall.monthly_fee).toLocaleString("id-ID")}/bln</p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
 
