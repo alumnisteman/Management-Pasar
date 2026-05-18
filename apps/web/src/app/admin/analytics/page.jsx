@@ -20,7 +20,7 @@ const ZONE_COLORS = {
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-[#1C1E27] border border-white/10 p-4 rounded-xl shadow-2xl">
+      <div className="bg-white/5 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.2)] border border-white/10 p-4 rounded-xl shadow-2xl">
         <p className="text-white font-bold mb-2">{label}</p>
         {payload.map((entry, index) => (
           <p key={index} className="text-sm font-medium" style={{ color: entry.color }}>
@@ -86,7 +86,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Revenue Trend LineChart */}
-        <div className="bg-[#1C1E27] rounded-xl border border-white/5 p-6 lg:col-span-2 shadow-lg">
+        <div className="bg-white/5 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.2)] rounded-xl border border-white/5 p-6 lg:col-span-2 shadow-lg">
           <div className="flex items-center gap-2 mb-6 text-blue-400">
             <DollarSign size={20} />
             <h3 className="text-lg font-bold text-white">Tren Pendapatan Tagihan (6 Bulan)</h3>
@@ -113,7 +113,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Occupancy PieChart */}
-        <div className="bg-[#1C1E27] rounded-xl border border-white/5 p-6 shadow-lg">
+        <div className="bg-white/5 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.2)] rounded-xl border border-white/5 p-6 shadow-lg">
           <div className="flex items-center gap-2 mb-6 text-emerald-400">
             <Map size={20} />
             <h3 className="text-lg font-bold text-white">Distribusi Hunian per Zona</h3>
@@ -134,7 +134,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Billing Stats BarChart */}
-        <div className="bg-[#1C1E27] rounded-xl border border-white/5 p-6 shadow-lg">
+        <div className="bg-white/5 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.2)] rounded-xl border border-white/5 p-6 shadow-lg">
           <div className="flex items-center gap-2 mb-6 text-rose-400">
             <DollarSign size={20} />
             <h3 className="text-lg font-bold text-white">Status Pembayaran Keseluruhan</h3>
@@ -167,7 +167,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Porter Performance */}
-        <div className="bg-[#1C1E27] rounded-xl border border-white/5 p-6 lg:col-span-2 shadow-lg">
+        <div className="bg-white/5 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.2)] rounded-xl border border-white/5 p-6 lg:col-span-2 shadow-lg">
           <div className="flex items-center gap-2 mb-6 text-cyan-400">
             <Users size={20} />
             <h3 className="text-lg font-bold text-white">Distribusi Rating Kuli Panggul</h3>

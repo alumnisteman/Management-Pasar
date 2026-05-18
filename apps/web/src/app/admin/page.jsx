@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import { BrainCircuit } from "lucide-react";
+import { motion } from "motion/react";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -29,9 +30,11 @@ const fmtRp = (n) => `Rp ${fmt(n)}`;
 
 function StatCard({ icon: Icon, label, value, sub, trend, iconClass, accent }) {
   return (
-    <div
+    <motion.div
+      whileHover={{ scale: 1.02, y: -4 }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
       className={twMerge(
-        "bg-[#1C1E27] rounded-xl border border-white/5 p-5 flex items-start gap-4",
+        "bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-5 flex items-start gap-4 shadow-[0_8px_32px_rgba(0,0,0,0.2)]",
         accent,
       )}
     >
@@ -58,7 +61,7 @@ function StatCard({ icon: Icon, label, value, sub, trend, iconClass, accent }) {
           {Math.abs(trend)}%
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -133,8 +136,8 @@ function AISummaryWidget() {
   });
 
   return (
-    <div className="bg-[#1C1E27] rounded-xl border border-blue-500/20 p-5 relative overflow-hidden group">
-      <div className="absolute top-0 right-0 p-8 bg-blue-500/5 blur-3xl rounded-full -mr-16 -mt-16" />
+    <div className="bg-white/5 backdrop-blur-md rounded-2xl border border-blue-500/30 p-5 relative overflow-hidden group shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
+      <div className="absolute top-0 right-0 p-8 bg-blue-500/10 blur-3xl rounded-full -mr-16 -mt-16" />
       
       <div className="flex items-center gap-3 mb-3 relative z-10">
         <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
@@ -280,7 +283,11 @@ export default function AdminDashboard() {
   } = data;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-6 max-w-7xl mx-auto pb-10"
+    >
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -348,7 +355,7 @@ export default function AdminDashboard() {
 
       {/* Secondary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-[#1C1E27] rounded-xl border border-white/5 p-5">
+        <div className="bg-white/5 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.2)] rounded-xl border border-white/5 p-5">
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-3">
             Pedagang
           </p>
@@ -380,7 +387,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-[#1C1E27] rounded-xl border border-white/5 p-5">
+        <div className="bg-white/5 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.2)] rounded-xl border border-white/5 p-5">
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-3">
             Grid Lapak
           </p>
@@ -412,7 +419,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-[#1C1E27] rounded-xl border border-white/5 p-5">
+        <div className="bg-white/5 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.2)] rounded-xl border border-white/5 p-5">
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-3">
             SIPTU Perizinan
           </p>
@@ -444,7 +451,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-[#1C1E27] rounded-xl border border-white/5 p-5">
+        <div className="bg-white/5 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.2)] rounded-xl border border-white/5 p-5">
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-3">
             Porter Rating
           </p>
@@ -476,7 +483,7 @@ export default function AdminDashboard() {
 
       {/* Revenue Chart + Activity */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <div className="md:col-span-3 bg-[#1C1E27] rounded-xl border border-white/5 p-6">
+        <div className="md:col-span-3 bg-white/5 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.2)] rounded-xl border border-white/5 p-6">
           <div className="flex items-start justify-between mb-6">
             <div>
               <h3 className="text-base font-semibold text-white">
@@ -500,7 +507,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Recent Activity */}
-        <div className="md:col-span-2 bg-[#1C1E27] rounded-xl border border-white/5 p-6">
+        <div className="md:col-span-2 bg-white/5 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.2)] rounded-xl border border-white/5 p-6">
           <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
             <Zap size={16} className="text-yellow-400" /> Aktivitas Terbaru
           </h3>
@@ -568,7 +575,7 @@ export default function AdminDashboard() {
             key={href}
             href={href}
             className={twMerge(
-              "bg-[#1C1E27] border border-white/5 rounded-xl p-5 flex items-center gap-3 transition-all duration-150 group",
+              "bg-white/5 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.2)] border border-white/5 rounded-xl p-5 flex items-center gap-3 transition-all duration-150 group",
               color,
             )}
           >
@@ -584,7 +591,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Ekspor Laporan PDF */}
-      <div className="bg-[#1C1E27] rounded-xl border border-white/5 p-6">
+      <div className="bg-white/5 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.2)] rounded-xl border border-white/5 p-6">
         <div className="flex items-center gap-2 mb-4">
           <FileDown size={18} className="text-blue-400" />
           <h3 className="text-base font-semibold text-white">

@@ -22,6 +22,7 @@ import {
   LineChart
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
+import { motion, AnimatePresence } from "motion/react";
 
 const navItems = [
   {
@@ -142,11 +143,15 @@ export default function AdminLayout({ children }) {
   });
 
   return (
-    <div className="flex min-h-screen bg-[#0F1117] text-white">
+    <div className="flex min-h-screen bg-gradient-to-br from-[#0a0f1c] via-[#0E1015] to-[#1a1c29] text-white relative">
+      {/* Background Glow Orbs */}
+      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-blue-600/20 blur-[120px] pointer-events-none z-0" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-violet-600/10 blur-[150px] pointer-events-none z-0" />
+
       {/* Sidebar */}
       <aside
         className={twMerge(
-          "flex flex-col bg-[#16181F] border-r border-white/5 transition-all duration-300 shrink-0",
+          "flex flex-col bg-black/40 backdrop-blur-xl border-r border-white/10 shadow-2xl transition-all duration-300 shrink-0 relative z-20",
           sidebarOpen ? "w-60" : "w-16",
         )}
       >
@@ -177,8 +182,8 @@ export default function AdminLayout({ children }) {
                 className={twMerge(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group",
                   active
-                    ? "bg-white/10 text-white"
-                    : "text-gray-400 hover:bg-white/5 hover:text-white",
+                    ? "bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.05)] border border-white/10"
+                    : "text-gray-400 hover:bg-white/5 hover:text-white border border-transparent",
                 )}
               >
                 <Icon
@@ -219,9 +224,9 @@ export default function AdminLayout({ children }) {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden relative z-10">
         {/* Topbar */}
-        <header className="flex items-center justify-between px-6 py-3 border-b border-white/5 bg-[#16181F] shrink-0">
+        <header className="flex items-center justify-between px-6 py-3 border-b border-white/10 bg-black/30 backdrop-blur-md sticky top-0 z-30 shrink-0 shadow-lg">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -318,7 +323,18 @@ export default function AdminLayout({ children }) {
         )}
 
         {/* Page Content */}
-        <main className="flex-1 overflow-auto p-6">{children}</main>
+        <AnimatePresence mode="wait">
+          <motion.main 
+            key={currentPath}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="flex-1 overflow-auto p-6 relative z-10"
+          >
+            {children}
+          </motion.main>
+        </AnimatePresence>
       </div>
     </div>
   );
