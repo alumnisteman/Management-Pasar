@@ -18,6 +18,13 @@ import {
   ShieldAlert,
   FileDown,
   Loader2,
+  Server,
+  Database,
+  Wifi,
+  WifiOff,
+  RefreshCw,
+  Globe,
+  Cpu,
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import { BrainCircuit } from "lucide-react";
@@ -223,6 +230,147 @@ function ExportButton({ label, sub, type, month, iconColor }) {
         </p>
       </div>
     </button>
+  );
+}
+
+// ── Infrastructure Status Panel ──────────────────────────────────────────────
+
+const SERVICE_ICONS = {
+  mysql:   Database,
+  redis:   Cpu,
+  laravel: Server,
+  reverb:  Wifi,
+  nginx:   Globe,
+  svms:    Activity,
+};
+
+const STATUS_CFG = {
+  up:       { label: "UP",       dot: "bg-green-500",  text: "text-green-400",  bg: "bg-green-500/10",  border: "border-green-500/20",  ring: "ring-green-500/30"  },
+  down:     { label: "DOWN",     dot: "bg-red-500",    text: "text-red-400",    bg: "bg-red-500/10",    border: "border-red-500/20",    ring: "ring-red-500/30"    },
+  degraded: { label: "DEGRADED", dot: "bg-yellow-500", text: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", ring: "ring-yellow-500/30" },
+};
+
+const OVERALL_CFG = {
+  healthy:  { label: "Semua Sistem Normal",    color: "text-green-400",  bg: "bg-green-500/10",  border: "border-green-500/20"  },
+  degraded: { label: "Sebagian Sistem Turun",  color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20" },
+  critical: { label: "Sistem Kritis",          color: "text-red-400",    bg: "bg-red-500/10",    border: "border-red-500/20"    },
+};
+
+function InfraStatusPanel() {
+  const [spinning, setSpinning] = useState(false);
+  const queryClient = useQueryClient ? null : null; // page uses useQuery directly
+
+  const { data, isLoading, refetch, dataUpdatedAt } = useQuery({
+    queryKey: ["infraHealth"],
+    queryFn: () =>
+      fetch("/api/admin/health").then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      }),
+    refetchInterval: 30000,
+    retry: 1,
+  });
+
+  const handleRefresh = async () => {
+    setSpinning(true);
+    await refetch();
+    setSpinning(false);
+  };
+
+  const overall = OVERALL_CFG[data?.overallHealth] || OVERALL_CFG.degraded;
+  const lastChecked = dataUpdatedAt
+    ? new Date(dataUpdatedAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+    : null;
+
+  return (
+    <div className="bg-[#1C1E27] rounded-xl border border-white/5 p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-slate-500/10 rounded-lg">
+            <Server size={18} className="text-slate-400" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-white">Status Infrastruktur</h3>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Real-time service health monitoring
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          {data && !isLoading && (
+            <div className={twMerge("flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold", overall.bg, overall.border, overall.color)}>
+              <span className={twMerge("w-1.5 h-1.5 rounded-full animate-pulse", data.overallHealth === "healthy" ? "bg-green-500" : data.overallHealth === "critical" ? "bg-red-500" : "bg-yellow-500")} />
+              {overall.label}
+            </div>
+          )}
+          <button
+            onClick={handleRefresh}
+            disabled={isLoading || spinning}
+            className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors disabled:opacity-40"
+            title="Refresh"
+          >
+            <RefreshCw size={14} className={twMerge("transition-transform", (isLoading || spinning) && "animate-spin")} />
+          </button>
+        </div>
+      </div>
+
+      {/* Service Grid */}
+      {isLoading ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-24 bg-white/[0.03] rounded-xl border border-white/5 animate-pulse" />
+          ))}
+        </div>
+      ) : data?.services ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {data.services.map((svc) => {
+            const sc = STATUS_CFG[svc.status] || STATUS_CFG.down;
+            const Icon = SERVICE_ICONS[svc.id] || Server;
+            return (
+              <div
+                key={svc.id}
+                className={twMerge(
+                  "rounded-xl border p-4 transition-all",
+                  svc.status === "up"
+                    ? "border-white/5 bg-white/[0.02]"
+                    : svc.status === "degraded"
+                    ? "border-yellow-500/20 bg-yellow-500/[0.03]"
+                    : "border-red-500/10 bg-red-500/[0.02]",
+                )}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className={twMerge("p-1.5 rounded-lg", svc.status === "up" ? "bg-green-500/10" : svc.status === "degraded" ? "bg-yellow-500/10" : "bg-white/5")}>
+                    <Icon size={14} className={svc.status === "up" ? "text-green-400" : svc.status === "degraded" ? "text-yellow-400" : "text-gray-600"} />
+                  </div>
+                  <span className={twMerge("inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border", sc.bg, sc.border, sc.text)}>
+                    <span className={twMerge("w-1.5 h-1.5 rounded-full", sc.dot, svc.status === "up" && "animate-pulse")} />
+                    {sc.label}
+                  </span>
+                </div>
+                <p className="text-xs font-semibold text-white leading-tight">{svc.name}</p>
+                <p className="text-[10px] text-gray-600 mt-0.5 font-mono">{svc.tag}</p>
+                {svc.latency != null && (
+                  <p className="text-[10px] text-green-400/70 mt-1">{svc.latency}ms</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="text-center py-8 text-gray-500 text-sm">
+          Gagal memuat status infrastruktur
+        </div>
+      )}
+
+      {/* Footer */}
+      {lastChecked && (
+        <div className="mt-4 flex items-center justify-between text-[10px] text-gray-600">
+          <span>Terakhir dicek: {lastChecked}</span>
+          <span>{data?.upCount ?? 0}/{data?.total ?? 0} layanan aktif · Auto-refresh setiap 30 detik</span>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -582,6 +730,9 @@ export default function AdminDashboard() {
           </a>
         ))}
       </div>
+
+      {/* Infrastructure Status */}
+      <InfraStatusPanel />
 
       {/* Ekspor Laporan PDF */}
       <div className="bg-[#1C1E27] rounded-xl border border-white/5 p-6">
