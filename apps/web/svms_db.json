@@ -675,6 +675,7 @@
     }
   ],
   "porter_requests": [],
+  "porter_jobs": [],
   "iot_readings": [
     {
       "id": 1,

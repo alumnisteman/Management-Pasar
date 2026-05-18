@@ -61,7 +61,9 @@ const DEFAULT_DB = {
     { id: 2, trader_id: 2, start_date: "2026-02-10", end_date: "2027-02-09", rent_amount: 750000, terms: "Pedagang wajib menjaga kebersihan area lapak.", status: "active", created_at: "2026-02-10T09:00:00.000Z" },
     { id: 3, trader_id: 3, start_date: "2025-06-01", end_date: "2026-05-31", rent_amount: 750000, terms: "Kontrak satu tahun. Perpanjangan 30 hari sebelum kedaluwarsa.", status: "expired", created_at: "2025-06-01T08:00:00.000Z" }
   ],
-  porter_requests: []
+  porter_requests: [],
+  porter_jobs: [],
+  iot_readings: []
 };
 
 // Read database helper
@@ -95,6 +97,35 @@ export async function executeSQL(queryStr, values = []) {
   }
   const db = loadDB();
   const query = queryStr.trim().replace(/\s+/g, ' ');
+
+  // ── 0. SIMPLE SELECT * FROM <table> ──
+  // Handle plain un-aliased full-table reads used by analytics, daily-report etc.
+  if (query === 'SELECT * FROM stalls' || query === 'SELECT * FROM stalls ORDER BY zone, row_x, col_y') {
+    return [...db.stalls];
+  }
+  if (query === 'SELECT * FROM bills' || query.match(/^SELECT \* FROM bills WHERE status = '\w+'$/)) {
+    const statusMatch = query.match(/status = '(\w+)'/);
+    if (statusMatch) return db.bills.filter(b => b.status === statusMatch[1]);
+    return [...db.bills];
+  }
+  if (query === 'SELECT * FROM traders') {
+    return [...db.traders];
+  }
+  if (query === 'SELECT * FROM porters ORDER BY name ASC' || query === 'SELECT * FROM porters') {
+    return [...db.porters].sort((a, b) => a.name.localeCompare(b.name));
+  }
+  if (query === 'SELECT * FROM permits') {
+    return [...db.permits];
+  }
+  if (query === 'SELECT * FROM contracts ORDER BY created_at DESC') {
+    return [...(db.contracts || [])].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  }
+  if (query === 'SELECT * FROM announcements') {
+    return [...(db.announcements || [])];
+  }
+  if (query === 'SELECT * FROM porter_requests ORDER BY created_at DESC') {
+    return [...(db.porter_requests || [])].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  }
 
   // ── 1. SELECT AUDIT LOGS ──
   if (query.startsWith('SELECT * FROM audit_logs')) {
@@ -298,12 +329,27 @@ export async function executeSQL(queryStr, values = []) {
     return zoneStalls;
   }
 
-  if (query.includes('UPDATE stalls SET') && query.includes('WHERE id =')) {
-    const id = values[4];
-    const stall = db.stalls.find(s => s.id === id);
+  if (query.includes('UPDATE stalls SET') && query.includes('WHERE trader_id =')) {
+    // Vacate stall: UPDATE stalls SET status = 'vacant', trader_id = NULL WHERE trader_id = $1
+    const traderId = values[0];
+    const stall = db.stalls.find(s => s.trader_id === traderId || s.trader_id === Number(traderId));
     if (stall) {
+      stall.status = 'vacant';
+      stall.trader_id = null;
+      saveDB(db);
+      return [stall];
+    }
+    return [];
+  }
+
+  if (query.includes('UPDATE stalls SET') && query.includes('WHERE id =')) {
+    // id is always the last value in the template
+    const id = values[values.length - 1];
+    const stall = db.stalls.find(s => s.id === id || s.id === Number(id));
+    if (stall) {
+      // values order: status(0), trader_id(1), zone(2), category(3), monthly_fee(4), id is last
       if (values[0] !== undefined && values[0] !== null) stall.status = values[0];
-      if (values[1] !== undefined) stall.trader_id = values[1] || null;
+      if (values[1] !== undefined) stall.trader_id = values[1] === null ? null : (values[1] || null);
       if (values[2] !== undefined && values[2] !== null) stall.zone = values[2];
       if (values[3] !== undefined && values[3] !== null) stall.category = values[3];
       if (values[4] !== undefined && values[4] !== null) stall.monthly_fee = values[4];
@@ -421,6 +467,47 @@ export async function executeSQL(queryStr, values = []) {
   }
 
   // ── 6. PORTERS QUERIES ──
+  if (query.includes('UPDATE porters SET status =')) {
+    const statusVal = values[0];
+    const idVal = values[1];
+    const porter = db.porters.find(p => p.id === Number(idVal) || p.id === idVal);
+    if (porter) {
+      porter.status = statusVal;
+      saveDB(db);
+      return [porter];
+    }
+    return [];
+  }
+
+  if (query.includes('UPDATE porters SET status')) {
+    // Handle: UPDATE porters SET status = $1 WHERE id = $2
+    const idVal = values[values.length - 1];
+    const porter = db.porters.find(p => p.id === Number(idVal) || p.id === idVal);
+    if (porter) {
+      if (values[0] !== undefined) porter.status = values[0];
+      saveDB(db);
+      return [porter];
+    }
+    return [];
+  }
+
+  if (query.includes('INSERT INTO porters')) {
+    const [name, phone, id_number, daily_target] = values;
+    const newId = db.porters.reduce((max, p) => Math.max(max, p.id), 0) + 1;
+    const newPorter = {
+      id: newId,
+      name,
+      phone,
+      id_number: id_number || null,
+      daily_target: daily_target || 100000,
+      status: 'available',
+      rating: 5.0
+    };
+    db.porters.push(newPorter);
+    saveDB(db);
+    return [newPorter];
+  }
+
   if (query.includes('FROM porters')) {
     if (query.includes('WHERE p.id =') || query.includes('WHERE id =')) {
       const idVal = values[0];
@@ -428,7 +515,7 @@ export async function executeSQL(queryStr, values = []) {
       if (p) {
         return [{
           ...p,
-          daily_earnings: 25000
+          daily_earnings: 0
         }];
       }
       return [];
@@ -436,14 +523,136 @@ export async function executeSQL(queryStr, values = []) {
     return db.porters;
   }
 
+  // ── PORTER JOBS QUERIES ──
+  if (query.includes('FROM porter_jobs')) {
+    const jobs = db.porter_jobs || [];
+    if (query.includes('WHERE porter_id =')) {
+      const porterId = values[0];
+      return jobs.filter(j => j.porter_id === Number(porterId) || j.porter_id === porterId)
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+    return [...jobs].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  }
+
+  if (query.includes('INSERT INTO porter_jobs')) {
+    const [porter_id, customer_name, location_from, location_to, weight_category, fee] = values;
+    if (!db.porter_jobs) db.porter_jobs = [];
+    const newId = db.porter_jobs.reduce((max, j) => Math.max(max, j.id), 0) + 1;
+    const newJob = {
+      id: newId,
+      porter_id: Number(porter_id),
+      customer_name,
+      location_from,
+      location_to,
+      weight_category,
+      fee: Number(fee),
+      status: 'pending',
+      created_at: new Date().toISOString(),
+      completed_at: null
+    };
+    db.porter_jobs.push(newJob);
+    saveDB(db);
+    return [newJob];
+  }
+
+  if (query.includes('UPDATE porter_jobs SET')) {
+    const jobs = db.porter_jobs || [];
+    const idVal = values[values.length - 1];
+    const job = jobs.find(j => j.id === Number(idVal) || j.id === idVal);
+    if (job) {
+      if (values[0] !== undefined) job.status = values[0];
+      if (values[0] === 'completed') job.completed_at = new Date().toISOString();
+      saveDB(db);
+      return [job];
+    }
+    return [];
+  }
+
   if (query.includes('FROM porter_incentives') && query.includes('SELECT pi.*')) {
-    return db.porter_incentives.map(pi => {
-      const porter = db.porters.find(p => p.id === pi.porter_id) || {};
-      return {
-        ...pi,
-        porter_name: porter.name || null
-      };
-    });
+    const incentives = db.porter_incentives || [];
+    if (query.includes('WHERE pi.porter_id =')) {
+      const porterId = values[0];
+      return incentives
+        .filter(pi => pi.porter_id === Number(porterId) || pi.porter_id === porterId)
+        .sort((a, b) => b.week_start.localeCompare(a.week_start))
+        .slice(0, 12)
+        .map(pi => {
+          const porter = db.porters.find(p => p.id === pi.porter_id) || {};
+          return { ...pi, porter_name: porter.name || null };
+        });
+    }
+    return incentives
+      .sort((a, b) => b.week_start.localeCompare(a.week_start))
+      .map(pi => {
+        const porter = db.porters.find(p => p.id === pi.porter_id) || {};
+        return { ...pi, porter_name: porter.name || null };
+      });
+  }
+
+  if (query.includes('SELECT id FROM porter_incentives')) {
+    const porterId = values[0];
+    const weekStart = values[1];
+    return (db.porter_incentives || []).filter(
+      pi => (pi.porter_id === Number(porterId) || pi.porter_id === porterId) && pi.week_start === weekStart
+    );
+  }
+
+  if (query.includes('INSERT INTO porter_incentives')) {
+    const [porter_id, week_start, week_end, jobs_completed, avg_rating, total_earnings, days_hit_target, tier, bonus_amount, status] = values;
+    if (!db.porter_incentives) db.porter_incentives = [];
+    const newId = db.porter_incentives.reduce((max, p) => Math.max(max, p.id), 0) + 1;
+    const newInc = {
+      id: newId,
+      porter_id: Number(porter_id),
+      week_start,
+      week_end,
+      jobs_completed: Number(jobs_completed || 0),
+      avg_rating: Number(avg_rating || 0),
+      total_earnings: Number(total_earnings || 0),
+      days_hit_target: Number(days_hit_target || 0),
+      tier,
+      bonus_amount: Number(bonus_amount || 0),
+      status: status || 'approved'
+    };
+    db.porter_incentives.push(newInc);
+    saveDB(db);
+    return [newInc];
+  }
+
+  if (query.includes('UPDATE porter_incentives')) {
+    const incentives = db.porter_incentives || [];
+    if (query.includes('SET status = \'paid\'') || (query.includes('SET status') && query.includes('paid_at'))) {
+      const idVal = values[0];
+      const inc = incentives.find(i => i.id === Number(idVal) || i.id === idVal);
+      if (inc) {
+        inc.status = 'paid';
+        inc.paid_at = new Date().toISOString();
+        saveDB(db);
+        return [inc];
+      }
+      return [];
+    }
+    if (query.includes('SET jobs_completed')) {
+      // Update incentive stats
+      const porterId = values[values.length - 2];
+      const weekStart = values[values.length - 1];
+      const inc = incentives.find(i =>
+        (i.porter_id === Number(porterId) || i.porter_id === porterId) && i.week_start === weekStart
+      );
+      if (inc) {
+        if (values[0] !== undefined) inc.jobs_completed = Number(values[0]);
+        if (values[1] !== undefined) inc.avg_rating = Number(values[1]);
+        if (values[2] !== undefined) inc.total_earnings = Number(values[2]);
+        if (values[3] !== undefined) inc.days_hit_target = Number(values[3]);
+        if (values[4] !== undefined) inc.tier = values[4];
+        if (values[5] !== undefined) inc.bonus_amount = Number(values[5]);
+        inc.status = 'approved';
+        saveDB(db);
+        return [inc];
+      }
+      return [];
+    }
+    return [];
   }
 
   // ── 7. PERMITS QUERIES ──
