@@ -60,6 +60,7 @@ Route::group(['middleware' => ['auth:api', 'admin']], function() {
     Route::post('/system/auto-heal', [CommandCenterController::class, 'autoHeal']);
 });
 Route::get('/command-center/stats', [CommandCenterController::class, 'getStats']);
+Route::get('/system/guard-probe', [CommandCenterController::class, 'getHealthStatus']);
 Route::get('/command-center/heatmap', [GridController::class, 'heatmap']);
 
 // Publicly available for the dashboard

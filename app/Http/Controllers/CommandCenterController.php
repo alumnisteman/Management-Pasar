@@ -66,6 +66,75 @@ class CommandCenterController extends Controller
     }
 
     /**
+     * Deep health status check for SVMS backend systems.
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getHealthStatus()
+    {
+        $status = 'OPERATIONAL';
+        $checks = [];
+
+        // 1. Database Check
+        try {
+            DB::connection()->getPdo();
+            $checks['database'] = 'OK';
+        } catch (\Exception $e) {
+            $checks['database'] = 'FAIL: ' . $e->getMessage();
+            $status = 'DEGRADED';
+        }
+
+        // 2. Redis/Cache Check
+        try {
+            $redis = \Illuminate\Support\Facades\Redis::connection();
+            $redis->ping();
+            $checks['redis'] = 'OK';
+        } catch (\Exception $e) {
+            $checks['redis'] = 'FAIL: ' . $e->getMessage();
+            $status = 'DEGRADED';
+        }
+
+        // 3. Storage Check
+        $storagePaths = [
+            'logs' => storage_path('logs'),
+            'views' => storage_path('framework/views'),
+            'sessions' => storage_path('framework/sessions'),
+        ];
+        $checks['storage'] = 'OK';
+        foreach ($storagePaths as $name => $path) {
+            if (!is_writable($path)) {
+                $checks['storage'] = 'FAIL: Storage path ' . $name . ' is not writable.';
+                $status = 'DEGRADED';
+                break;
+            }
+        }
+
+        // 4. Migrations Check
+        try {
+            \Illuminate\Support\Facades\Artisan::call('migrate:status');
+            $migrationOutput = \Illuminate\Support\Facades\Artisan::output();
+            if (str_contains($migrationOutput, '| No |')) {
+                $checks['migrations'] = 'PENDING';
+                $status = 'DEGRADED';
+            } else {
+                $checks['migrations'] = 'OK';
+            }
+        } catch (\Exception $e) {
+            $checks['migrations'] = 'FAIL: ' . $e->getMessage();
+            $status = 'DEGRADED';
+        }
+
+        // 5. System Uptime Info (Request processing time)
+        $checks['laravel_uptime'] = round(microtime(true) - LARAVEL_START, 4) . 's';
+
+        return response()->json([
+            'status' => $status,
+            'timestamp' => now()->toIso8601String(),
+            'checks' => $checks
+        ]);
+    }
+
+    /**
      * Auto-Heal System: Clears cache, optimizes views, and restarts queue worker
      * 
      * @return \Illuminate\Http\JsonResponse

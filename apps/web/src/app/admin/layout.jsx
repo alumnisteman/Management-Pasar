@@ -19,6 +19,7 @@ import {
   Megaphone,
   FileBarChart,
   AlertTriangle,
+  ShieldAlert,
   LineChart,
   FileSignature,
   Layers,
@@ -118,6 +119,12 @@ const navItems = [
     label: "Portal Mandiri Pedagang",
     icon: ShoppingBag,
     color: "text-violet-400",
+  },
+  {
+    href: "/admin/guard",
+    label: "SYSTEM GUARD",
+    icon: ShieldAlert,
+    color: "text-red-500 font-bold tracking-wider animate-pulse",
   },
 ];
 
