@@ -438,7 +438,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
-        <ClientOnly loader={() => <Links />} />
+        <Links />
         {import.meta.env.DEV && (
           <script type="module" src="/src/__create/dev-error-overlay.js"></script>
         )}
