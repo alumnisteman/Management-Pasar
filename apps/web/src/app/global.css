@@ -12,3 +12,31 @@
     color: white;
   }
 }
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+  }
+
+  /* Hide everything except the print area */
+  body > * {
+    display: none !important;
+  }
+
+  #print-area {
+    display: block !important;
+  }
+
+  /* Ensure tables don't break across pages badly */
+  table { page-break-inside: auto; }
+  tr    { page-break-inside: avoid; page-break-after: auto; }
+  thead { display: table-header-group; }
+
+  @page {
+    margin: 15mm 12mm;
+    size: A4 landscape;
+  }
+}
