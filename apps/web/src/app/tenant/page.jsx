@@ -28,7 +28,7 @@ export default function TenantPortalPage() {
   // Load all traders for simulated login dropdown
   const loadTraders = async () => {
     try {
-      const res = await fetch("/api/admin/stall-map/data");
+      const res = await fetch("/api/admin/stall-map");
       const data = await res.json();
       if (!data.error && data.length > 0) {
         // Unique traders
