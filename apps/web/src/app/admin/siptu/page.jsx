@@ -591,8 +591,8 @@ export default function SiptuPage() {
             </select>
           </div>
 
-          <div className="bg-[#1C1E27] rounded-xl border border-white/5 overflow-hidden">
-            <table className="w-full text-left">
+          <div className="bg-[#1C1E27] rounded-xl border border-white/5 overflow-x-auto">
+            <table className="w-full text-left min-w-[650px]">
               <thead>
                 <tr className="border-b border-white/5">
                   {[

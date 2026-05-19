@@ -129,7 +129,7 @@ const navItems = [
 ];
 
 export default function AdminLayout({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [role, changeRole, , logout, user] = useRole();
   const [roleMenuOpen, setRoleMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -138,6 +138,12 @@ export default function AdminLayout({ children }) {
   );
   const [announcements, setAnnouncements] = useState([]);
   const [dismissDarurat, setDismissDarurat] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setSidebarOpen(window.innerWidth >= 768);
+    }
+  }, []);
 
   useEffect(() => {
     fetch('/api/admin/announcements')
@@ -183,11 +189,23 @@ export default function AdminLayout({ children }) {
       <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-blue-600/20 blur-[120px] pointer-events-none z-0" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-violet-600/10 blur-[150px] pointer-events-none z-0" />
 
+      {/* Sidebar Overlay for Mobile */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside
         className={twMerge(
-          "flex flex-col bg-black/40 backdrop-blur-xl border-r border-white/10 shadow-2xl transition-all duration-300 shrink-0 relative z-20",
-          sidebarOpen ? "w-60" : "w-16",
+          "flex flex-col bg-black/85 backdrop-blur-xl border-r border-white/10 shadow-2xl transition-all duration-300 shrink-0 relative z-40",
+          // Desktop styling
+          "md:flex",
+          sidebarOpen ? "md:w-60" : "md:w-16",
+          // Mobile styling
+          sidebarOpen ? "fixed inset-y-0 left-0 w-60" : "hidden",
         )}
       >
         {/* Logo */}
@@ -213,7 +231,12 @@ export default function AdminLayout({ children }) {
               <a
                 key={href}
                 href={href}
-                onClick={() => setCurrentPath(href)}
+                onClick={() => {
+                  setCurrentPath(href);
+                  if (typeof window !== "undefined" && window.innerWidth < 768) {
+                    setSidebarOpen(false);
+                  }
+                }}
                 className={twMerge(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group",
                   active
