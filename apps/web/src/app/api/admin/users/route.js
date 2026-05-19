@@ -69,7 +69,16 @@ export async function PATCH(req) {
     // if (query.includes('password = $')) user.password = values[3];
     // id = values[4] or values[length-1]
 
-    const vals = [name, role, status, password, id];
+    let finalPassword = password;
+    if (!password) {
+      const allUsers = await sql('SELECT * FROM users');
+      const existingUser = allUsers.find(u => u.id === Number(id));
+      if (existingUser) {
+        finalPassword = existingUser.password;
+      }
+    }
+
+    const vals = [name, role, status, finalPassword, id];
     
     // Create dummy string to satisfy our parser
     const dummyQuery = 'UPDATE users SET name = $1, role = $2, status = $3, password = $4 WHERE id = $5';
