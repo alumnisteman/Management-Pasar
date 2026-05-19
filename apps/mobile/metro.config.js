@@ -77,6 +77,12 @@ config.watchFolders = [...config.watchFolders, VIRTUAL_ROOT, VIRTUAL_ROOT_UNRESO
 // Add web-specific alias configuration through resolveRequest
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   try {
+    // Support tsconfig.json @/* path alias resolution in custom resolveRequest
+    if (moduleName.startsWith('@/')) {
+      const resolved = path.resolve(__dirname, './src', moduleName.substring(2));
+      return context.resolveRequest(context, resolved, platform);
+    }
+
     // Polyfills are not resolved by Metro
     if (
       context.originModulePath.startsWith(`${__dirname}/polyfills/native`) ||
