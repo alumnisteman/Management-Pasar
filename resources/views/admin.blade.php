@@ -1291,21 +1291,145 @@
       } catch (e) { tbody.innerHTML = '<tr><td colspan="5">Gagal memuat data tagihan.</td></tr>'; }
     }
 
+    let portersData = [];
+
     async function fetchPorters() {
       const tbody = document.getElementById('porter-table-body');
       try {
         const res = await fetch(`${API_BASE}/porters`);
-        const data = await res.json();
-        tbody.innerHTML = data.map(p => `
+        portersData = await res.json();
+        tbody.innerHTML = portersData.map(p => `
           <tr>
-            <td><div style="font-weight:700;">${p.name}</div></td>
+            <td>
+              <div style="font-weight:700;">${p.name}</div>
+              <div style="font-size:10px; opacity:0.6;">NIK/ID: ${p.id_number || '-'} | Kontak: ${p.phone || '-'}</div>
+            </td>
             <td><div style="font-weight:900;">${p.jobs_completed || 0}</div></td>
             <td><div style="color:var(--gold);">★ ${p.rating || '0.0'}</div></td>
-            <td><span class="stat-badge" style="background:rgba(16,185,129,0.1); color:var(--success);">ACTIVE</span></td>
-            <td style="text-align:right;"><button class="action-btn"><i data-lucide="more-horizontal" size="14"></i></button></td>
+            <td><span class="stat-badge" style="background:rgba(16,185,129,0.1); color:var(--success);">${(p.status || 'ACTIVE').toUpperCase()}</span></td>
+            <td>
+              <div style="display:flex; gap:8px; justify-content:flex-end;">
+                 <button class="action-btn edit" onclick="editPorter(${p.id})"><i data-lucide="edit-3" size="14"></i></button>
+              </div>
+            </td>
           </tr>
         `).join('');
+        lucide.createIcons();
       } catch (e) { tbody.innerHTML = '<tr><td colspan="5">No porters found.</td></tr>'; }
+    }
+
+    function editPorter(id) {
+        const porter = portersData.find(p => p.id === id);
+        if (!porter) return;
+        document.getElementById('modal-content').innerHTML = `
+            <div class="panel-header"><div class="panel-title">Edit Porter (Kuli Panggul)</div></div>
+            <form id="porterForm" onsubmit="savePorter(event, ${id})">
+                <div class="form-group" style="margin-top:20px;">
+                    <label class="form-label">Nama Personel</label>
+                    <input type="text" id="porter-name" class="form-input" value="${porter.name}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ID / NIK Personel</label>
+                    <input type="text" id="porter-id-number" class="form-input" value="${porter.id_number || ''}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kontak (Nomor Telepon)</label>
+                    <input type="text" id="porter-phone" class="form-input" value="${porter.phone || ''}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select id="porter-status" class="form-input">
+                        <option value="available" ${porter.status === 'available' ? 'selected' : ''}>Available</option>
+                        <option value="active" ${porter.status === 'active' ? 'selected' : ''}>Active</option>
+                        <option value="off" ${porter.status === 'off' ? 'selected' : ''}>Off</option>
+                    </select>
+                </div>
+                <div style="display:flex; gap:12px; margin-top:24px;">
+                    <button type="submit" class="btn btn-primary flex-1">SIMPAN PERUBAHAN</button>
+                    <button type="button" class="btn btn-ghost" onclick="closeModal()">BATAL</button>
+                </div>
+            </form>
+        `;
+        document.getElementById('modal-overlay').classList.add('active');
+    }
+
+    async function savePorter(e, id) {
+        e.preventDefault();
+        const data = {
+            id: id,
+            name: document.getElementById('porter-name').value,
+            id_number: document.getElementById('porter-id-number').value,
+            phone: document.getElementById('porter-phone').value,
+            status: document.getElementById('porter-status').value
+        };
+
+        try {
+            const res = await fetch(`${API_BASE}/porters`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('token') },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                alert('Data Porter berhasil diupdate!');
+                closeModal();
+                fetchPorters();
+            } else {
+                alert('Gagal mengupdate Data Porter.');
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan jaringan.');
+        }
+    }
+
+    function openPorterModal() {
+        document.getElementById('modal-content').innerHTML = `
+            <div class="panel-header"><div class="panel-title">Register Porter Baru</div></div>
+            <form id="registerPorterForm" onsubmit="registerPorter(event)">
+                <div class="form-group" style="margin-top:20px;">
+                    <label class="form-label">Nama Personel</label>
+                    <input type="text" id="reg-porter-name" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ID / NIK Personel</label>
+                    <input type="text" id="reg-porter-id-number" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kontak (Nomor Telepon)</label>
+                    <input type="text" id="reg-porter-phone" class="form-input" required>
+                </div>
+                <div style="display:flex; gap:12px; margin-top:24px;">
+                    <button type="submit" class="btn btn-primary flex-1">REGISTER</button>
+                    <button type="button" class="btn btn-ghost" onclick="closeModal()">BATAL</button>
+                </div>
+            </form>
+        `;
+        document.getElementById('modal-overlay').classList.add('active');
+    }
+
+    async function registerPorter(e) {
+        e.preventDefault();
+        const data = {
+            name: document.getElementById('reg-porter-name').value,
+            id_number: document.getElementById('reg-porter-id-number').value,
+            phone: document.getElementById('reg-porter-phone').value
+        };
+
+        try {
+            const res = await fetch(`${API_BASE}/porters`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('token') },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                alert('Porter berhasil didaftarkan!');
+                closeModal();
+                fetchPorters();
+            } else {
+                alert('Gagal mendaftar Porter.');
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan jaringan.');
+        }
     }    
     
     async function saveSettings() {

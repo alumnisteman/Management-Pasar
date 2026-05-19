@@ -75,7 +75,7 @@ class PorterController extends Controller
         /** @var \Illuminate\Http\Request $request */
         /** @var Porter $porter */
         $porter = Porter::findOrFail($request->input('id'));
-        $porter->update($request->only('status', 'rating', 'daily_earnings'));
+        $porter->update($request->only('name', 'id_number', 'phone', 'status', 'rating', 'daily_earnings'));
         return $porter;
     }
 
