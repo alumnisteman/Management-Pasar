@@ -18,7 +18,6 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
-import { useAuth } from "@/utils/auth";
 
 const statusConfig = {
   active: {
@@ -430,9 +429,8 @@ export default function SiptuPage() {
   const [showIssue, setShowIssue] = useState(false);
   const [role] = useRole();
   const queryClient = useQueryClient();
-  const { user, loading, isAdmin } = useAuth();
+  const isAdmin = role === "admin";
 
-  if (loading) return null;
   if (!isAdmin) {
     return (
       <div className="flex flex-col items-center justify-center h-96 gap-4">
