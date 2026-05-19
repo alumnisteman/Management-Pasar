@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Package, Star, Award, Plus, X, Phone, User, Bell, CheckCircle2, Clock, Loader2 } from "lucide-react";
+import { Package, Star, Award, Plus, X, Phone, User, Bell, CheckCircle2, Clock, Loader2, Pencil } from "lucide-react";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { motion } from "motion/react";
@@ -111,8 +111,55 @@ function AddPorterModal({ onClose, onSubmit, isLoading }) {
   );
 }
 
+function EditPorterModal({ porter, onClose, onSubmit, isLoading }) {
+  const [form, setForm] = useState({
+    name: porter.name || "",
+    phone: porter.phone || "",
+    id_number: porter.id_number || "",
+  });
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-[#1C1E27] border border-white/10 rounded-2xl w-full max-w-md shadow-2xl">
+        <div className="p-6 space-y-4">
+          <div className="flex justify-between items-start">
+            <h3 className="font-semibold text-white flex items-center gap-2">
+              <Pencil size={16} className="text-cyan-400" /> Edit Data Kuli Panggul
+            </h3>
+            <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-lg text-gray-400">
+              <X size={18} />
+            </button>
+          </div>
+          {[
+            { key: "name", label: "Nama Personel", placeholder: "Nama lengkap" },
+            { key: "phone", label: "Kontak (No. WhatsApp)", placeholder: "08xxxxxxxxxx" },
+            { key: "id_number", label: "No. KTP / ID", placeholder: "No. KTP resmi" },
+          ].map(({ key, label, placeholder }) => (
+            <div key={key}>
+              <label className="text-[10px] text-gray-500 font-bold uppercase">{label}</label>
+              <input
+                value={form[key]}
+                onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                placeholder={placeholder}
+                className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500"
+              />
+            </div>
+          ))}
+          <button
+            onClick={() => onSubmit({ id: porter.id, ...form })}
+            disabled={!form.name || !form.phone || !form.id_number || isLoading}
+            className="w-full py-2.5 bg-cyan-600 text-white text-sm font-semibold rounded-lg hover:bg-cyan-700 disabled:opacity-40 transition-colors"
+          >
+            {isLoading ? "Menyimpan..." : "Simpan Perubahan"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminPorterPage() {
   const [showAdd, setShowAdd] = useState(false);
+  const [editPorter, setEditPorter] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: porters = [], isLoading } = useQuery({
@@ -161,14 +208,30 @@ export default function AdminPorterPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, status }) =>
+    mutationFn: (data) =>
       fetch("/api/porters", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, status }),
+        body: JSON.stringify(data),
       }).then((r) => r.json()),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["allPorters"] }),
+  });
+
+  const editMutation = useMutation({
+    mutationFn: (data) =>
+      fetch("/api/porters", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }).then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["allPorters"] });
+      setEditPorter(null);
+    },
   });
 
   const createRequestMutation = useMutation({
@@ -217,6 +280,15 @@ export default function AdminPorterPage() {
           onClose={() => setShowAdd(false)}
           onSubmit={addMutation.mutate}
           isLoading={addMutation.isPending}
+        />
+      )}
+
+      {editPorter && (
+        <EditPorterModal
+          porter={editPorter}
+          onClose={() => setEditPorter(null)}
+          onSubmit={editMutation.mutate}
+          isLoading={editMutation.isPending}
         />
       )}
 
@@ -389,6 +461,12 @@ export default function AdminPorterPage() {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex gap-1.5">
+                        <button
+                          onClick={() => setEditPorter(p)}
+                          className="text-[10px] text-cyan-400 border border-cyan-500/30 px-2 py-1 rounded-lg hover:bg-cyan-500/10 transition-colors flex items-center gap-1"
+                        >
+                          <Pencil size={10} /> Edit
+                        </button>
                         {p.status !== "available" && (
                           <button
                             onClick={() =>
@@ -399,7 +477,7 @@ export default function AdminPorterPage() {
                             }
                             className="text-[10px] text-green-400 border border-green-500/30 px-2 py-1 rounded-lg hover:bg-green-500/10 transition-colors"
                           >
-                            Set Tersedia
+                            Tersedia
                           </button>
                         )}
                         {p.status !== "off" && (

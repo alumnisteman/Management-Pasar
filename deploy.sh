@@ -39,6 +39,9 @@ docker exec -w /var/www svms-app-1 php artisan queue:restart
 echo "✨ 6. Restarting Application Container (to pick up Octane/Reverb changes)..."
 cd /var/www/svms && docker compose restart app || echo "⚠️  Could not restart app container automatically."
 
+echo "🏗️  7. Rebuilding and restarting Frontend Container..."
+cd /var/www/svms && docker compose up -d --build frontend || echo "⚠️  Could not build/restart frontend container automatically."
+
 echo "============================================================"
 echo "✅ Deployment completed successfully!"
 echo "============================================================"

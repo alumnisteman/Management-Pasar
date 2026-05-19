@@ -175,3 +175,25 @@ Route::get('/incentives', [App\Http\Controllers\PorterController::class, 'getInc
 Route::post('/incentives', [App\Http\Controllers\PorterController::class, 'storeIncentive']);
 Route::get('/ratings', [App\Http\Controllers\PorterController::class, 'getRatings']);
 Route::post('/ratings', [App\Http\Controllers\PorterController::class, 'storeRating']);
+
+// Waste Management Module
+Route::get('/waste', [App\Http\Controllers\WasteController::class, 'index']);
+Route::post('/waste', [App\Http\Controllers\WasteController::class, 'store']);
+Route::post('/waste/generate-bills', [App\Http\Controllers\WasteController::class, 'generateMonthlyBills']);
+
+// E-Commerce Module
+Route::get('/ecommerce/products', [App\Http\Controllers\EcommerceController::class, 'getProducts']);
+Route::post('/ecommerce/orders', [App\Http\Controllers\EcommerceController::class, 'createOrder']);
+
+// B2B Supply Chain Module
+Route::get('/supply/vendor-products', [App\Http\Controllers\SupplyChainController::class, 'getVendorProducts']);
+Route::post('/supply/purchase-orders', [App\Http\Controllers\SupplyChainController::class, 'createPurchaseOrder']);
+
+// Customer Loyalty Module
+Route::get('/loyalty/customer/{id}', [App\Http\Controllers\LoyaltyController::class, 'getCustomerPoints']);
+Route::post('/loyalty/points', [App\Http\Controllers\LoyaltyController::class, 'addPoints']);
+
+// Emergency & Safety Module
+Route::get('/emergencies', [App\Http\Controllers\EmergencyController::class, 'index']);
+Route::post('/emergencies', [App\Http\Controllers\EmergencyController::class, 'reportEmergency']);
+Route::patch('/emergencies/{id}', [App\Http\Controllers\EmergencyController::class, 'updateStatus']);

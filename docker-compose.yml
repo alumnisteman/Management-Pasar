@@ -75,10 +75,9 @@ services:
       - "7701:7700"
 
   frontend:
-    image: svms-dashboard:latest
-    command:
-      - node
-      - build/server/index.js
+    build:
+      context: ./backend/apps/web
+      dockerfile: Dockerfile
     environment:
       - PORT=4000
       - BACKEND_URL=http://app:8000

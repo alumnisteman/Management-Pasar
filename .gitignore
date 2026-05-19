@@ -23,6 +23,10 @@ storage/*.key
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+hs_err_pid*.log
+replay_pid*.log
+apps/web/*.log
+apps/web/build_local*.log
 .phpunit.result.cache
 
 # Database files
