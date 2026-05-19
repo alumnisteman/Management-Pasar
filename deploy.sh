@@ -31,7 +31,6 @@ docker exec -w /var/www svms-app-1 php artisan optimize:clear
 docker exec -w /var/www svms-app-1 php artisan config:cache
 docker exec -w /var/www svms-app-1 php artisan event:cache
 docker exec -w /var/www svms-app-1 php artisan route:cache
-docker exec -w /var/www svms-app-1 php artisan view:cache
 
 echo "🔄 5. Restarting Workers & WebSockets..."
 docker exec -w /var/www svms-app-1 php artisan queue:restart
