@@ -17,7 +17,7 @@ export default function Home() {
   const fetchNews = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`http://103.175.219.57:8000/api/news?page=${page}`);
+      const res = await fetch(`http://103.175.219.57:8005/api/news?page=${page}`);
       const data = await res.json();
       // Assuming the API returns an array under data.data or data
       const items = data.data ? data.data : data;
