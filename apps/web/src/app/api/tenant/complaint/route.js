@@ -1,16 +1,16 @@
-const BACKEND = process.env.BACKEND_URL || "http://103.175.219.57:8002";
+import sql from "@/app/api/utils/sql";
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const res = await fetch(`${BACKEND}/api/tenant/complaint`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) throw new Error(`Backend returned status ${res.status}`);
-    const data = await res.json();
-    return Response.json(data);
+    const { trader_id, stall_id, category, title, description, priority } = body;
+
+    const result = await sql`
+      INSERT INTO complaints (trader_id, stall_id, category, title, description, priority)
+      VALUES (${trader_id}, ${stall_id}, ${category}, ${title}, ${description}, ${priority})
+    `;
+
+    return Response.json({ success: true, complaint: result[0] });
   } catch (error) {
     console.error("[POST /api/tenant/complaint]", error);
     return Response.json({ error: "Failed to submit complaint" }, { status: 500 });

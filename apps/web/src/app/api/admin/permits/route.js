@@ -1,201 +1,147 @@
-import fs from "node:fs";
-import path from "node:path";
+import sql from "@/app/api/utils/sql";
 
-const BACKEND = process.env.BACKEND_URL || "http://103.175.219.57:8001";
-const DB_PATH = path.resolve(process.cwd(), "svms_db.json");
-
-function loadDB() {
-  try {
-    return JSON.parse(fs.readFileSync(DB_PATH, "utf-8"));
-  } catch {
-    return { permits: [], traders: [], stalls: [] };
-  }
-}
-
-function saveDB(data) {
-  try {
-    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), "utf-8");
-  } catch (err) {
-    console.error("saveDB error:", err);
-  }
-}
-
-// Build enriched permit list from local DB
-function getLocalPermits(statusFilter) {
-  const db = loadDB();
-  let rows = db.permits.map((p) => {
-    const trader = db.traders.find((t) => t.id === p.trader_id) || {};
-    const stall = db.stalls.find((s) => s.id === trader.stall_id) || {};
-    return {
-      ...p,
-      trader_name: trader.name || null,
-      stall_code: stall.stall_code || null,
-      zone: stall.zone || null,
-      trader_phone: trader.phone || null,
-    };
-  });
-  if (statusFilter) rows = rows.filter((p) => p.status === statusFilter);
-  return rows;
-}
-
+// ── GET: list permits or verify QR token ────────────────────────────────────
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") || "";
     const token = searchParams.get("token") || "";
 
-    // QR verification mode — try Laravel, fall back to local DB
+    // QR verification mode
     if (token) {
-      try {
-        const res = await fetch(
-          `${BACKEND}/api/permits/verify/${encodeURIComponent(token)}`,
-          { signal: AbortSignal.timeout(5000) }
-        );
-        if (res.ok) {
-          const data = await res.json();
-          return Response.json({
-            valid: data.is_valid ?? false,
-            permit: {
-              trader_name: data.trader,
-              permit_number: data.permit_number,
-              stall_code: data.slot,
-              expiry_date: data.expires,
-            },
-          });
-        }
-      } catch {
-        // Backend unreachable — use local DB
-      }
-      const db = loadDB();
-      const permit = db.permits.find((p) => p.qr_token === token);
+      const allPermits = await sql`SELECT * FROM permits`;
+      const permit = allPermits.find((p) => p.qr_token === token);
       if (!permit) return Response.json({ valid: false });
-      const trader = db.traders.find((t) => t.id === permit.trader_id) || {};
-      const stall = db.stalls.find((s) => s.id === trader.stall_id) || {};
-      const isExpired = permit.status === "expired" ||
+
+      const traders = await sql`
+        SELECT t.*, s.stall_code, s.zone FROM traders t LEFT JOIN stalls s ON t.stall_id = s.id
+      `;
+      const trader = traders.find((t) => t.id === permit.trader_id) || {};
+      const isExpired =
+        permit.status === "expired" ||
         (permit.expiry_date && new Date(permit.expiry_date) < new Date());
+
       return Response.json({
         valid: !isExpired,
         permit: {
           trader_name: trader.name || null,
           permit_number: permit.permit_number,
-          stall_code: stall.stall_code || null,
+          stall_code: trader.stall_code || null,
           expiry_date: permit.expiry_date,
         },
       });
     }
 
-    // List permits — try Laravel, fall back to local DB
-    try {
-      const params = new URLSearchParams();
-      if (status) params.set("filter[status]", status);
-      const res = await fetch(`${BACKEND}/api/permits?${params}`, {
-        signal: AbortSignal.timeout(5000),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        const rawData = Array.isArray(json) ? json : (json.data ?? []);
-        const rows = rawData.map((p) => ({
-          ...p,
-          trader_name: p.trader?.name ?? p.trader_name ?? "",
-          stall_code: p.slot?.code ?? p.stall_code ?? "",
-          zone: p.slot?.type ?? p.zone ?? "",
-          expiry_date: p.expires_at ? p.expires_at.split("T")[0] : p.expiry_date,
-        }));
-        return Response.json(rows);
-      }
-    } catch {
-      // Backend unreachable — use local DB
-    }
+    // List permits — enrich with trader + stall data
+    const traders = await sql`
+      SELECT t.*, s.stall_code, s.zone FROM traders t LEFT JOIN stalls s ON t.stall_id = s.id
+    `;
+    let permits = await sql`SELECT * FROM permits`;
 
-    return Response.json(getLocalPermits(status));
+    const rows = permits.map((p) => {
+      const trader = traders.find((t) => t.id === p.trader_id) || {};
+      return {
+        ...p,
+        trader_name: trader.name || null,
+        stall_code: trader.stall_code || null,
+        zone: trader.zone || null,
+        trader_phone: trader.phone || null,
+      };
+    });
+
+    const filtered = status ? rows.filter((r) => r.status === status) : rows;
+    return Response.json(filtered);
   } catch (error) {
     console.error("[GET /api/admin/permits]", error);
-    return Response.json(getLocalPermits(""));
+    return Response.json({ error: "Failed to fetch permits" }, { status: 500 });
   }
 }
 
+// ── POST: issue new SIPTU ────────────────────────────────────────────────────
 export async function POST(request) {
   try {
     const body = await request.json();
     const { trader_id, expiry_date } = body;
 
-    // Try Laravel backend first
-    try {
-      const slotRes = await fetch(`${BACKEND}/api/stalls?filter[status]=active`, {
-        signal: AbortSignal.timeout(5000),
-      });
-      if (slotRes.ok) {
-        const slotJson = await slotRes.json();
-        const slots = Array.isArray(slotJson) ? slotJson : (slotJson.data ?? []);
-        const slot = slots[0];
-        if (slot) {
-          const res = await fetch(`${BACKEND}/api/permits/issue`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ trader_id, slot_id: slot.id, expires_at: expiry_date }),
-          });
-          if (res.ok) return Response.json(await res.json());
-        }
-      }
-    } catch {
-      // Backend unreachable — use local DB
+    if (!trader_id) {
+      return Response.json({ error: "trader_id tidak boleh kosong" }, { status: 400 });
     }
 
-    // Local DB fallback
-    const db = loadDB();
-    const trader = db.traders.find((t) => t.id === Number(trader_id));
-    if (!trader) return Response.json({ error: "Pedagang tidak ditemukan" }, { status: 404 });
+    const traders = await sql`
+      SELECT t.*, s.stall_code, s.zone FROM traders t LEFT JOIN stalls s ON t.stall_id = s.id
+    `;
+    const trader = traders.find((t) => String(t.id) === String(trader_id));
+    if (!trader) {
+      return Response.json({ error: "Pedagang tidak ditemukan" }, { status: 404 });
+    }
 
     const year = new Date().getFullYear();
-    const newId = db.permits.reduce((max, p) => Math.max(max, p.id), 0) + 1;
+    const allPermits = await sql`SELECT * FROM permits`;
+    const newId = allPermits.reduce((max, p) => Math.max(max, p.id), 0) + 1;
     const permitNum = `SIPTU-${year}-${String(newId).padStart(4, "0")}`;
     const issueDate = new Date().toISOString().split("T")[0];
-    const newPermit = {
+    const expiry =
+      expiry_date ||
+      new Date(new Date().setFullYear(year + 1)).toISOString().split("T")[0];
+    const qrToken = Math.random().toString(36).slice(2);
+
+    const newPermit = await sql`
+      INSERT INTO permits (trader_id, permit_number, issue_date, expiry_date, status, qr_token)
+      VALUES (${Number(trader_id)}, ${permitNum}, ${issueDate}, ${expiry}, 'active', ${qrToken})
+      ON CONFLICT (permit_number) DO NOTHING
+    `;
+
+    await sql`
+      INSERT INTO audit_logs (module, action, description)
+      VALUES ('SIPTU', 'CREATE', ${`SIPTU ${permitNum} diterbitkan untuk pedagang: ${trader.name}`})
+    `;
+
+    return Response.json({
       id: newId,
       trader_id: Number(trader_id),
       permit_number: permitNum,
       issue_date: issueDate,
-      expiry_date: expiry_date || new Date(new Date().setFullYear(year + 1)).toISOString().split("T")[0],
+      expiry_date: expiry,
       status: "active",
-      qr_token: Math.random().toString(36).slice(2),
-    };
-    db.permits.push(newPermit);
-    saveDB(db);
-
-    const stall = db.stalls.find((s) => s.id === trader.stall_id) || {};
-    return Response.json({ ...newPermit, trader_name: trader.name, stall_code: stall.stall_code });
+      qr_token: qrToken,
+      trader_name: trader.name,
+      stall_code: trader.stall_code || null,
+    });
   } catch (error) {
     console.error("[POST /api/admin/permits]", error);
     return Response.json({ error: "Failed to create permit" }, { status: 500 });
   }
 }
 
+// ── PATCH: update permit (renew / change status) ─────────────────────────────
 export async function PATCH(request) {
   try {
     const body = await request.json();
     const { id, status, expiry_date } = body;
 
-    // Try Laravel backend first
-    try {
-      const res = await fetch(`${BACKEND}/api/permits/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, expires_at: expiry_date }),
-        signal: AbortSignal.timeout(5000),
-      });
-      if (res.ok) return Response.json(await res.json());
-    } catch {
-      // Backend unreachable — use local DB
+    if (!id) {
+      return Response.json({ error: "ID permit tidak valid" }, { status: 400 });
     }
 
-    // Local DB fallback
-    const db = loadDB();
-    const permit = db.permits.find((p) => p.id === Number(id));
-    if (!permit) return Response.json({ error: "Izin tidak ditemukan" }, { status: 404 });
+    const allPermits = await sql`SELECT * FROM permits`;
+    const permit = allPermits.find((p) => p.id === Number(id));
+    if (!permit) {
+      return Response.json({ error: "Permit tidak ditemukan" }, { status: 404 });
+    }
 
     if (status !== undefined) permit.status = status;
     if (expiry_date !== undefined) permit.expiry_date = expiry_date;
-    saveDB(db);
+
+    // Use sql UPDATE via tagged template string
+    await sql`
+      UPDATE permits SET status = ${permit.status}, expiry_date = ${permit.expiry_date} WHERE id = ${Number(id)}
+    `;
+
+    await sql`
+      INSERT INTO audit_logs (module, action, description)
+      VALUES ('SIPTU', 'UPDATE', ${`SIPTU ID ${id} diperbarui: status=${permit.status}`})
+    `;
+
     return Response.json(permit);
   } catch (error) {
     console.error("[PATCH /api/admin/permits]", error);

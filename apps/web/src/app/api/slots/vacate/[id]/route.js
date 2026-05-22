@@ -1,15 +1,15 @@
-const BACKEND = process.env.BACKEND_URL || "http://103.175.219.57:8002";
+import sql from "@/app/api/utils/sql";
 
 export async function POST(request, { params }) {
   try {
     const { id } = params;
-    const res = await fetch(`${BACKEND}/api/grid-slots/${id}/vacate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" }
-    });
-    if (!res.ok) throw new Error(`Backend returned status ${res.status}`);
-    const data = await res.json();
-    return Response.json(data);
+    const result = await sql`UPDATE stalls SET status = 'vacant', trader_id = NULL WHERE id = ${Number(id)}`;
+    
+    if (result.length === 0) {
+       return Response.json({ error: "Stall not found" }, { status: 404 });
+    }
+
+    return Response.json({ success: true, stall: result[0] });
   } catch (error) {
     console.error(`[POST /api/slots/vacate/${params?.id}]`, error);
     return Response.json({ error: "Failed to vacate slot" }, { status: 500 });

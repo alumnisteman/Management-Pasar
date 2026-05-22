@@ -1,6 +1,7 @@
+# ============================================================
 # Laravel & PHP
+# ============================================================
 vendor/
-node_modules/
 .env
 .env.backup
 .env.production
@@ -8,8 +9,30 @@ storage/*.key
 /public/storage
 /public/hot
 /public/build
+.phpunit.result.cache
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
 
-# IDE
+# ============================================================
+# Node / Frontend
+# ============================================================
+node_modules/
+apps/web/node_modules/
+apps/web/build/
+apps/web/.react-router/
+apps/web/.vitest/
+apps/web/build_local*.log
+apps/web/*.log
+
+# ============================================================
+# Local Database (JANGAN di-commit - setiap lingkungan punya datanya sendiri)
+# ============================================================
+apps/web/svms_db.json
+
+# ============================================================
+# IDE & Editor
+# ============================================================
 .vscode/
 .idea/
 *.suo
@@ -17,25 +40,61 @@ storage/*.key
 *.njsproj
 *.sln
 *.sw?
+.DS_Store
+Thumbs.db
 
+# ============================================================
 # Logs & Temp
+# ============================================================
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 hs_err_pid*.log
 replay_pid*.log
-apps/web/*.log
-apps/web/build_local*.log
-.phpunit.result.cache
+_logs/
+_temp/
 
-# Database files
+# ============================================================
+# Database files (SQLite)
+# ============================================================
 database/database.sqlite
 database/database.sqlite-shm
 database/database.sqlite-wal
 
-# SMOS Deployment
-deploy_ai.py
+# ============================================================
+# Python Temp/Deploy Scripts (cleanup)
+# ============================================================
 *.pyc
 __pycache__/
 maintenance/backup_*
+check_*.py
+fix_*.py
+deploy_*.py
+inspect_*.py
+restart_*.py
+rebuild_*.py
+setup_*.py
+start_*.py
+test_*.py
+verify_*.py
+diagnose_*.py
+force_deploy.py
+fetch_*.py
+find_*.py
+debug_*.py
+read_transcript.py
+execute_job.py
+add_nginx_proxy.py
+implement_proxy.py
+out.json
+remote_response.html
+_tools/
+
+# ============================================================
+# Large / Binary
+# ============================================================
+vendors.json
+traders_check.json
+dashboard.json
+

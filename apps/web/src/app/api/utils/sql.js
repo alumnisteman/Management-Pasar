@@ -63,22 +63,29 @@ const DEFAULT_DB = {
   ],
   porter_requests: [],
   porter_jobs: [],
-  iot_readings: []
+  iot_readings: [],
+  complaints: []
 };
 
 // Read database helper
 function loadDB() {
-  try {
-    if (fs.existsSync(DB_PATH)) {
+  if (fs.existsSync(DB_PATH)) {
+    try {
       const content = fs.readFileSync(DB_PATH, 'utf-8');
+      if (!content.trim()) {
+         return JSON.parse(JSON.stringify(DEFAULT_DB)); // If file is empty, return default copy
+      }
       return JSON.parse(content);
+    } catch (err) {
+      console.error('CRITICAL: Error reading/parsing local DB file. Halting to prevent data loss:', err);
+      throw new Error("Database file is corrupted or locked. Please try again.");
     }
-  } catch (err) {
-    console.error('Error loading local DB file:', err);
+  } else {
+    // Initialize file only if it truly does not exist
+    const initialDb = JSON.parse(JSON.stringify(DEFAULT_DB));
+    saveDB(initialDb);
+    return initialDb;
   }
-  // Initialize file if not exist
-  saveDB(DEFAULT_DB);
-  return DEFAULT_DB;
 }
 
 // Write database helper
@@ -677,6 +684,18 @@ export async function executeSQL(queryStr, values = []) {
     return [newPermit];
   }
 
+  if (query.includes('UPDATE permits SET')) {
+    const id = values[values.length - 1];
+    const permit = db.permits.find(p => p.id === Number(id));
+    if (permit) {
+      if (values[0] !== undefined) permit.status = values[0];
+      if (values[1] !== undefined) permit.expiry_date = values[1];
+      saveDB(db);
+      return [permit];
+    }
+    return [];
+  }
+
   // ── 8. AUDIT LOGS INSERTS ──
   if (query.includes('INSERT INTO audit_logs')) {
     const [module, action, user_name, description, ip_address] = values;
@@ -693,6 +712,27 @@ export async function executeSQL(queryStr, values = []) {
     db.audit_logs.push(newLog);
     saveDB(db);
     return [newLog];
+  }
+
+  // ── 8.5 COMPLAINTS INSERTS ──
+  if (query.includes('INSERT INTO complaints')) {
+    const [trader_id, stall_id, category, title, description, priority] = values;
+    if (!db.complaints) db.complaints = [];
+    const newId = db.complaints.reduce((max, c) => Math.max(max, c.id), 0) + 1;
+    const newComplaint = {
+      id: newId,
+      trader_id,
+      stall_id,
+      category,
+      title,
+      description,
+      priority: priority || 'medium',
+      status: 'pending',
+      created_at: new Date().toISOString()
+    };
+    db.complaints.push(newComplaint);
+    saveDB(db);
+    return [newComplaint];
   }
 
   // ── 9. USERS QUERIES ──
