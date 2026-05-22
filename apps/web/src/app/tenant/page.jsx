@@ -26,25 +26,14 @@ export default function TenantPortalPage() {
   const [compDesc, setCompDesc] = useState("");
   const [submittingComplaint, setSubmittingComplaint] = useState(false);
 
-  // Load all traders for simulated login dropdown
+  // Load all traders for simulated login dropdown (from real backend — UUIDs)
   const loadTraders = async () => {
     try {
-      const res = await fetch("/api/admin/stall-map");
+      const res = await fetch("/api/tenant/traders");
       const data = await res.json();
-      if (!data.error && data.length > 0) {
-        // Unique traders
-        const traders = [];
-        const seen = new Set();
-        data.forEach(s => {
-          if (s.trader && !seen.has(s.trader.id)) {
-            seen.add(s.trader.id);
-            traders.push(s.trader);
-          }
-        });
-        setTradersList(traders);
-        if (traders.length > 0) {
-          setSelectedTraderId(traders[0].id);
-        }
+      if (!data.error && Array.isArray(data) && data.length > 0) {
+        setTradersList(data);
+        setSelectedTraderId(data[0].id);
       }
     } catch (err) {
       console.error("Error loading traders list", err);

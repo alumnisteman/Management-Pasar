@@ -16,8 +16,8 @@ function loadLocalStalls() {
         code: s.stall_code,
         zone: s.zone,
         status: s.status,
-        x: s.x || 0,
-        y: s.y || 0,
+        x_position: s.x_position || s.x || 0,
+        y_position: s.y_position || s.y || 0,
         trader: trader ? { name: trader.name, phone: trader.phone } : null,
       };
     });

@@ -47,12 +47,16 @@ export default function StallMapPage() {
   }, []);
 
   const handlePositionChange = (id, axis, val) => {
+    const newVal = parseInt(val) || 0;
     setSlots(prev => prev.map(s => {
       if (s.id === id) {
-        return { ...s, [axis]: parseInt(val) || 0 };
+        return { ...s, [axis]: newVal };
       }
       return s;
     }));
+    if (selectedSlot && selectedSlot.id === id) {
+      setSelectedSlot(prev => ({ ...prev, [axis]: newVal }));
+    }
   };
 
   const savePositions = async () => {
@@ -65,7 +69,7 @@ export default function StallMapPage() {
         }))
       };
       
-      const res = await fetch("/api/admin/stall-map/update-coordinates", {
+      const res = await fetch("/api/admin/stall-map", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)

@@ -1,0 +1,10 @@
+import paramiko
+ssh = paramiko.SSHClient()
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+ssh.connect('103.175.219.57', username='root', password='M4ruw4h3@')
+ssh.exec_command('cd /root/news-hybrid && sed -i \'s/"3306:3306"/"3307:3306"/g\' docker-compose.yml')
+stdin, stdout, stderr = ssh.exec_command('cd /root/news-hybrid && ./deploy.sh')
+for line in iter(stdout.readline, ''): print(line, end='')
+err = stderr.read().decode()
+if err: print('STDERR:', err)
+ssh.close()

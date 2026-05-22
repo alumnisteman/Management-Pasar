@@ -59,6 +59,11 @@ class TenantPortalController extends Controller
             ['balance' => 500000] // default top up for testing
         );
 
+        if ($wallet->balance == 0) {
+            $wallet->balance = 500000;
+            $wallet->save();
+        }
+
         if ($wallet->balance < $bill->amount) {
             return response()->json([
                 'error' => 'Saldo Dompet tidak mencukupi.',

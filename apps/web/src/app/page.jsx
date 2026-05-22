@@ -444,12 +444,13 @@ export default function LandingPage() {
             <div style={{ background: "#F59E0B", padding: "6px", borderRadius: "8px" }}>
               <Shield style={{ width: "20px", height: "20px", color: "#0F172A" }} />
             </div>
-            <span style={{ fontWeight: "700", fontSize: "18px", letterSpacing: "-0.02em", color: "#F1F5F9" }}>SVMS Enterprise</span>
+            <span style={{ fontWeight: "700", fontSize: "18px", letterSpacing: "-0.02em", color: "#F1F5F9" }}>SVMS Enterprise &amp; NewsHybrid</span>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "32px", fontSize: "14px", fontWeight: "500", color: t.navText }} className="nav-links">
             <a href="#fitur" style={{ color: "inherit", textDecoration: "none" }}>Fitur</a>
             <a href="#statistik" style={{ color: "inherit", textDecoration: "none" }}>Statistik</a>
+            <a href="http://103.175.219.57:8090/" target="_blank" rel="noopener noreferrer" style={{ color: "#F59E0B", textDecoration: "none", fontWeight: "600" }}>Portal Berita</a>
             <a href="#cara-kerja" style={{ color: "inherit", textDecoration: "none" }}>Cara Kerja</a>
           </div>
 
@@ -487,7 +488,11 @@ export default function LandingPage() {
       {isMobileMenuOpen && (
         <div style={{ position: "fixed", inset: 0, zIndex: 40, background: t.mobileBg, paddingTop: "64px", transition: "background 0.3s" }}>
           <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "12px", color: t.navText, fontWeight: "500" }}>
-            {[["#fitur","Fitur"],["#statistik","Statistik"],["#cara-kerja","Cara Kerja"]].map(([href,label]) => (
+            {[["#fitur","Fitur"],["#statistik","Statistik"]].map(([href,label]) => (
+              <a key={href} href={href} style={{ padding: "16px", background: "rgba(255,255,255,0.05)", borderRadius: "10px", color: "inherit", textDecoration: "none" }} onClick={() => setIsMobileMenuOpen(false)}>{label}</a>
+            ))}
+            <a href="http://103.175.219.57:8090/" target="_blank" rel="noopener noreferrer" style={{ padding: "16px", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.3)", borderRadius: "10px", color: "#F59E0B", textDecoration: "none", fontWeight: "700" }} onClick={() => setIsMobileMenuOpen(false)}>Portal Berita NewsHybrid</a>
+            {[["#cara-kerja","Cara Kerja"]].map(([href,label]) => (
               <a key={href} href={href} style={{ padding: "16px", background: "rgba(255,255,255,0.05)", borderRadius: "10px", color: "inherit", textDecoration: "none" }} onClick={() => setIsMobileMenuOpen(false)}>{label}</a>
             ))}
             <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
@@ -624,6 +629,7 @@ export default function LandingPage() {
             <FeatureCard t={t} icon={<Truck style={{ width: "24px", height: "24px", color: "#7C3AED" }} />} title="Porter Management" description="Koordinasi porter dan layanan angkut barang secara efisien untuk kelancaran logistik." onClick={() => navigate("/login?redirect=/admin/porter")} />
             <FeatureCard t={t} icon={<BarChart style={{ width: "24px", height: "24px", color: "#E11D48" }} />} title="Laporan & Analitik" description="Dashboard analitik real-time memberikan insight mendalam untuk pengambilan keputusan strategis." onClick={() => navigate("/login?redirect=/admin/analytics")} />
             <FeatureCard t={t} icon={<Shield style={{ width: "24px", height: "24px", color: dark ? "#94A3B8" : "#334155" }} />} title="Audit Log" description="Rekam jejak aktivitas lengkap memastikan transparansi dan akuntabilitas sistem yang tinggi." onClick={() => navigate("/login?redirect=/admin/audit")} />
+            <FeatureCard t={t} icon={<FileText style={{ width: "24px", height: "24px", color: "#F59E0B" }} />} title="Portal Berita AI" description="Agregator berita pasar real-time & AI summarization terintegrasi dari NewsHybrid." onClick={() => { if (typeof window !== "undefined") window.open("http://103.175.219.57:8090/", "_blank"); }} />
           </div>
           <p style={{ textAlign: "center", marginTop: "28px", fontSize: "13px", color: t.body }}>
             Klik fitur di atas untuk langsung mengakses — login otomatis diarahkan.
@@ -677,7 +683,7 @@ export default function LandingPage() {
                 <Shield style={{ width: "24px", height: "24px", color: "#0F172A" }} />
               </div>
               <div>
-                <span style={{ fontWeight: "700", fontSize: "20px", color: "white", display: "block" }}>SVMS Enterprise</span>
+                <span style={{ fontWeight: "700", fontSize: "20px", color: "white", display: "block" }}>SVMS Enterprise &amp; NewsHybrid</span>
                 <span style={{ color: t.footerLink, fontSize: "13px" }}>Sistem Manajemen Pasar Terpadu</span>
               </div>
             </div>
