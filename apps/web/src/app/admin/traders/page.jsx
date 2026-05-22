@@ -232,14 +232,44 @@ export default function TradersPage() {
             {traders.length} pedagang ditemukan
           </p>
         </div>
-        {role === "admin" && (
+        <div className="flex gap-2">
           <button
-            onClick={() => setShowAdd(true)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            onClick={() => {
+              if (!traders || traders.length === 0) return;
+              const headers = ["ID", "Nama", "NIK", "No_HP", "Tipe", "Lapak", "Status"];
+              const rows = traders.map(t => [
+                t.id,
+                `"${t.name}"`,
+                `'${t.nik}'`,
+                `'${t.phone}'`,
+                t.trader_type,
+                t.stall_code || "Belum Ada",
+                t.status
+              ]);
+              const csvContent = "data:text/csv;charset=utf-8," 
+                  + headers.join(",") + "\n" 
+                  + rows.map(e => e.join(",")).join("\n");
+              const encodedUri = encodeURI(csvContent);
+              const link = document.createElement("a");
+              link.setAttribute("href", encodedUri);
+              link.setAttribute("download", `Data_Pedagang_SMOS_${new Date().toISOString().slice(0,10)}.csv`);
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}
+            className="flex items-center gap-2 bg-[#2C2D2F] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#414243] transition-colors border border-white/10"
           >
-            <Plus size={16} /> Daftarkan Baru
+            <FileText size={16} /> Export CSV
           </button>
-        )}
+          {role === "admin" && (
+            <button
+              onClick={() => setShowAdd(true)}
+              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            >
+              <Plus size={16} /> Daftarkan Baru
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Filters */}
@@ -328,9 +358,21 @@ export default function TradersPage() {
                       </div>
                     </td>
                     <td className="px-5 py-4">
-                      <div className="flex items-center gap-1.5 text-sm text-gray-400">
-                        <Phone size={12} /> {t.phone || "—"}
-                      </div>
+                      {t.phone ? (
+                        <a 
+                          href={`https://wa.me/62${t.phone.replace(/^0/, '')}?text=Halo%20Bapak/Ibu%20${encodeURIComponent(t.name)},%20ini%20dari%20Pengelola%20Pasar.`} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="flex items-center gap-1.5 text-sm text-green-400 hover:text-green-300 transition-colors"
+                          title="Hubungi via WhatsApp"
+                        >
+                          <Phone size={12} /> {t.phone}
+                        </a>
+                      ) : (
+                        <div className="flex items-center gap-1.5 text-sm text-gray-400">
+                          <Phone size={12} /> —
+                        </div>
+                      )}
                     </td>
                     <td className="px-5 py-4">
                       {t.stall_code ? (
@@ -347,21 +389,30 @@ export default function TradersPage() {
                       )}
                     </td>
                     <td className="px-5 py-4">
-                      <div>
-                        <span
-                          className={twMerge(
-                            "text-[10px] font-semibold px-2 py-1 rounded-full",
-                            pc.bg,
-                            pc.text,
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <span
+                            className={twMerge(
+                              "text-[10px] font-semibold px-2 py-1 rounded-full",
+                              pc.bg,
+                              pc.text,
+                            )}
+                          >
+                            {pc.label}
+                          </span>
+                          {t.permit_number && (
+                            <p className="text-[10px] text-gray-600 mt-1 font-mono">
+                              {t.permit_number}
+                            </p>
                           )}
+                        </div>
+                        <button 
+                          onClick={() => window.open(`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=SMOS-TRADER-${t.id}-${t.nik}`, '_blank')} 
+                          className="p-1.5 hover:bg-white/10 rounded-lg text-gray-400 transition-colors" 
+                          title="Lihat QR Code Pedagang"
                         >
-                          {pc.label}
-                        </span>
-                        {t.permit_number && (
-                          <p className="text-[10px] text-gray-600 mt-1 font-mono">
-                            {t.permit_number}
-                          </p>
-                        )}
+                          <Grid3X3 size={14} />
+                        </button>
                       </div>
                     </td>
                     <td className="px-5 py-4">

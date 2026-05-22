@@ -439,7 +439,10 @@ export function Layout({ children }: { children: ReactNode }) {
     <html lang="en" suppressHydrationWarning>
       <head suppressHydrationWarning>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+        <meta name="theme-color" content="#18191B" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/src/__create/favicon.png" />
         <Meta />
         <Links />
         {import.meta.env.DEV && (

@@ -97,8 +97,45 @@ function saveDB(data) {
   }
 }
 
+// Auto-backup mechanism
+async function runAutoBackup() {
+  try {
+    if (!fs.existsSync(DB_PATH)) return;
+    
+    const backupDir = path.resolve(process.cwd(), 'backup');
+    if (!fs.existsSync(backupDir)) {
+      fs.mkdirSync(backupDir, { recursive: true });
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const backupFile = path.resolve(backupDir, `svms_db_backup_${today}.json`);
+    
+    if (!fs.existsSync(backupFile)) {
+      fs.copyFileSync(DB_PATH, backupFile);
+      
+      // Cleanup old backups (> 7 days)
+      const files = fs.readdirSync(backupDir);
+      const now = Date.now();
+      const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+      
+      files.forEach(file => {
+        if (file.startsWith('svms_db_backup_')) {
+          const filePath = path.resolve(backupDir, file);
+          const stats = fs.statSync(filePath);
+          if (now - stats.mtime.getTime() > SEVEN_DAYS) {
+            fs.unlinkSync(filePath);
+          }
+        }
+      });
+    }
+  } catch (err) {
+    console.error('Failed to run auto backup:', err);
+  }
+}
+
 // Custom SQL query parser and executor
 export async function executeSQL(queryStr, values = []) {
+  runAutoBackup().catch(() => {});
   if (typeof queryStr !== 'string') {
     return queryStr;
   }
