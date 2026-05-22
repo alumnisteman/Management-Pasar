@@ -1,15 +1,19 @@
 services:
   app:
-    build: 
+    build:
       context: .
       dockerfile: docker/app.Dockerfile
     ports:
-      - "8000:8000"
+      - "8005:8000"
     volumes:
       - ./app-backend:/var/www/html
     depends_on:
       - mysql
       - redis
+    networks:
+      news_hybrid_news_net:
+        aliases:
+          - news-hybrid-app-1
 
   mysql:
     image: mysql:8
@@ -36,7 +40,7 @@ services:
     command: node scraper.js
 
   worker:
-    build: 
+    build:
       context: .
       dockerfile: docker/app.Dockerfile
     volumes:
@@ -45,6 +49,19 @@ services:
       - mysql
       - redis
     command: php artisan queue:work --tries=3 --timeout=90
+    networks:
+      - news_hybrid_news_net
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    ports:
+      - "8090:80"
+    depends_on:
+      - app
+    networks:
+      - news_hybrid_news_net
 
   meilisearch:
     image: getmeili/meilisearch:v1.12
@@ -59,3 +76,7 @@ volumes:
   mysql_data:
   redis_data:
   meili_data:
+
+networks:
+  news_hybrid_news_net:
+    driver: bridge
