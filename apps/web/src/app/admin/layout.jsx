@@ -24,7 +24,8 @@ import {
   FileSignature,
   Layers,
   Zap,
-  ShoppingBag
+  ShoppingBag,
+  BrainCircuit
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import { motion, AnimatePresence } from "motion/react";
@@ -107,6 +108,12 @@ const navItems = [
     label: "Peta Kios Interaktif",
     icon: Layers,
     color: "text-blue-400",
+  },
+  {
+    href: "/admin/ai-insights",
+    label: "AI Insights & Prediksi",
+    icon: BrainCircuit,
+    color: "text-purple-400",
   },
   {
     href: "/admin/iot-billing",
