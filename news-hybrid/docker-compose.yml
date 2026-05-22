@@ -3,74 +3,83 @@ services:
     build:
       context: .
       dockerfile: docker/app.Dockerfile
+    container_name: news_app
+    restart: unless-stopped
     ports:
-      - "8005:8000"
+      - "8010:8000"
     volumes:
       - ./app-backend:/var/www/html
     depends_on:
       - mysql
       - redis
     networks:
-      news_hybrid_news_net:
-        aliases:
-          - news-hybrid-app-1
-
-  mysql:
-    image: mysql:8
-    ports:
-      - "3307:3306"
-    environment:
-      MYSQL_DATABASE: news_hybrid
-      MYSQL_ROOT_PASSWORD: root
-    volumes:
-      - mysql_data:/var/lib/mysql
-
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-
-  scraper:
-    image: mcr.microsoft.com/playwright:v1.52.0
-    volumes:
-      - ./scraper:/scraper
-    working_dir: /scraper
-    command: node scraper.js
+      - news_net
 
   worker:
     build:
       context: .
       dockerfile: docker/app.Dockerfile
+    container_name: news_worker
+    restart: unless-stopped
+    command: php artisan queue:work --tries=3 --timeout=90
     volumes:
       - ./app-backend:/var/www/html
     depends_on:
       - mysql
       - redis
-    command: php artisan queue:work --tries=3 --timeout=90
     networks:
-      - news_hybrid_news_net
+      - news_net
 
   frontend:
     build:
       context: .
       dockerfile: docker/frontend.Dockerfile
+    container_name: news_frontend
+    restart: unless-stopped
     ports:
-      - "8090:80"
+      - "8090:3000"
     depends_on:
       - app
     networks:
-      - news_hybrid_news_net
+      - news_net
+
+  mysql:
+    image: mysql:8
+    container_name: news_mysql
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: news_hybrid
+      MYSQL_ROOT_PASSWORD: rootpasswordku
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - news_net
+
+  redis:
+    image: redis:alpine
+    container_name: news_redis
+    restart: unless-stopped
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - news_net
 
   meilisearch:
     image: getmeili/meilisearch:v1.12
+    container_name: news_meili
+    restart: unless-stopped
     ports:
-      - "7700:7700"
+      - "7703:7700"
     environment:
-      - MEILI_MASTER_KEY=masterKey
+      MEILI_MASTER_KEY: super-secret-news-key
     volumes:
       - meili_data:/meili_data
+    networks:
+      - news_net
 
 volumes:
   mysql_data:
@@ -78,5 +87,5 @@ volumes:
   meili_data:
 
 networks:
-  news_hybrid_news_net:
+  news_net:
     driver: bridge
