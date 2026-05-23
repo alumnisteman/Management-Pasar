@@ -386,6 +386,19 @@ export async function executeSQL(queryStr, values = []) {
     return [];
   }
 
+  if (query.includes('UPDATE stalls SET row_x') && query.includes('WHERE id =')) {
+    // Coordinate update: UPDATE stalls SET row_x = $1, col_y = $2 WHERE id = $3
+    const [row_x, col_y, id] = values;
+    const stall = db.stalls.find(s => s.id === id || s.id === Number(id));
+    if (stall) {
+      stall.row_x = row_x != null ? Number(row_x) : stall.row_x;
+      stall.col_y = col_y != null ? Number(col_y) : stall.col_y;
+      saveDB(db);
+      return [stall];
+    }
+    return [];
+  }
+
   if (query.includes('UPDATE stalls SET') && query.includes('WHERE id =')) {
     // id is always the last value in the template
     const id = values[values.length - 1];
