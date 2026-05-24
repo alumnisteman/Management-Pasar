@@ -8,7 +8,7 @@ const FAQS = [
     items: [
       { q: "Bagaimana cara masuk ke sistem SVMS?", a: "Buka halaman Login dan masukkan email serta password yang diberikan oleh admin sistem. Jika belum memiliki akun, hubungi Dinas Pengelolaan Pasar setempat." },
       { q: "Saya lupa password, apa yang harus dilakukan?", a: "Hubungi administrator sistem Anda untuk reset password. Fitur reset password mandiri akan tersedia di pembaruan mendatang." },
-      { q: "Apakah bisa login dari perangkat mobile?", a: "Ya, SVMS Enterprise bersifat responsif dan dapat diakses dari smartphone, tablet, maupun komputer." },
+      { q: "Apakah bisa login dari perangkat mobile?", a: "Ya, Sistem Manajemen Pasar Terpadu bersifat responsif dan dapat diakses dari smartphone, tablet, maupun komputer." },
     ]
   },
   {
@@ -61,7 +61,7 @@ export default function BantuanPage() {
             <div style={{ background: "#F59E0B", padding: "5px", borderRadius: "7px" }}>
               <Shield style={{ width: "18px", height: "18px", color: "#0F172A" }} />
             </div>
-            <span style={{ fontWeight: "700", fontSize: "16px", color: "#F1F5F9" }}>SVMS Enterprise</span>
+            <span style={{ fontWeight: "700", fontSize: "16px", color: "#F1F5F9" }}>Sistem Manajemen Pasar Terpadu</span>
           </div>
         </div>
       </nav>
@@ -77,7 +77,7 @@ export default function BantuanPage() {
             Ada yang bisa kami bantu?
           </h1>
           <p style={{ color: "#94A3B8", fontSize: "16px", maxWidth: "500px", margin: "0 auto" }}>
-            Temukan jawaban dari pertanyaan umum seputar penggunaan SVMS Enterprise.
+            Temukan jawaban dari pertanyaan umum seputar penggunaan Sistem Manajemen Pasar Terpadu.
           </p>
         </div>
 
@@ -154,7 +154,7 @@ export default function BantuanPage() {
       </div>
 
       <footer style={{ borderTop: "1px solid #1E293B", padding: "24px 20px", textAlign: "center" }}>
-        <p style={{ color: "#475569", fontSize: "13px" }}>© 2026 SVMS Enterprise — Dinas Pengelolaan Pasar</p>
+        <p style={{ color: "#475569", fontSize: "13px" }}>© 2026 Sistem Manajemen Pasar Terpadu — Dinas Pengelolaan Pasar</p>
       </footer>
     </div>
   );

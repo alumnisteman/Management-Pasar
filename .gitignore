@@ -98,3 +98,8 @@ vendors.json
 traders_check.json
 dashboard.json
 
+
+.sync_env
+scripts/svms_auto_sync.sh
+
+git_sync.sh

@@ -6,7 +6,7 @@ const SECTIONS = [
     icon: Database,
     color: "#2563EB",
     title: "Data yang Kami Kumpulkan",
-    content: `SVMS Enterprise mengumpulkan data yang diperlukan untuk operasional sistem manajemen pasar, meliputi:
+    content: `Sistem Manajemen Pasar Terpadu mengumpulkan data yang diperlukan untuk operasional sistem manajemen pasar, meliputi:
 
 • **Data Pengguna Sistem**: Nama, email, dan peran pengguna (admin/petugas) yang terdaftar oleh Dinas Pengelolaan Pasar.
 • **Data Pedagang**: Identitas pedagang (nama, NIK, foto), data kios yang disewa, dan riwayat transaksi retribusi. Data ini diinput oleh petugas resmi dan merupakan data operasional Dinas.
@@ -23,7 +23,7 @@ const SECTIONS = [
 • Menghasilkan laporan operasional, keuangan, dan analitik untuk kebutuhan Dinas.
 • Mengirimkan tagihan dan notifikasi retribusi kepada pedagang terdaftar.
 • Menjaga keamanan dan integritas sistem melalui audit log.
-• Meningkatkan kualitas layanan dan fitur SVMS Enterprise.
+• Meningkatkan kualitas layanan dan fitur Sistem Manajemen Pasar Terpadu.
 
 Data **tidak digunakan** untuk keperluan komersial, iklan, atau dijual kepada pihak ketiga manapun.`
   },
@@ -31,7 +31,7 @@ Data **tidak digunakan** untuk keperluan komersial, iklan, atau dijual kepada pi
     icon: Share2,
     color: "#7C3AED",
     title: "Berbagi Data dengan Pihak Ketiga",
-    content: `SVMS Enterprise **tidak menjual atau menyewakan** data kepada pihak ketiga. Data dapat dibagikan hanya dalam kondisi berikut:
+    content: `Sistem Manajemen Pasar Terpadu **tidak menjual atau menyewakan** data kepada pihak ketiga. Data dapat dibagikan hanya dalam kondisi berikut:
 
 • **Kewajiban Hukum**: Apabila diwajibkan oleh peraturan perundang-undangan atau perintah pengadilan yang sah.
 • **Instansi Pemerintah**: Data agregat (tanpa identitas personal) dapat dilaporkan kepada instansi pemerintah terkait sesuai regulasi pengelolaan pasar.
@@ -67,7 +67,7 @@ Meskipun kami berupaya maksimal, tidak ada sistem yang 100% aman. Segera laporka
     title: "Perubahan Kebijakan",
     content: `Kebijakan Privasi ini dapat diperbarui dari waktu ke waktu untuk mencerminkan perubahan sistem atau regulasi. Perubahan signifikan akan diberitahukan melalui pengumuman di dalam sistem.
 
-Kebijakan ini terakhir diperbarui pada **Januari 2026** dan berlaku untuk SVMS Enterprise versi 6.0 ke atas.
+Kebijakan ini terakhir diperbarui pada **Januari 2026** dan berlaku untuk Sistem Manajemen Pasar Terpadu versi 6.0 ke atas.
 
 Dengan menggunakan sistem ini, Anda menyatakan telah membaca dan memahami kebijakan privasi ini.`
   },
@@ -88,7 +88,7 @@ export default function PrivasiPage() {
             <div style={{ background: "#F59E0B", padding: "5px", borderRadius: "7px" }}>
               <Shield style={{ width: "18px", height: "18px", color: "#0F172A" }} />
             </div>
-            <span style={{ fontWeight: "700", fontSize: "16px", color: "#F1F5F9" }}>SVMS Enterprise</span>
+            <span style={{ fontWeight: "700", fontSize: "16px", color: "#F1F5F9" }}>Sistem Manajemen Pasar Terpadu</span>
           </div>
         </div>
       </nav>
@@ -101,10 +101,10 @@ export default function PrivasiPage() {
             <span style={{ fontSize: "13px", color: "#F59E0B", fontWeight: "600" }}>Kebijakan Privasi</span>
           </div>
           <h1 style={{ fontSize: "clamp(2rem, 5vw, 2.75rem)", fontWeight: "800", marginBottom: "16px", letterSpacing: "-0.02em" }}>
-            Kebijakan Privasi SVMS Enterprise
+            Kebijakan Privasi Sistem Manajemen Pasar Terpadu
           </h1>
           <p style={{ color: "#94A3B8", fontSize: "15px", lineHeight: "1.7", maxWidth: "650px" }}>
-            Kami berkomitmen untuk melindungi privasi dan keamanan data seluruh pengguna sistem dan pedagang yang terdaftar dalam SVMS Enterprise. Halaman ini menjelaskan bagaimana data dikumpulkan, digunakan, dan dilindungi.
+            Kami berkomitmen untuk melindungi privasi dan keamanan data seluruh pengguna sistem dan pedagang yang terdaftar dalam Sistem Manajemen Pasar Terpadu. Halaman ini menjelaskan bagaimana data dikumpulkan, digunakan, dan dilindungi.
           </p>
           <div style={{ marginTop: "16px", display: "flex", gap: "16px", flexWrap: "wrap" }}>
             <span style={{ fontSize: "12px", color: "#64748B" }}>Versi: 6.0</span>
@@ -153,7 +153,7 @@ export default function PrivasiPage() {
       </div>
 
       <footer style={{ borderTop: "1px solid #1E293B", padding: "24px 20px", textAlign: "center" }}>
-        <p style={{ color: "#475569", fontSize: "13px" }}>© 2026 SVMS Enterprise — Dinas Pengelolaan Pasar</p>
+        <p style={{ color: "#475569", fontSize: "13px" }}>© 2026 Sistem Manajemen Pasar Terpadu — Dinas Pengelolaan Pasar</p>
       </footer>
     </div>
   );

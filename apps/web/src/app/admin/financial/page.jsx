@@ -10,7 +10,7 @@ import {
   TrendingUp, TrendingDown, Minus, Activity, ShieldAlert,
   DollarSign, AlertTriangle, Target, Sparkles, Star,
   ArrowUpRight, ArrowDownRight, BarChart3, Wallet, Clock,
-  Download, Printer, FileSpreadsheet, CheckCircle2,
+  Download, Printer, FileSpreadsheet, CheckCircle2, FileDown,
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import { motion } from "motion/react";
@@ -31,7 +31,7 @@ function buildCSV(data) {
   const rows = [];
   const sep = "\t"; // tab-separated = Excel-friendly
 
-  rows.push(["LAPORAN KEUANGAN SVMS ENTERPRISE"]);
+  rows.push(["LAPORAN KEUANGAN SISTEM MANAJEMEN PASAR TERPADU"]);
   rows.push([`Tanggal Ekspor: ${fmtDate()}`]);
   rows.push([]);
 
@@ -200,6 +200,155 @@ function ZoneCard({ data, delay }) {
   );
 }
 
+// ── PDF HTML Builder (opens in new window for clean print-to-PDF) ──────────────
+function buildPDFHtml(data) {
+  const { cashflowChart, aging, zonePerformance, topDebtors, kpis } = data;
+  const date = new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
+
+  const kpiRows = [
+    ["Total Ditagihkan", fmtRp(kpis.totalBilled)],
+    ["Total Terkumpul", fmtRp(kpis.totalCollected)],
+    ["Collection Rate", `${kpis.collectionRate}%`],
+    ["Total Piutang", fmtRp(kpis.totalUnpaid)],
+    ["Rata-rata/Bulan", fmtRp(kpis.monthlyAvg)],
+    ["Prediksi Bulan Depan", fmtRp(kpis.nextMonthPrediction)],
+  ];
+
+  const cashflowTr = cashflowChart.map((m, i) => `
+    <tr style="background:${m.isPrediction ? "#f5f3ff" : i % 2 === 0 ? "#fff" : "#f9fafb"}">
+      <td>${m.label}</td>
+      <td>${m.billed ? fmtRp(m.billed) : "-"}</td>
+      <td>${m.collected ? fmtRp(m.collected) : "-"}</td>
+      <td>${m.gap ? fmtRp(m.gap) : "-"}</td>
+      <td>${m.predicted ? fmtRp(m.predicted) : "-"}</td>
+      <td style="font-weight:600;color:${m.isPrediction ? "#7c3aed" : "#166534"}">${m.isPrediction ? "Prediksi" : "Aktual"}</td>
+    </tr>`).join("");
+
+  const agingTr = aging.map((b, i) => `
+    <tr style="background:${i % 2 === 0 ? "#fff" : "#f9fafb"}">
+      <td style="font-weight:600">${b.label}</td>
+      <td>${b.range}</td>
+      <td>${b.count}</td>
+      <td>${fmtRp(b.amount)}</td>
+    </tr>`).join("");
+
+  const zoneTr = zonePerformance.map((z, i) => `
+    <tr style="background:${i % 2 === 0 ? "#fff" : "#f9fafb"}">
+      <td style="font-weight:600">Zona ${z.label}</td>
+      <td>${z.totalStalls}</td>
+      <td>${z.occupiedStalls}</td>
+      <td>${fmtRp(z.billed)}</td>
+      <td>${fmtRp(z.collected)}</td>
+      <td>${fmtRp(z.unpaid)}</td>
+      <td style="font-weight:600">${z.complianceRate}%</td>
+    </tr>`).join("");
+
+  const debtorTr = topDebtors.map((t, i) => `
+    <tr style="background:${i % 2 === 0 ? "#fff" : "#f9fafb"}">
+      <td style="font-weight:700">${i + 1}</td>
+      <td>${t.name}</td>
+      <td>${t.stall}</td>
+      <td style="text-transform:capitalize">${t.zone}</td>
+      <td style="font-weight:600;color:#b91c1c">${fmtRp(t.debt)}</td>
+      <td>${t.bills}</td>
+    </tr>`).join("");
+
+  return `<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Laporan Keuangan — ${date}</title>
+  <style>
+    @page { size: A4; margin: 20mm 15mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; font-size: 11px; color: #111; background: #fff; }
+    .header { border-bottom: 2px solid #1e293b; padding-bottom: 12px; margin-bottom: 20px; }
+    .header h1 { font-size: 18px; font-weight: 700; color: #0f172a; }
+    .header p { font-size: 11px; color: #475569; margin-top: 3px; }
+    h2 { font-size: 12px; font-weight: 700; color: #1e293b; margin: 18px 0 8px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 10px; }
+    th { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; font-weight: 600; }
+    td { border: 1px solid #e2e8f0; padding: 5px 8px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
+    .kpi-box { border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; }
+    .kpi-box .label { font-size: 9px; color: #64748b; text-transform: uppercase; letter-spacing: 0.04em; }
+    .kpi-box .value { font-size: 13px; font-weight: 700; color: #0f172a; margin-top: 4px; }
+    .footer { margin-top: 28px; padding-top: 10px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 9px; color: #94a3b8; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 9px; font-weight: 600; }
+    .badge-pred { background: #f5f3ff; color: #7c3aed; }
+    .badge-act { background: #f0fdf4; color: #166534; }
+    .total-row { background: #fef2f2 !important; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>LAPORAN INTELIJEN KEUANGAN</h1>
+    <p>Sistem Manajemen Pasar Terpadu — Dinas Pengelolaan Pasar</p>
+    <p style="color:#94a3b8;margin-top:2px">Dicetak: ${date}</p>
+  </div>
+
+  <h2>Ringkasan KPI</h2>
+  <div class="kpi-grid">
+    ${kpiRows.map(([label, value]) => `
+      <div class="kpi-box">
+        <div class="label">${label}</div>
+        <div class="value">${value}</div>
+      </div>`).join("")}
+  </div>
+
+  <h2>Cashflow &amp; Prediksi Pendapatan</h2>
+  <table>
+    <thead><tr>
+      <th>Bulan</th><th>Ditagihkan (Rp)</th><th>Terkumpul (Rp)</th>
+      <th>Piutang (Rp)</th><th>Prediksi (Rp)</th><th>Status</th>
+    </tr></thead>
+    <tbody>${cashflowTr}</tbody>
+  </table>
+
+  <h2>Aging Tunggakan</h2>
+  <table>
+    <thead><tr>
+      <th>Periode</th><th>Rentang</th><th>Jumlah Tagihan</th><th>Total Piutang (Rp)</th>
+    </tr></thead>
+    <tbody>
+      ${agingTr}
+      <tr class="total-row">
+        <td colspan="2">Total</td>
+        <td>${aging.reduce((s, b) => s + b.count, 0)}</td>
+        <td>${fmtRp(kpis.totalUnpaid)}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Performa per Zona</h2>
+  <table>
+    <thead><tr>
+      <th>Zona</th><th>Lapak</th><th>Terisi</th><th>Ditagihkan (Rp)</th>
+      <th>Terkumpul (Rp)</th><th>Piutang (Rp)</th><th>Compliance</th>
+    </tr></thead>
+    <tbody>${zoneTr}</tbody>
+  </table>
+
+  ${topDebtors.length > 0 ? `
+  <h2>Pedagang Tunggakan Terbesar</h2>
+  <table>
+    <thead><tr>
+      <th>#</th><th>Nama Pedagang</th><th>Lapak</th><th>Zona</th>
+      <th>Total Tunggakan (Rp)</th><th>Jumlah Tagihan</th>
+    </tr></thead>
+    <tbody>${debtorTr}</tbody>
+  </table>` : ""}
+
+  <div class="footer">
+    <span>Sistem Manajemen Pasar Terpadu — Dinas Pengelolaan Pasar</span>
+    <span>Dokumen dicetak otomatis oleh sistem</span>
+  </div>
+
+  <script>window.onload = () => { window.print(); };</script>
+</body>
+</html>`;
+}
+
 // ── Print Layout (hidden on screen, visible when printing) ────────────────────
 function PrintLayout({ data }) {
   const { cashflowChart, aging, zonePerformance, topDebtors, kpis } = data;
@@ -208,7 +357,7 @@ function PrintLayout({ data }) {
       {/* Header */}
       <div className="border-b-2 border-gray-800 pb-4 mb-6">
         <h1 className="text-2xl font-bold text-gray-900">LAPORAN INTELIJEN KEUANGAN</h1>
-        <p className="text-gray-600 text-sm mt-1">SVMS Enterprise — Sistem Manajemen Pasar Terpadu</p>
+        <p className="text-gray-600 text-sm mt-1">Sistem Manajemen Pasar Terpadu — Dinas Pengelolaan Pasar</p>
         <p className="text-gray-500 text-xs mt-0.5">Dicetak: {fmtDate()}</p>
       </div>
 
@@ -333,7 +482,7 @@ function PrintLayout({ data }) {
       )}
 
       <div className="mt-8 pt-4 border-t border-gray-300 text-xs text-gray-400 flex justify-between">
-        <span>SVMS Enterprise — Dinas Pengelolaan Pasar</span>
+        <span>Sistem Manajemen Pasar Terpadu — Dinas Pengelolaan Pasar</span>
         <span>Dokumen ini dicetak otomatis oleh sistem</span>
       </div>
     </div>
@@ -389,6 +538,22 @@ export default function FinancialPage() {
       setExporting(null);
     }, 200);
   }, []);
+
+  const handleDownloadPDF = useCallback(() => {
+    if (!data) return;
+    setExporting("pdf");
+    setTimeout(() => {
+      const html = buildPDFHtml(data);
+      const win = window.open("", "_blank");
+      if (win) {
+        win.document.write(html);
+        win.document.close();
+      }
+      setExporting(null);
+      setExported("pdf");
+      setTimeout(() => setExported(null), 3000);
+    }, 300);
+  }, [data]);
 
   if (isLoading) {
     return (
@@ -452,10 +617,20 @@ export default function FinancialPage() {
                 ? "bg-green-500/10 border-green-500/30 text-green-400"
                 : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"}
             />
+            {/* Download PDF (clean new window) */}
+            <ExportButton
+              icon={exported === "pdf" ? CheckCircle2 : FileDown}
+              label={exported === "pdf" ? "Dibuka!" : "Download PDF"}
+              onClick={handleDownloadPDF}
+              loading={exporting === "pdf"}
+              color={exported === "pdf"
+                ? "bg-green-500/10 border-green-500/30 text-green-400"
+                : "bg-violet-500/10 border-violet-500/30 text-violet-400 hover:bg-violet-500/20"}
+            />
             {/* Print PDF */}
             <ExportButton
               icon={Printer}
-              label="Cetak PDF"
+              label="Cetak"
               onClick={handlePrint}
               loading={exporting === "print"}
               color="bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500/20"

@@ -1,0 +1,97 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  SERVER_IP: "103.175.219.57"
+  SERVER_USER: "root"
+  APP_DIR: "/var/www/svms"
+  NODE_ENV: "production"
+
+# ─────────────────────────────────────────
+# TAHAP 1: Build di GitLab Runner
+# ─────────────────────────────────────────
+build:
+  stage: build
+  image: oven/bun:latest
+  only:
+    - master
+    - main
+  cache:
+    key: "$CI_COMMIT_REF_SLUG-bun"
+    paths:
+      - apps/web/node_modules/
+    policy: pull-push
+  script:
+    - echo "==> Install dependencies..."
+    - cd apps/web
+    - bun install --frozen-lockfile
+    - echo "==> Build aplikasi..."
+    - NODE_ENV=production bun run build
+    - echo "==> Build selesai!"
+  artifacts:
+    name: "build-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - apps/web/build/
+    expire_in: 2 hours
+
+# ─────────────────────────────────────────
+# TAHAP 2: Deploy ke server
+# App berjalan di port 3000 (PM2 ecosystem)
+# svms_nginx Docker proxy: 8001 → host:3000
+# ─────────────────────────────────────────
+deploy_production:
+  stage: deploy
+  image: alpine:latest
+  only:
+    - master
+    - main
+  needs:
+    - job: build
+      artifacts: true
+  before_script:
+    - apk add --no-cache openssh-client bash
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan -H $SERVER_IP >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - echo "==> Compress build artifacts..."
+    - tar -czf /tmp/build.tar.gz apps/web/build/
+
+    - echo "==> Upload build ke server..."
+    - scp /tmp/build.tar.gz $SERVER_USER@$SERVER_IP:/tmp/build.tar.gz
+
+    - echo "==> Deploy di server..."
+    - |
+      ssh $SERVER_USER@$SERVER_IP "bash -s" << 'ENDSSH'
+        set -e
+        APP_DIR="/var/www/svms"
+
+        echo "==> Pull source code terbaru..."
+        cd $APP_DIR
+        git pull origin master || git pull origin main
+
+        echo "==> Extract build dari CI runner..."
+        tar -xzf /tmp/build.tar.gz -C $APP_DIR
+        rm -f /tmp/build.tar.gz
+
+        echo "==> Pastikan direktori log ada..."
+        mkdir -p /var/log/svms
+
+        echo "==> Restart aplikasi (PM2 port 3000)..."
+        pm2 describe svms > /dev/null 2>&1 \
+          && pm2 restart svms --update-env \
+          || pm2 start $APP_DIR/ecosystem.config.cjs
+
+        pm2 save
+
+        echo ""
+        echo "Deploy selesai! App di port 3000, akses via port 8001"
+        pm2 show svms | grep -E "status|uptime|restarts"
+      ENDSSH
+  environment:
+    name: production
+    url: http://103.175.219.57:8001

@@ -6,7 +6,7 @@ const SECTIONS = [
     icon: CheckCircle2,
     color: "#22C55E",
     title: "1. Penerimaan Ketentuan",
-    content: `Dengan mengakses dan menggunakan SVMS Enterprise ("Sistem"), Anda menyatakan telah membaca, memahami, dan menyetujui seluruh Syarat & Ketentuan yang tercantum dalam dokumen ini.
+    content: `Dengan mengakses dan menggunakan Sistem Manajemen Pasar Terpadu ("Sistem"), Anda menyatakan telah membaca, memahami, dan menyetujui seluruh Syarat & Ketentuan yang tercantum dalam dokumen ini.
 
 Sistem ini hanya diperuntukkan bagi **instansi pemerintah resmi** yang mengelola pasar tradisional (Dinas Pengelolaan Pasar, UPTD Pasar, atau unit setara) dan personel yang ditugaskan oleh instansi tersebut.
 
@@ -55,7 +55,7 @@ Pelanggaran dapat berakibat penonaktifan akun, sanksi administratif, dan/atau pr
     icon: Scale,
     color: "#7C3AED",
     title: "5. Kepemilikan & Kekayaan Intelektual",
-    content: `**Kepemilikan Sistem**: SVMS Enterprise beserta seluruh kode sumber, desain, dan fiturnya adalah properti intelektual pengembang sistem.
+    content: `**Kepemilikan Sistem**: Sistem Manajemen Pasar Terpadu beserta seluruh kode sumber, desain, dan fiturnya adalah properti intelektual pengembang sistem.
 
 **Kepemilikan Data**: Data pedagang, kios, dan transaksi yang dimasukkan ke dalam sistem merupakan milik instansi pengelola (Dinas/UPTD) sesuai peraturan perundang-undangan.
 
@@ -85,7 +85,7 @@ Kami tidak bertanggung jawab atas:
 
 **Penyelesaian Sengketa**: Sengketa yang timbul diselesaikan secara musyawarah. Apabila tidak tercapai kesepakatan, diselesaikan melalui Pengadilan Negeri yang berwenang.
 
-Dokumen ini berlaku efektif sejak **1 Januari 2026** untuk SVMS Enterprise versi 6.0 ke atas.`
+Dokumen ini berlaku efektif sejak **1 Januari 2026** untuk Sistem Manajemen Pasar Terpadu versi 6.0 ke atas.`
   },
 ];
 
@@ -104,7 +104,7 @@ export default function SyaratPage() {
             <div style={{ background: "#F59E0B", padding: "5px", borderRadius: "7px" }}>
               <Shield style={{ width: "18px", height: "18px", color: "#0F172A" }} />
             </div>
-            <span style={{ fontWeight: "700", fontSize: "16px", color: "#F1F5F9" }}>SVMS Enterprise</span>
+            <span style={{ fontWeight: "700", fontSize: "16px", color: "#F1F5F9" }}>Sistem Manajemen Pasar Terpadu</span>
           </div>
         </div>
       </nav>
@@ -120,7 +120,7 @@ export default function SyaratPage() {
             Syarat &amp; Ketentuan Penggunaan
           </h1>
           <p style={{ color: "#94A3B8", fontSize: "15px", lineHeight: "1.7", maxWidth: "650px" }}>
-            Ketentuan penggunaan ini mengatur hak dan kewajiban pengguna sistem SVMS Enterprise. Harap baca dengan seksama sebelum menggunakan sistem.
+            Ketentuan penggunaan ini mengatur hak dan kewajiban pengguna Sistem Manajemen Pasar Terpadu. Harap baca dengan seksama sebelum menggunakan sistem.
           </p>
           <div style={{ marginTop: "16px", display: "flex", gap: "16px", flexWrap: "wrap" }}>
             <span style={{ fontSize: "12px", color: "#64748B" }}>Versi: 6.0</span>
@@ -174,13 +174,13 @@ export default function SyaratPage() {
         <div style={{ marginTop: "40px", padding: "24px 28px", background: "rgba(34,197,94,0.07)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: "14px", display: "flex", alignItems: "flex-start", gap: "14px" }}>
           <CheckCircle2 style={{ width: "20px", height: "20px", color: "#22C55E", flexShrink: 0, marginTop: "2px" }} />
           <p style={{ color: "#CBD5E1", fontSize: "14px", lineHeight: "1.7", margin: 0 }}>
-            Dengan terus menggunakan SVMS Enterprise, Anda menyatakan telah membaca, memahami, dan menyetujui seluruh Syarat & Ketentuan di atas. Jika tidak setuju, harap hentikan penggunaan sistem dan hubungi administrator instansi Anda.
+            Dengan terus menggunakan Sistem Manajemen Pasar Terpadu, Anda menyatakan telah membaca, memahami, dan menyetujui seluruh Syarat & Ketentuan di atas. Jika tidak setuju, harap hentikan penggunaan sistem dan hubungi administrator instansi Anda.
           </p>
         </div>
       </div>
 
       <footer style={{ borderTop: "1px solid #1E293B", padding: "24px 20px", textAlign: "center" }}>
-        <p style={{ color: "#475569", fontSize: "13px" }}>© 2026 SVMS Enterprise — Dinas Pengelolaan Pasar</p>
+        <p style={{ color: "#475569", fontSize: "13px" }}>© 2026 Sistem Manajemen Pasar Terpadu — Dinas Pengelolaan Pasar</p>
       </footer>
     </div>
   );

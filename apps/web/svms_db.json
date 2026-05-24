@@ -7,7 +7,7 @@
       "password": "123",
       "role": "admin",
       "status": "active",
-      "created_at": "2026-05-01T00:00:00.000Z"
+      "created_at": "2026-01-01T00:00:00.000Z"
     },
     {
       "id": 2,
@@ -16,43 +16,43 @@
       "password": "123",
       "role": "petugas",
       "status": "active",
-      "created_at": "2026-05-01T00:00:00.000Z"
+      "created_at": "2026-01-01T00:00:00.000Z"
     },
     {
       "id": 3,
       "username": "kepala",
       "name": "Kepala Pasar",
       "password": "123",
-      "role": "kepala_pasar",
+      "role": "kepala",
       "status": "active",
-      "created_at": "2026-05-01T00:00:00.000Z"
+      "created_at": "2026-01-01T00:00:00.000Z"
     },
     {
       "id": 4,
       "username": "operator",
-      "name": "Operator Harian",
+      "name": "Operator Sistem",
       "password": "123",
       "role": "operator",
       "status": "active",
-      "created_at": "2026-05-01T00:00:00.000Z"
+      "created_at": "2026-01-01T00:00:00.000Z"
     },
     {
       "id": 5,
       "username": "auditor",
-      "name": "Auditor Keuangan",
+      "name": "Auditor Internal",
       "password": "123",
       "role": "auditor",
       "status": "active",
-      "created_at": "2026-05-01T00:00:00.000Z"
+      "created_at": "2026-01-01T00:00:00.000Z"
     },
     {
       "id": 6,
       "username": "pemda",
-      "name": "Dinas Pemda",
+      "name": "Perwakilan Pemda",
       "password": "123",
       "role": "pemda",
       "status": "active",
-      "created_at": "2026-05-01T00:00:00.000Z"
+      "created_at": "2026-01-01T00:00:00.000Z"
     }
   ],
   "traders": [
@@ -78,7 +78,7 @@
     },
     {
       "id": 3,
-      "name": "Joko Widodo",
+      "name": "Joko Purnomo",
       "nik": "3171012345670003",
       "phone": "081234567892",
       "trader_type": "tetap",
@@ -104,7 +104,7 @@
       "trader_type": "tetap",
       "stall_id": 5,
       "joined_at": "2026-03-12T14:20:00.000Z",
-      "status": "inactive"
+      "status": "active"
     }
   ],
   "stalls": [
@@ -116,8 +116,8 @@
       "status": "occupied",
       "trader_id": 1,
       "monthly_fee": 750000,
-      "row_x": 0,
-      "col_y": 0
+      "row_x": 6,
+      "col_y": 79
     },
     {
       "id": 2,
@@ -127,8 +127,8 @@
       "status": "occupied",
       "trader_id": 2,
       "monthly_fee": 750000,
-      "row_x": 0,
-      "col_y": 1
+      "row_x": 15,
+      "col_y": 5
     },
     {
       "id": 3,
@@ -138,63 +138,140 @@
       "status": "occupied",
       "trader_id": 3,
       "monthly_fee": 750000,
-      "row_x": 0,
-      "col_y": 2
+      "row_x": 25,
+      "col_y": 5
     },
     {
       "id": 4,
+      "stall_code": "A-04",
+      "zone": "gold",
+      "category": "sembako",
+      "status": "occupied",
+      "trader_id": 4,
+      "monthly_fee": 750000,
+      "row_x": 35,
+      "col_y": 5
+    },
+    {
+      "id": 5,
+      "stall_code": "A-05",
+      "zone": "gold",
+      "category": "sembako",
+      "status": "occupied",
+      "trader_id": 5,
+      "monthly_fee": 750000,
+      "row_x": 45,
+      "col_y": 5
+    },
+    {
+      "id": 6,
+      "stall_code": "A-06",
+      "zone": "gold",
+      "category": "buah",
+      "status": "vacant",
+      "trader_id": null,
+      "monthly_fee": 750000,
+      "row_x": 55,
+      "col_y": 5
+    },
+    {
+      "id": 7,
+      "stall_code": "A-07",
+      "zone": "gold",
+      "category": "rempah",
+      "status": "vacant",
+      "trader_id": null,
+      "monthly_fee": 750000,
+      "row_x": 65,
+      "col_y": 5
+    },
+    {
+      "id": 8,
       "stall_code": "B-01",
       "zone": "silver",
       "category": "pakaian",
       "status": "occupied",
-      "trader_id": 4,
+      "trader_id": null,
       "monthly_fee": 500000,
-      "row_x": 1,
-      "col_y": 0
+      "row_x": 5,
+      "col_y": 30
     },
     {
-      "id": 5,
+      "id": 9,
       "stall_code": "B-02",
       "zone": "silver",
       "category": "bumbu",
       "status": "vacant",
       "trader_id": null,
       "monthly_fee": 500000,
-      "row_x": 1,
-      "col_y": 1
+      "row_x": 15,
+      "col_y": 30
     },
     {
-      "id": 6,
+      "id": 10,
+      "stall_code": "B-03",
+      "zone": "silver",
+      "category": "elektronik",
+      "status": "vacant",
+      "trader_id": null,
+      "monthly_fee": 500000,
+      "row_x": 25,
+      "col_y": 30
+    },
+    {
+      "id": 11,
+      "stall_code": "B-04",
+      "zone": "silver",
+      "category": "kosmetik",
+      "status": "vacant",
+      "trader_id": null,
+      "monthly_fee": 500000,
+      "row_x": 35,
+      "col_y": 30
+    },
+    {
+      "id": 12,
+      "stall_code": "B-05",
+      "zone": "silver",
+      "category": "aksesoris",
+      "status": "vacant",
+      "trader_id": null,
+      "monthly_fee": 500000,
+      "row_x": 45,
+      "col_y": 30
+    },
+    {
+      "id": 13,
       "stall_code": "C-01",
       "zone": "bronze",
       "category": "jasa",
       "status": "vacant",
       "trader_id": null,
       "monthly_fee": 350000,
-      "row_x": 2,
-      "col_y": 0
+      "row_x": 5,
+      "col_y": 60
     },
     {
-      "id": 7,
-      "stall_code": "A-04",
-      "zone": "gold",
-      "category": "sembako",
+      "id": 14,
+      "stall_code": "C-02",
+      "zone": "bronze",
+      "category": "kuliner",
       "status": "vacant",
       "trader_id": null,
-      "monthly_fee": 750000,
-      "row_x": 0,
-      "col_y": 3
+      "monthly_fee": 350000,
+      "row_x": 15,
+      "col_y": 60
     },
     {
-      "id": 8,
-      "stall_code": "A-05",
-      "zone": "gold",
-      "category": "sembako",
+      "id": 15,
+      "stall_code": "C-03",
+      "zone": "bronze",
+      "category": "minuman",
       "status": "vacant",
       "trader_id": null,
-      "monthly_fee": 750000,
-      "row_x": 0,
-      "col_y": 4
+      "monthly_fee": 350000,
+      "row_x": 25,
+      "col_y": 60
     }
   ],
   "bills": [
@@ -233,210 +310,20 @@
       "trader_id": 4,
       "stall_id": 4,
       "bill_month": "2026-05",
-      "amount": 500000,
+      "amount": 750000,
       "status": "paid",
       "paid_at": "2026-05-05T09:00:00.000Z",
       "created_at": "2026-05-01T00:00:00.000Z"
     },
     {
       "id": 5,
-      "trader_id": 1,
-      "stall_id": 1,
-      "bill_month": "2025-12",
-      "amount": 750000,
-      "status": "paid",
-      "paid_at": "2025-12-03T10:00:00.000Z",
-      "created_at": "2025-12-01T00:00:00.000Z"
-    },
-    {
-      "id": 6,
-      "trader_id": 2,
-      "stall_id": 2,
-      "bill_month": "2025-12",
-      "amount": 750000,
-      "status": "paid",
-      "paid_at": "2025-12-04T10:00:00.000Z",
-      "created_at": "2025-12-01T00:00:00.000Z"
-    },
-    {
-      "id": 7,
-      "trader_id": 3,
-      "stall_id": 3,
-      "bill_month": "2025-12",
-      "amount": 750000,
-      "status": "paid",
-      "paid_at": "2025-12-05T10:00:00.000Z",
-      "created_at": "2025-12-01T00:00:00.000Z"
-    },
-    {
-      "id": 8,
-      "trader_id": 4,
-      "stall_id": 4,
-      "bill_month": "2025-12",
-      "amount": 500000,
-      "status": "unpaid",
-      "paid_at": null,
-      "created_at": "2025-12-01T00:00:00.000Z"
-    },
-    {
-      "id": 9,
-      "trader_id": 1,
-      "stall_id": 1,
-      "bill_month": "2026-01",
-      "amount": 750000,
-      "status": "paid",
-      "paid_at": "2026-01-02T10:00:00.000Z",
-      "created_at": "2026-01-01T00:00:00.000Z"
-    },
-    {
-      "id": 10,
-      "trader_id": 2,
-      "stall_id": 2,
-      "bill_month": "2026-01",
-      "amount": 750000,
-      "status": "paid",
-      "paid_at": "2026-01-05T10:00:00.000Z",
-      "created_at": "2026-01-01T00:00:00.000Z"
-    },
-    {
-      "id": 11,
-      "trader_id": 3,
-      "stall_id": 3,
-      "bill_month": "2026-01",
+      "trader_id": 5,
+      "stall_id": 5,
+      "bill_month": "2026-05",
       "amount": 750000,
       "status": "unpaid",
       "paid_at": null,
-      "created_at": "2026-01-01T00:00:00.000Z"
-    },
-    {
-      "id": 12,
-      "trader_id": 4,
-      "stall_id": 4,
-      "bill_month": "2026-01",
-      "amount": 500000,
-      "status": "paid",
-      "paid_at": "2026-01-08T10:00:00.000Z",
-      "created_at": "2026-01-01T00:00:00.000Z"
-    },
-    {
-      "id": 13,
-      "trader_id": 1,
-      "stall_id": 1,
-      "bill_month": "2026-02",
-      "amount": 750000,
-      "status": "paid",
-      "paid_at": "2026-02-03T10:00:00.000Z",
-      "created_at": "2026-02-01T00:00:00.000Z"
-    },
-    {
-      "id": 14,
-      "trader_id": 2,
-      "stall_id": 2,
-      "bill_month": "2026-02",
-      "amount": 750000,
-      "status": "paid",
-      "paid_at": "2026-02-04T10:00:00.000Z",
-      "created_at": "2026-02-01T00:00:00.000Z"
-    },
-    {
-      "id": 15,
-      "trader_id": 3,
-      "stall_id": 3,
-      "bill_month": "2026-02",
-      "amount": 750000,
-      "status": "paid",
-      "paid_at": "2026-02-10T10:00:00.000Z",
-      "created_at": "2026-02-01T00:00:00.000Z"
-    },
-    {
-      "id": 16,
-      "trader_id": 4,
-      "stall_id": 4,
-      "bill_month": "2026-02",
-      "amount": 500000,
-      "status": "paid",
-      "paid_at": "2026-02-07T10:00:00.000Z",
-      "created_at": "2026-02-01T00:00:00.000Z"
-    },
-    {
-      "id": 17,
-      "trader_id": 1,
-      "stall_id": 1,
-      "bill_month": "2026-03",
-      "amount": 750000,
-      "status": "paid",
-      "paid_at": "2026-03-04T10:00:00.000Z",
-      "created_at": "2026-03-01T00:00:00.000Z"
-    },
-    {
-      "id": 18,
-      "trader_id": 2,
-      "stall_id": 2,
-      "bill_month": "2026-03",
-      "amount": 750000,
-      "status": "paid",
-      "paid_at": "2026-03-02T10:00:00.000Z",
-      "created_at": "2026-03-01T00:00:00.000Z"
-    },
-    {
-      "id": 19,
-      "trader_id": 3,
-      "stall_id": 3,
-      "bill_month": "2026-03",
-      "amount": 750000,
-      "status": "unpaid",
-      "paid_at": null,
-      "created_at": "2026-03-01T00:00:00.000Z"
-    },
-    {
-      "id": 20,
-      "trader_id": 4,
-      "stall_id": 4,
-      "bill_month": "2026-03",
-      "amount": 500000,
-      "status": "paid",
-      "paid_at": "2026-03-06T10:00:00.000Z",
-      "created_at": "2026-03-01T00:00:00.000Z"
-    },
-    {
-      "id": 21,
-      "trader_id": 1,
-      "stall_id": 1,
-      "bill_month": "2026-04",
-      "amount": 750000,
-      "status": "paid",
-      "paid_at": "2026-04-03T10:00:00.000Z",
-      "created_at": "2026-04-01T00:00:00.000Z"
-    },
-    {
-      "id": 22,
-      "trader_id": 2,
-      "stall_id": 2,
-      "bill_month": "2026-04",
-      "amount": 750000,
-      "status": "paid",
-      "paid_at": "2026-04-05T10:00:00.000Z",
-      "created_at": "2026-04-01T00:00:00.000Z"
-    },
-    {
-      "id": 23,
-      "trader_id": 3,
-      "stall_id": 3,
-      "bill_month": "2026-04",
-      "amount": 750000,
-      "status": "unpaid",
-      "paid_at": null,
-      "created_at": "2026-04-01T00:00:00.000Z"
-    },
-    {
-      "id": 24,
-      "trader_id": 4,
-      "stall_id": 4,
-      "bill_month": "2026-04",
-      "amount": 500000,
-      "status": "paid",
-      "paid_at": "2026-04-07T10:00:00.000Z",
-      "created_at": "2026-04-01T00:00:00.000Z"
+      "created_at": "2026-05-01T00:00:00.000Z"
     }
   ],
   "porters": [
@@ -514,7 +401,7 @@
       "id": 1,
       "module": "Sistem",
       "action": "LOGIN",
-      "user_name": "Admin",
+      "user_name": "Administrator Utama",
       "description": "Admin masuk ke sistem",
       "ip_address": "127.0.0.1",
       "created_at": "2026-05-17T12:00:00.000Z"
@@ -523,7 +410,7 @@
       "id": 2,
       "module": "Pedagang",
       "action": "CREATE",
-      "user_name": "Admin",
+      "user_name": "Administrator Utama",
       "description": "Pedagang baru terdaftar: Dewi Lestari",
       "ip_address": "127.0.0.1",
       "created_at": "2026-05-17T11:00:00.000Z"
@@ -535,79 +422,25 @@
       "user_name": "Administrator Utama",
       "description": "Administrator Utama masuk ke sistem",
       "ip_address": "127.0.0.1",
-      "created_at": "2026-05-18T06:10:20.782Z"
+      "created_at": "2026-05-24T05:55:14.750Z"
     },
     {
       "id": 4,
       "module": "Sistem",
       "action": "LOGIN",
-      "user_name": "Kepala Pasar",
-      "description": "Kepala Pasar masuk ke sistem",
+      "user_name": "Administrator Utama",
+      "description": "Administrator Utama masuk ke sistem",
       "ip_address": "127.0.0.1",
-      "created_at": "2026-05-18T06:20:28.725Z"
+      "created_at": "2026-05-24T07:36:24.147Z"
     },
     {
       "id": 5,
       "module": "Sistem",
       "action": "LOGIN",
-      "user_name": "Operator Harian",
-      "description": "Operator Harian masuk ke sistem",
-      "ip_address": "127.0.0.1",
-      "created_at": "2026-05-18T06:20:28.771Z"
-    },
-    {
-      "id": 6,
-      "module": "Sistem",
-      "action": "LOGIN",
-      "user_name": "Auditor Keuangan",
-      "description": "Auditor Keuangan masuk ke sistem",
-      "ip_address": "127.0.0.1",
-      "created_at": "2026-05-18T06:20:28.807Z"
-    },
-    {
-      "id": 7,
-      "module": "Sistem",
-      "action": "LOGIN",
-      "user_name": "Dinas Pemda",
-      "description": "Dinas Pemda masuk ke sistem",
-      "ip_address": "127.0.0.1",
-      "created_at": "2026-05-18T06:20:28.849Z"
-    },
-    {
-      "id": 8,
-      "module": "Sistem",
-      "action": "LOGIN",
       "user_name": "Administrator Utama",
       "description": "Administrator Utama masuk ke sistem",
       "ip_address": "127.0.0.1",
-      "created_at": "2026-05-18T06:32:39.668Z"
-    },
-    {
-      "id": 9,
-      "module": "Sistem",
-      "action": "LOGIN",
-      "user_name": "Administrator Utama",
-      "description": "Administrator Utama masuk ke sistem",
-      "ip_address": "127.0.0.1",
-      "created_at": "2026-05-18T09:00:42.470Z"
-    },
-    {
-      "id": 10,
-      "module": "IoT",
-      "action": "IOT_READING",
-      "user_name": "Sistem",
-      "description": "Bacaan listrik: 150 KWh di slot 1",
-      "ip_address": "127.0.0.1",
-      "created_at": "2026-05-18T09:13:02.381Z"
-    },
-    {
-      "id": 11,
-      "module": "IoT",
-      "action": "IOT_ALERT",
-      "user_name": "Sistem",
-      "description": "Bacaan listrik: 550 KWh di slot 1 — LONJAKAN TERDETEKSI",
-      "ip_address": "127.0.0.1",
-      "created_at": "2026-05-18T09:13:11.459Z"
+      "created_at": "2026-05-24T09:17:50.368Z"
     }
   ],
   "announcements": [
@@ -618,7 +451,7 @@
       "urgency": "INFO",
       "target_zone": "all",
       "start_date": "2026-05-10T00:00:00.000Z",
-      "end_date": "2026-05-20T23:59:59.000Z",
+      "end_date": "2026-12-31T23:59:59.000Z",
       "created_at": "2026-05-10T08:00:00.000Z"
     },
     {
@@ -628,18 +461,8 @@
       "urgency": "PENTING",
       "target_zone": "bronze",
       "start_date": "2026-05-15T00:00:00.000Z",
-      "end_date": "2026-05-31T23:59:59.000Z",
+      "end_date": "2026-12-31T23:59:59.000Z",
       "created_at": "2026-05-15T09:00:00.000Z"
-    },
-    {
-      "id": 3,
-      "title": "KEBAKARAN KECIL DI ZONA SILVER!",
-      "body": "Harap evakuasi segera! Sedang dilakukan penanganan darurat oleh pihak damkar di Blok Silver B-01.",
-      "urgency": "DARURAT",
-      "target_zone": "all",
-      "start_date": "2026-05-18T00:00:00.000Z",
-      "end_date": null,
-      "created_at": "2026-05-18T08:30:00.000Z"
     }
   ],
   "contracts": [
@@ -662,36 +485,10 @@
       "terms": "Pedagang wajib menjaga kebersihan area lapak.",
       "status": "active",
       "created_at": "2026-02-10T09:00:00.000Z"
-    },
-    {
-      "id": 3,
-      "trader_id": 3,
-      "start_date": "2025-06-01",
-      "end_date": "2026-05-31",
-      "rent_amount": 750000,
-      "terms": "Kontrak satu tahun. Perpanjangan 30 hari sebelum kedaluwarsa.",
-      "status": "expired",
-      "created_at": "2025-06-01T08:00:00.000Z"
     }
   ],
   "porter_requests": [],
   "porter_jobs": [],
-  "iot_readings": [
-    {
-      "id": 1,
-      "slot_id": 1,
-      "type": "electricity",
-      "reading": 150,
-      "cost": 225000,
-      "recorded_at": "2026-05-18T09:13:02.381Z"
-    },
-    {
-      "id": 2,
-      "slot_id": 1,
-      "type": "electricity",
-      "reading": 550,
-      "cost": 825000,
-      "recorded_at": "2026-05-18T09:13:11.459Z"
-    }
-  ]
+  "iot_readings": [],
+  "complaints": []
 }

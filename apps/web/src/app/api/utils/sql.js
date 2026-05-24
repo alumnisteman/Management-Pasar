@@ -18,14 +18,21 @@ const DEFAULT_DB = {
     { id: 5, name: "Ahmad Fauzi", nik: "3171012345670005", phone: "081234567894", trader_type: "tetap", stall_id: 5, joined_at: "2026-03-12T14:20:00.000Z", status: "inactive" }
   ],
   stalls: [
-    { id: 1, stall_code: "A-01", zone: "gold", category: "sembako", status: "occupied", trader_id: 1, monthly_fee: 750000, row_x: 0, col_y: 0 },
-    { id: 2, stall_code: "A-02", zone: "gold", category: "sayuran", status: "occupied", trader_id: 2, monthly_fee: 750000, row_x: 0, col_y: 1 },
-    { id: 3, stall_code: "A-03", zone: "gold", category: "daging", status: "occupied", trader_id: 3, monthly_fee: 750000, row_x: 0, col_y: 2 },
-    { id: 4, stall_code: "B-01", zone: "silver", category: "pakaian", status: "occupied", trader_id: 4, monthly_fee: 500000, row_x: 1, col_y: 0 },
-    { id: 5, stall_code: "B-02", zone: "silver", category: "bumbu", status: "vacant", trader_id: null, monthly_fee: 500000, row_x: 1, col_y: 1 },
-    { id: 6, stall_code: "C-01", zone: "bronze", category: "jasa", status: "vacant", trader_id: null, monthly_fee: 350000, row_x: 2, col_y: 0 },
-    { id: 7, stall_code: "A-04", zone: "gold", category: "sembako", status: "vacant", trader_id: null, monthly_fee: 750000, row_x: 0, col_y: 3 },
-    { id: 8, stall_code: "A-05", zone: "gold", category: "sembako", status: "vacant", trader_id: null, monthly_fee: 750000, row_x: 0, col_y: 4 }
+    { id: 1, stall_code: "A-01", zone: "gold", category: "sembako", status: "occupied", trader_id: 1, monthly_fee: 750000, row_x: 5, col_y: 5 },
+    { id: 2, stall_code: "A-02", zone: "gold", category: "sayuran", status: "occupied", trader_id: 2, monthly_fee: 750000, row_x: 15, col_y: 5 },
+    { id: 3, stall_code: "A-03", zone: "gold", category: "daging", status: "occupied", trader_id: 3, monthly_fee: 750000, row_x: 25, col_y: 5 },
+    { id: 4, stall_code: "A-04", zone: "gold", category: "sembako", status: "occupied", trader_id: 4, monthly_fee: 750000, row_x: 35, col_y: 5 },
+    { id: 5, stall_code: "A-05", zone: "gold", category: "sembako", status: "occupied", trader_id: 5, monthly_fee: 750000, row_x: 45, col_y: 5 },
+    { id: 6, stall_code: "A-06", zone: "gold", category: "buah", status: "vacant", trader_id: null, monthly_fee: 750000, row_x: 55, col_y: 5 },
+    { id: 7, stall_code: "A-07", zone: "gold", category: "rempah", status: "vacant", trader_id: null, monthly_fee: 750000, row_x: 65, col_y: 5 },
+    { id: 8, stall_code: "B-01", zone: "silver", category: "pakaian", status: "vacant", trader_id: null, monthly_fee: 500000, row_x: 5, col_y: 30 },
+    { id: 9, stall_code: "B-02", zone: "silver", category: "bumbu", status: "vacant", trader_id: null, monthly_fee: 500000, row_x: 15, col_y: 30 },
+    { id: 10, stall_code: "B-03", zone: "silver", category: "elektronik", status: "vacant", trader_id: null, monthly_fee: 500000, row_x: 25, col_y: 30 },
+    { id: 11, stall_code: "B-04", zone: "silver", category: "kosmetik", status: "vacant", trader_id: null, monthly_fee: 500000, row_x: 35, col_y: 30 },
+    { id: 12, stall_code: "B-05", zone: "silver", category: "aksesoris", status: "vacant", trader_id: null, monthly_fee: 500000, row_x: 45, col_y: 30 },
+    { id: 13, stall_code: "C-01", zone: "bronze", category: "jasa", status: "vacant", trader_id: null, monthly_fee: 350000, row_x: 5, col_y: 60 },
+    { id: 14, stall_code: "C-02", zone: "bronze", category: "kuliner", status: "vacant", trader_id: null, monthly_fee: 350000, row_x: 15, col_y: 60 },
+    { id: 15, stall_code: "C-03", zone: "bronze", category: "minuman", status: "vacant", trader_id: null, monthly_fee: 350000, row_x: 25, col_y: 60 }
   ],
   bills: [
     { id: 1, trader_id: 1, stall_id: 1, bill_month: "2026-05", amount: 750000, status: "paid", paid_at: "2026-05-02T10:00:00.000Z", created_at: "2026-05-01T00:00:00.000Z" },

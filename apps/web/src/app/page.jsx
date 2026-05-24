@@ -202,9 +202,15 @@ export default function LandingPage() {
   const [showDemo, setShowDemo] = useState(false);
   const [demoTab, setDemoTab] = useState(0);
   const navigate = useNavigate();
-  const [traders, tradersRef] = useCountUp(500);
-  const [stalls, stallsRef] = useCountUp(200);
-  const [bills, billsRef] = useCountUp(98);
+  const [liveStats, setLiveStats] = useState({ traders: 132, stalls: 200, compliance: 97 });
+  useEffect(() => {
+    fetch('/api/landing/stats').then(r => r.json()).then(d => {
+      if (d.traders) setLiveStats(d);
+    }).catch(() => {});
+  }, []);
+  const [traders, tradersRef] = useCountUp(liveStats.traders);
+  const [stalls, stallsRef] = useCountUp(liveStats.stalls);
+  const [bills, billsRef] = useCountUp(liveStats.compliance);
 
   const t = dark ? DARK : LIGHT;
 
@@ -242,7 +248,7 @@ export default function LandingPage() {
                 <div style={{ background: "#F59E0B", padding: "6px", borderRadius: "8px" }}>
                   <Shield style={{ width: "18px", height: "18px", color: "#0F172A" }} />
                 </div>
-                <span style={{ fontWeight: "700", fontSize: "16px", color: "white" }}>SVMS Enterprise — Demo Interaktif</span>
+                <span style={{ fontWeight: "700", fontSize: "16px", color: "white" }}>Sistem Manajemen Pasar Terpadu — Demo Interaktif</span>
               </div>
               <button onClick={() => setShowDemo(false)} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(71,85,105,0.5)", borderRadius: "8px", padding: "6px", cursor: "pointer", color: "#94A3B8", display: "flex" }}>
                 <X style={{ width: "18px", height: "18px" }} />
@@ -444,13 +450,12 @@ export default function LandingPage() {
             <div style={{ background: "#F59E0B", padding: "6px", borderRadius: "8px" }}>
               <Shield style={{ width: "20px", height: "20px", color: "#0F172A" }} />
             </div>
-            <span style={{ fontWeight: "700", fontSize: "18px", letterSpacing: "-0.02em", color: "#F1F5F9" }}>SVMS Enterprise &amp; NewsHybrid</span>
+            <span style={{ fontWeight: "700", fontSize: "18px", letterSpacing: "-0.02em", color: "#F1F5F9" }}>Sistem Manajemen Pasar Terpadu</span>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "32px", fontSize: "14px", fontWeight: "500", color: t.navText }} className="nav-links">
             <a href="#fitur" style={{ color: "inherit", textDecoration: "none" }}>Fitur</a>
             <a href="#statistik" style={{ color: "inherit", textDecoration: "none" }}>Statistik</a>
-            <a href="http://103.175.219.57:8090/" target="_blank" rel="noopener noreferrer" style={{ color: "#F59E0B", textDecoration: "none", fontWeight: "600" }}>Portal Berita</a>
             <a href="#cara-kerja" style={{ color: "inherit", textDecoration: "none" }}>Cara Kerja</a>
           </div>
 
@@ -488,11 +493,7 @@ export default function LandingPage() {
       {isMobileMenuOpen && (
         <div style={{ position: "fixed", inset: 0, zIndex: 40, background: t.mobileBg, paddingTop: "64px", transition: "background 0.3s" }}>
           <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "12px", color: t.navText, fontWeight: "500" }}>
-            {[["#fitur","Fitur"],["#statistik","Statistik"]].map(([href,label]) => (
-              <a key={href} href={href} style={{ padding: "16px", background: "rgba(255,255,255,0.05)", borderRadius: "10px", color: "inherit", textDecoration: "none" }} onClick={() => setIsMobileMenuOpen(false)}>{label}</a>
-            ))}
-            <a href="http://103.175.219.57:8090/" target="_blank" rel="noopener noreferrer" style={{ padding: "16px", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.3)", borderRadius: "10px", color: "#F59E0B", textDecoration: "none", fontWeight: "700" }} onClick={() => setIsMobileMenuOpen(false)}>Portal Berita NewsHybrid</a>
-            {[["#cara-kerja","Cara Kerja"]].map(([href,label]) => (
+            {[["#fitur","Fitur"],["#statistik","Statistik"],["#cara-kerja","Cara Kerja"]].map(([href,label]) => (
               <a key={href} href={href} style={{ padding: "16px", background: "rgba(255,255,255,0.05)", borderRadius: "10px", color: "inherit", textDecoration: "none" }} onClick={() => setIsMobileMenuOpen(false)}>{label}</a>
             ))}
             <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
@@ -629,7 +630,7 @@ export default function LandingPage() {
             <FeatureCard t={t} icon={<Truck style={{ width: "24px", height: "24px", color: "#7C3AED" }} />} title="Porter Management" description="Koordinasi porter dan layanan angkut barang secara efisien untuk kelancaran logistik." onClick={() => navigate("/login?redirect=/admin/porter")} />
             <FeatureCard t={t} icon={<BarChart style={{ width: "24px", height: "24px", color: "#E11D48" }} />} title="Laporan & Analitik" description="Dashboard analitik real-time memberikan insight mendalam untuk pengambilan keputusan strategis." onClick={() => navigate("/login?redirect=/admin/analytics")} />
             <FeatureCard t={t} icon={<Shield style={{ width: "24px", height: "24px", color: dark ? "#94A3B8" : "#334155" }} />} title="Audit Log" description="Rekam jejak aktivitas lengkap memastikan transparansi dan akuntabilitas sistem yang tinggi." onClick={() => navigate("/login?redirect=/admin/audit")} />
-            <FeatureCard t={t} icon={<FileText style={{ width: "24px", height: "24px", color: "#F59E0B" }} />} title="Portal Berita AI" description="Agregator berita pasar real-time & AI summarization terintegrasi dari NewsHybrid." onClick={() => { if (typeof window !== "undefined") window.open("http://103.175.219.57:8090/", "_blank"); }} />
+            <FeatureCard t={t} icon={<FileText style={{ width: "24px", height: "24px", color: "#F59E0B" }} />} title="Manajemen Kontrak" description="Kelola kontrak sewa kios, perpanjangan, dan dokumen SIPTU pedagang secara digital dan terpusat." onClick={() => navigate("/login?redirect=/admin/contracts")} />
           </div>
           <p style={{ textAlign: "center", marginTop: "28px", fontSize: "13px", color: t.body }}>
             Klik fitur di atas untuk langsung mengakses — login otomatis diarahkan.
@@ -660,7 +661,7 @@ export default function LandingPage() {
               Siap Transformasi Pasar Anda?
             </h2>
             <p style={{ fontSize: "18px", color: "#94A3B8", marginBottom: "40px", maxWidth: "500px", margin: "0 auto 40px", lineHeight: "1.7" }}>
-              Tingkatkan efisiensi, transparansi, dan pendapatan daerah dengan SVMS Enterprise.
+              Tingkatkan efisiensi, transparansi, dan pendapatan daerah dengan Sistem Manajemen Pasar Terpadu.
             </p>
             <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
               <button onClick={goToLogin} style={{ background: "#F59E0B", color: "#0F172A", fontWeight: "700", padding: "16px 48px", borderRadius: "12px", border: "none", cursor: "pointer", fontSize: "18px", boxShadow: "0 8px 24px rgba(245,158,11,0.3)", display: "inline-flex", alignItems: "center", gap: "8px" }}>
@@ -683,8 +684,8 @@ export default function LandingPage() {
                 <Shield style={{ width: "24px", height: "24px", color: "#0F172A" }} />
               </div>
               <div>
-                <span style={{ fontWeight: "700", fontSize: "20px", color: "white", display: "block" }}>SVMS Enterprise &amp; NewsHybrid</span>
-                <span style={{ color: t.footerLink, fontSize: "13px" }}>Sistem Manajemen Pasar Terpadu</span>
+                <span style={{ fontWeight: "700", fontSize: "20px", color: "white", display: "block" }}>Sistem Manajemen Pasar Terpadu</span>
+                <span style={{ color: t.footerLink, fontSize: "13px" }}>v6.0 — Dinas Pengelolaan Pasar</span>
               </div>
             </div>
             <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>

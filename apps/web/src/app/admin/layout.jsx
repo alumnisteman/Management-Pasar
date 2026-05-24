@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useRole } from "@/app/useRole";
+import GlobalSearch from "@/app/admin/GlobalSearch";
 import {
   LayoutDashboard,
   Grid3X3,
@@ -223,9 +224,9 @@ export default function AdminLayout({ children }) {
           {sidebarOpen && (
             <div className="overflow-hidden">
               <p className="text-sm font-bold text-white leading-tight">
-                SVMS v6.0
+                SMPT v6.0
               </p>
-              <p className="text-[10px] text-gray-500">Enterprise Edition</p>
+              <p className="text-[10px] text-gray-500">Manajemen Pasar Terpadu</p>
             </div>
           )}
         </div>
@@ -310,6 +311,7 @@ export default function AdminLayout({ children }) {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <GlobalSearch />
             <button className="relative p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white">
               <Bell size={16} />
               <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
