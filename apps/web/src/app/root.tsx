@@ -39,7 +39,7 @@ if (globalThis.window && globalThis.window !== undefined) {
   globalThis.window.fetch = fetch;
 }
 
-const LoadFontsSSR = import.meta.env.SSR ? LoadFonts : null;
+const LoadFontsSSR = null; // Disabled SSR font injection to prevent hydration mismatch
 if (import.meta.hot) {
   import.meta.hot.on('update-font-links', (urls: string[]) => {
     // remove old font links
@@ -400,7 +400,7 @@ export const useHandleScreenshotRequest = () => {
     };
   }, []);
 };
-export function Layout({ children }: { children: ReactNode }) {
+function ClientBehavior({ children }: { children: ReactNode }) {
   useHandshakeParent();
   useHandleScreenshotRequest();
   useDevServerHeartbeat();
@@ -408,9 +408,11 @@ export function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const pathname = location?.pathname;
   const [isMobile, setIsMobile] = useState(false);
+
   useEffect(() => {
     setIsMobile(window.innerWidth < 768);
   }, []);
+
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'sandbox:navigation') {
@@ -426,15 +428,19 @@ export function Layout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (pathname) {
-      window.parent.postMessage(
-        {
-          type: 'sandbox:web:navigation',
-          pathname,
-        },
-        '*'
-      );
+      window.parent.postMessage({ type: 'sandbox:web:navigation', pathname }, '*');
     }
   }, [pathname]);
+
+  return (
+    <>
+      {children}
+      <Toaster position={isMobile ? 'top-center' : 'bottom-right'} />
+    </>
+  );
+}
+
+export function Layout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head suppressHydrationWarning>
@@ -449,11 +455,9 @@ export function Layout({ children }: { children: ReactNode }) {
           <script type="module" src="/src/__create/dev-error-overlay.js"></script>
         )}
         <link rel="icon" href="/src/__create/favicon.png" />
-        {LoadFontsSSR ? <LoadFontsSSR /> : null}
       </head>
       <body>
-        <ClientOnly loader={() => children} />
-        <Toaster position={isMobile ? 'top-center' : 'bottom-right'} />
+        <ClientOnly loader={() => <ClientBehavior>{children}</ClientBehavior>} />
         <ScrollRestoration />
         <Scripts />
         <link rel="preconnect" href="https://ka-p.fontawesome.com" crossOrigin="anonymous" />

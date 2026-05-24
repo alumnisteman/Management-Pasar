@@ -520,7 +520,7 @@ export async function executeSQL(queryStr, values = []) {
 
   if (query.includes('UPDATE bills SET status = \'paid\'')) {
     const id = values[0];
-    const bill = db.bills.find(b => b.id === id);
+    const bill = db.bills.find(b => b.id === Number(id) || b.id === id);
     if (bill) {
       bill.status = 'paid';
       bill.paid_at = new Date().toISOString();
@@ -870,7 +870,7 @@ export async function executeSQL(queryStr, values = []) {
 
   if (query.includes('UPDATE announcements')) {
     const id = values[values.length - 1]; // id is the last parameter
-    const ann = db.announcements.find(a => a.id === id);
+    const ann = db.announcements.find(a => a.id === Number(id) || a.id === id);
     if (!ann) return [];
     
     // Simple positional mapping based on typical query structure
@@ -892,7 +892,7 @@ export async function executeSQL(queryStr, values = []) {
 
   if (query.includes('DELETE FROM announcements')) {
     const id = values[0];
-    db.announcements = db.announcements.filter(a => a.id !== id);
+    db.announcements = db.announcements.filter(a => a.id !== Number(id) && a.id !== id);
     saveDB(db);
     return [{ success: true }];
   }
@@ -916,7 +916,7 @@ export async function executeSQL(queryStr, values = []) {
 
   if (query.includes('UPDATE contracts SET')) {
     const id = values[2] || values[1];
-    const contract = (db.contracts || []).find(c => c.id === id);
+    const contract = (db.contracts || []).find(c => c.id === Number(id) || c.id === id);
     if (contract) {
       if (values[0] !== undefined) contract.status = values[0];
       if (values[1] !== undefined) contract.end_date = values[1];
@@ -928,7 +928,7 @@ export async function executeSQL(queryStr, values = []) {
 
   if (query.includes('DELETE FROM contracts')) {
     const id = values[0];
-    if (db.contracts) db.contracts = db.contracts.filter(c => c.id !== id);
+    if (db.contracts) db.contracts = db.contracts.filter(c => c.id !== Number(id) && c.id !== id);
     saveDB(db);
     return [{ success: true }];
   }
@@ -952,7 +952,7 @@ export async function executeSQL(queryStr, values = []) {
 
   if (query.includes('UPDATE porter_requests SET')) {
     const id = values[values.length - 1];
-    const req = (db.porter_requests || []).find(r => r.id === id);
+    const req = (db.porter_requests || []).find(r => r.id === Number(id) || r.id === id);
     if (req) {
       if (values[0] !== undefined) req.status = values[0];
       if (values[1] !== undefined) req.porter_id = values[1];
