@@ -1,12 +1,12 @@
 services:
   app:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile.prod
     restart: always
     command: sh -c "mkdir -p storage/framework/views storage/framework/cache/data storage/framework/sessions storage/logs && chmod -R 777 storage && php artisan octane:start --server=roadrunner --host=0.0.0.0 --port=8000 & php artisan reverb:start --host=0.0.0.0 --port=8081 --no-interaction & wait"
     volumes:
-      - ./backend:/var/www
+      - .:/var/www
     ports:
       - "8081:8081"
     environment:
@@ -31,12 +31,12 @@ services:
       
   worker:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile.prod
     restart: always
     command: php artisan queue:work --tries=3
     volumes:
-      - ./backend:/var/www
+      - .:/var/www
     environment:
       - DB_CONNECTION=mysql
       - DB_HOST=mysql
@@ -76,7 +76,7 @@ services:
 
   frontend:
     build:
-      context: ./backend/apps/web
+      context: ./apps/web
       dockerfile: Dockerfile
     environment:
       - PORT=4000

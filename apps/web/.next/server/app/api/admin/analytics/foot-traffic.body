@@ -1,0 +1,1 @@
+{"success":true,"data":{"today":{"total":1250,"peak_hour":"09:00","active_zones":["gold","silver"]},"history":[{"date":"2026-05-15","count":1100},{"date":"2026-05-16","count":1300},{"date":"2026-05-17","count":1400},{"date":"2026-05-18","count":1250},{"date":"2026-05-19","count":1320}]}}

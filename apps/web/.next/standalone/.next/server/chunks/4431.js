@@ -1,0 +1,1 @@
+"use strict";exports.id=4431,exports.ids=[4431],exports.modules={34431:(e,t,s)=>{s.d(t,{q:()=>useRole});var u=s(9885);function useRole(){let[e,t]=(0,u.useState)(()=>null),[s,l]=(0,u.useState)(()=>null);return(0,u.useEffect)(()=>{},[]),[e,e=>{},(e,t)=>{},()=>{},s]}}};
