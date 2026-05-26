@@ -4,9 +4,16 @@ services:
       context: .
       dockerfile: Dockerfile.prod
     restart: always
-    command: sh -c "cd /var/www && mkdir -p storage/framework/views storage/framework/cache/data storage/framework/sessions storage/logs && chmod -R 777 storage && php /var/www/artisan octane:start --server=roadrunner --host=0.0.0.0 --port=8000 && php /var/www/artisan reverb:start --host=0.0.0.0 --port=8081 --no-interaction && tail -f /dev/null"
+    command: >
+      sh -c "
+        cd /var/www &&
+        mkdir -p storage/framework/{views,cache/data,sessions} storage/logs &&
+        chmod -R 777 storage &&
+        php artisan octane:start --server=roadrunner --host=0.0.0.0 --port=8000 &&
+        php artisan reverb:start --host=0.0.0.0 --port=8081 --no-interaction &&
+        tail -f /dev/null"
     volumes:
-      - ./backend:/var/www
+      - ./storage:/var/www/storage
     ports:
       - "8081:8081"
     environment:
@@ -28,7 +35,7 @@ services:
       - mysql
       - redis
       - meilisearch
-      
+
   worker:
     build:
       context: .
@@ -36,7 +43,7 @@ services:
     restart: always
     command: php artisan queue:work --tries=3
     volumes:
-      - .:/var/www
+      - ./storage:/var/www/storage
     environment:
       - DB_CONNECTION=mysql
       - DB_HOST=mysql
@@ -49,30 +56,6 @@ services:
     depends_on:
       - mysql
       - redis
-      
-  mysql:
-    image: mysql:8
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: svms
-    volumes:
-      - mysql_data:/var/lib/mysql
-      
-  redis:
-    image: redis:alpine
-    restart: always
-    
-  meilisearch:
-    image: getmeili/meilisearch:latest
-    restart: always
-    environment:
-      - MEILI_MASTER_KEY=svosMasterKey2026
-      - MEILI_NO_ANALYTICS=true
-    volumes:
-      - meilisearch_data:/meili_data
-    ports:
-      - "7701:7700"
 
   frontend:
     build:
@@ -81,8 +64,8 @@ services:
     environment:
       - PORT=4000
       - BACKEND_URL=http://app:8000
-    volumes:
-      - ./apps/web:/var/www
+    ports:
+      - "4000:4000"
     depends_on:
       - app
 
@@ -100,6 +83,79 @@ services:
       - app
       - frontend
 
+  mysql:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: svms
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:alpine
+    restart: always
+
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    restart: always
+    environment:
+      - MEILI_MASTER_KEY=svosMasterKey2026
+      - MEILI_NO_ANALYTICS=true
+    volumes:
+      - meilisearch_data:/meili_data
+    ports:
+      - "7701:7700"
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: svms_cadvisor
+    restart: always
+    ports:
+      - "8082:8080"
+    volumes:
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: svms_prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: svms_grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+  webhook_receiver:
+    build:
+      context: ./webhook_receiver
+      dockerfile: Dockerfile
+    container_name: svms_webhook
+    restart: always
+    ports:
+      - "9000:9000"
+    environment:
+      - REPO_PATH=/var/www/svms/management-pasar
+    volumes:
+      - ./webhook_receiver:/app
+      - /var/www/svms/management-pasar:/var/www/svms/management-pasar
+    depends_on:
+      - app
+
 volumes:
-  mysql_data: null
-  meilisearch_data: null
+  mysql_data:
+  meilisearch_data:
+  prometheus_data:
+  grafana_data:
