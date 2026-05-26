@@ -4,7 +4,8 @@ $Username = "root"
 $Password = "M4ruw4h3@"
 
 # PENTING: Ganti folder di bawah ini sesuai dengan direktori aplikasi Anda di dalam server
-$RemoteDir = "/var/www/svms" 
+$RemoteDir = "/var/www/svms"
+
 
 Write-Host "=============================================" -ForegroundColor Cyan
 Write-Host " Auto-Deploy: Lokal -> GitHub -> Server " -ForegroundColor Cyan
@@ -41,8 +42,8 @@ $Session = New-SSHSession -ComputerName $ServerIp -Credential $Cred -AcceptKey
 if ($Session) {
     Write-Host "[+] Berhasil masuk! Menyuruh server menarik update terbaru..." -ForegroundColor Green
     
+$repoPath = $RemoteDir
 $gitDeployCmd = @'
-repoPath="/var/www/svms"
 if [ -d "${repoPath}/.git" ]; then
     cd ${repoPath}
     git fetch origin master && git reset --hard origin/master
