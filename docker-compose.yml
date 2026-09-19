@@ -1,0 +1,162 @@
+version: "3.8"
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    restart: always
+    working_dir: /var/www/Management-Pasar
+    command: php artisan serve --host=0.0.0.0 --port=8000
+    volumes:
+      - .:/var/www/Management-Pasar
+      - ./storage:/var/www/storage
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=svms
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+      - REDIS_HOST=redis
+      - QUEUE_CONNECTION=redis
+      - REVERB_HOST=0.0.0.0
+      - REVERB_PORT=8081
+      - OCTANE_SERVER=roadrunner
+      - SCOUT_DRIVER=meilisearch
+      - MEILISEARCH_HOST=http://meilisearch:7700
+      - MEILISEARCH_KEY=svosMasterKey2026
+    depends_on:
+      - mysql
+      - redis
+      - meilisearch
+    networks:
+      - svms_network
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    restart: always
+    working_dir: /var/www/Management-Pasar
+    command: php artisan queue:work redis --sleep=3 --tries=3
+    volumes:
+      - .:/var/www/Management-Pasar
+      - ./storage:/var/www/storage
+    environment:
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=svms
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+      - REDIS_HOST=redis
+      - QUEUE_CONNECTION=redis
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - svms_network
+
+  frontend:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    environment:
+      - PORT=4000
+      - BACKEND_URL=http://backend:8000
+    ports:
+      - "4000:4000"
+    networks:
+      - svms_network
+
+  nginx:
+    image: macbre/nginx-brotli:latest
+    container_name: svms_nginx
+    restart: always
+    ports:
+      - "8001:8001"
+      - "8002:8002"
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - svms_network
+
+  mysql:
+    image: mysql:5.7
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=svms
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - svms_network
+
+  redis:
+    image: redis:alpine
+    restart: always
+    networks:
+      - svms_network
+
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    restart: always
+    environment:
+      - MEILI_MASTER_KEY=svosMasterKey2026
+      - MEILI_NO_ANALYTICS=true
+    volumes:
+      - meilisearch_data:/meili_data
+    ports:
+      - "7701:7700"
+    networks:
+      - svms_network
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: svms_cadvisor
+    restart: always
+    ports:
+      - "8082:8080"
+    volumes:
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - svms_network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: svms_grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - svms_network
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus:/etc/prometheus:ro
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    networks:
+      - svms_network
+
+networks:
+  svms_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  meilisearch_data:
+  grafana_data:
+

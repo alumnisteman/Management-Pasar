@@ -1,0 +1,32 @@
+OUTPUT:
+
+   INFO  Running migrations.  
+
+  2026_05_07_104319_optimize_database_indexes .................... 5.76ms FAIL
+
+   Illuminate\Database\QueryException 
+
+  SQLSTATE[42000]: Syntax error or access violation: 1061 Duplicate key name 'slots_code_index' (Connection: mysql, Host: mysql, Port: 3306, Database: svms, SQL: alter table `slots` add index `slots_code_index`(`code`))
+
+  at vendor/laravel/framework/src/Illuminate/Database/Connection.php:841
+    837▕             $exceptionType = ($isUniqueConstraintError = $this->isUniqueConstraintError($e))
+    838▕                 ? UniqueConstraintViolationException::class
+    839▕                 : QueryException::class;
+    840▕ 
+  ➜ 841▕             $exception = new $exceptionType(
+    842▕                 $this->getNameWithReadWriteType(),
+    843▕                 $query,
+    844▕                 $this->prepareBindings($bindings),
+    845▕                 $e,
+
+      [2m+9 vendor frames [22m
+
+  10  database/migrations/2026_05_07_104319_optimize_database_indexes.php:11
+      Illuminate\Support\Facades\Facade::__callStatic("table")
+      [2m+26 vendor frames [22m
+
+  37  artisan:16
+      Illuminate\Foundation\Application::handleCommand(Object(Symfony\Component\Console\Input\ArgvInput))
+
+
+ERROR:

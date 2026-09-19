@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SVMS Admin – Secured Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" />
+  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg: #020617;
+      --card: #0f172a;
+      --border: #1e293b;
+      --primary: #6366f1;
+      --accent: #d946ef;
+      --text: #f8fafc;
+      --muted: #64748b;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --basah: #38bdf8;
+      --kering: #4ade80;
+      --kuliner: #fb923c;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ─── Login Gate ─── */
+    #login-gate {
+      position: fixed; inset: 0; background: var(--bg); z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column;
+    }
+    .login-box {
+      width: 400px; padding: 48px; background: var(--card); border: 1px solid var(--border);
+      border-radius: 32px; text-align: center;
+    }
+    .login-input {
+      width: 100%; padding: 14px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 14px; color: #fff; margin-top: 24px; outline: none; text-align: center;
+    }
+
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px; height: 64px; background: var(--card); border-bottom: 1px solid var(--border);
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-icon {
+      width: 42px; height: 42px; border-radius: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; box-shadow: 0 0 40px rgba(99, 102, 241, 0.4);
+    }
+    .logo-text { font-weight: 800; font-size: 26px; letter-spacing: -0.04em; }
+
+    .tabs {
+      display: flex; background: var(--card); border-bottom: 1px solid var(--border);
+      padding: 0 32px; gap: 24px; flex-shrink: 0;
+    }
+    .tab {
+      padding: 16px 4px; font-size: 13px; font-weight: 600; color: var(--muted);
+      cursor: pointer; border-bottom: 2px solid transparent; transition: 0.3s;
+    }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    .main { display: flex; flex: 1; overflow: hidden; }
+    .sidebar { width: 500px; background: var(--card); border-right: 1px solid var(--border); overflow-y: auto; }
+    .sidebar-section { padding: 24px; border-bottom: 1px solid var(--border); }
+    .sidebar-title { font-size: 11px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+
+    .pulse-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .pulse-card { background: var(--bg); border: 1px solid var(--border); border-radius: 18px; padding: 20px; border-top: 4px solid var(--primary); }
+    .pulse-val { font-size: 24px; font-weight: 800; margin-top: 6px; }
+
+    .grid-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .grid-box { aspect-ratio: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
+    .grid-box.basah { border-color: var(--basah); color: var(--basah); }
+    .grid-box.kering { border-color: var(--kering); color: var(--kering); }
+    .grid-box.kuliner { border-color: var(--kuliner); color: var(--kuliner); }
+    .grid-box.occupied { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    .item-card { background: var(--bg); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .btn-action { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary), var(--accent)); border: none; border-radius: 14px; color: #fff; font-weight: 700; cursor: pointer; }
+    
+    #map { flex: 1; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 28px; padding: 32px; width: 500px; }
+  </style>
+</head>
+<body>
+
+  <!-- 🛑 Login Gate -->
+  <div id="login-gate">
+    <div class="login-box">
+      <div class="logo-icon" style="margin: 0 auto 24px;">🧠</div>
+      <h2 style="font-weight: 800;">Admin SVMS</h2>
+      <p style="color: var(--muted); font-size: 14px; margin-top: 8px;">Silakan masukkan PIN akses Anda.</p>
+      <input type="password" class="login-input" id="admin-pin" placeholder="••••" maxlength="4">
+      <button class="btn-action" style="margin-top: 24px;" onclick="checkPin()">Masuk Dashboard</button>
+    </div>
+  </div>
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🏢</div>
+      <div class="logo-text">SV<span>MS</span> <small style="font-size: 10px; opacity: 0.5; font-weight: 400; margin-left: 4px;">v5.1 - Secured Admin</small></div>
+    </div>
+    <div style="font-size:11px; color:var(--success); font-weight:700" onclick="logout()">LOGOUT</div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-pulse" onclick="switchTab('pulse')">⚡ EXECUTIVE PULSE</div>
+    <div class="tab" id="tab-grid" onclick="switchTab('grid')">🔳 ZONASI & LAPAK</div>
+    <div class="tab" id="tab-vendors" onclick="switchTab('vendors')">👤 DAFTAR PEDAGANG</div>
+    <div class="tab" id="tab-audit" onclick="switchTab('audit')">🛡️ AUDIT & KEAMANAN</div>
+  </div>
+
+  <div class="main">
+    <div class="sidebar">
+      <div id="sidebar-pulse">
+        <div class="sidebar-section">
+          <div class="sidebar-title">RINGKASAN EKSEKUTIF 📊</div>
+          <div class="pulse-grid">
+            <div class="pulse-card"><div class="pulse-lbl">Revenue Today</div><div class="pulse-val" id="rev-val">Rp 0</div></div>
+            <div class="pulse-card" style="border-top-color:var(--danger)"><div class="pulse-lbl">Tunggakan</div><div class="pulse-val">Rp 450k</div></div>
+            <div class="pulse-card" style="border-top-color:var(--success)"><div class="pulse-lbl">Compliance</div><div class="pulse-val">98.2%</div></div>
+            <div class="pulse-card"><div class="pulse-lbl">Lapak Terisi</div><div class="pulse-val" id="fill-rate">0%</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="sidebar-grid" style="display: none;">
+        <div class="sidebar-section">
+          <div class="sidebar-title">KONTROL LAPANGAN 🔳</div>
+          <div class="grid-container" id="grid-view"></div>
+        </div>
+        <div class="sidebar-section">
+          <div id="placement-detail" style="font-size:12px; color:var(--muted)">Klik slot untuk manajemen.</div>
+        </div>
+      </div>
+
+      <div id="sidebar-vendors" style="display: none;">
+        <div class="sidebar-section">
+          <button class="btn-action" onclick="openModal('vendor')">+ REGISTRASI PEDAGANG BARU</button>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-title">DAFTAR PEDAGANG VALID 👤</div>
+          <div id="vendor-list"></div>
+        </div>
+      </div>
+    </div>
+    <div id="map"></div>
+  </div>
+
+  <div class="modal-overlay" id="modal">
+    <div class="modal" id="modal-content"></div>
+  </div>
+
+  <script>
+    const API = 'http://103.175.219.57:8001/api';
+    let traders = [];
+    let slots = [];
+    let map;
+
+    // 🔒 Auth Logic
+    function checkPin() {
+      const pin = document.getElementById('admin-pin').value;
+      if (pin === '1234') { // Default PIN
+        localStorage.setItem('svms_auth', 'true');
+        document.getElementById('login-gate').style.display = 'none';
+        initApp();
+      } else {
+        alert('PIN Salah!');
+      }
+    }
+
+    if (localStorage.getItem('svms_auth') === 'true') {
+      document.getElementById('login-gate').style.display = 'none';
+      initApp();
+    }
+
+    function logout() {
+      localStorage.removeItem('svms_auth');
+      location.reload();
+    }
+
+    function initApp() {
+      map = new maplibregl.Map({
+        container: 'map',
+        style: { version: 8, sources: { osm: { type: 'raster', tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'], tileSize: 256 } }, layers: [{ id: 'osm', type: 'raster', source: 'osm' }] },
+        center: [127.385, 0.793], zoom: 14
+      });
+      map.on('load', () => { refreshAll(); });
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(`tab-${tab}`).classList.add('active');
+      ['pulse', 'grid', 'vendors'].forEach(k => document.getElementById(`sidebar-${k}`).style.display = tab === k ? 'block' : 'none');
+      if (tab === 'pulse') fetchIntel();
+    }
+
+    async function refreshAll() { fetchIntel(); fetchTraders(); fetchSlots(); }
+
+    async function fetchIntel() {
+      const resPulse = await fetch(`${API}/market/pulse`);
+      const dataPulse = await resPulse.json();
+      document.getElementById('fill-rate').textContent = dataPulse.compliance_rate + '%';
+      const resPay = await fetch(`${API}/market/payments`);
+      const payments = await resPay.json();
+      let total = 0; payments.forEach(p => total += parseFloat(p.amount_paid));
+      document.getElementById('rev-val').textContent = 'Rp ' + total.toLocaleString();
+    }
+
+    async function fetchTraders() {
+      const res = await fetch(`${API}/vendors`);
+      traders = await res.json();
+      document.getElementById('vendor-list').innerHTML = traders.map(t => `<div class="item-card"><div><b>${t.name}</b><br><small>${t.nik}</small></div></div>`).join('');
+    }
+
+    async function fetchSlots() {
+      const res = await fetch(`${API}/grid-slots`);
+      slots = await res.json();
+      document.getElementById('grid-view').innerHTML = slots.map(s => `<div class="grid-box ${s.category || 'umum'} ${s.status === 'active' ? '' : 'occupied'}" onclick="selectSlot(${s.id})"><div style="font-size:13px; font-weight:900;">${s.code}</div></div>`).join('');
+    }
+
+    function selectSlot(id) {
+      const slot = slots.find(s => s.id === id);
+      document.getElementById('placement-detail').innerHTML = `<div class="item-card"><div><b>Slot ${slot.code}</b></div></div><button class="btn-action" style="margin-top:10px;" onclick="openModal('booking', ${slot.id})">PROSES IZIN</button>`;
+    }
+
+    function openModal(type, slotId) {
+      const modal = document.getElementById('modal');
+      const content = document.getElementById('modal-content');
+      modal.classList.add('open');
+      if (type === 'booking') {
+        content.innerHTML = `<h3>Penerbitan Izin</h3><select class="form-input" id="b-vendor">${traders.map(v=>`<option value="${v.id}">${v.name}</option>`).join('')}</select><button class="btn-action" style="margin-top:20px;" onclick="processBooking(${slotId})">Konfirmasi</button>`;
+      }
+    }
+
+    async function processBooking(slotId) {
+      const body = { slot_id:slotId, vendor_id:document.getElementById('b-vendor').value, shift:'pagi', date:new Date().toISOString().split('T')[0] };
+      await fetch(`${API}/grid-book`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      closeModal(); refreshAll();
+    }
+
+    function closeModal() { document.getElementById('modal').classList.remove('open'); }
+  </script>
+</body>
+</html>

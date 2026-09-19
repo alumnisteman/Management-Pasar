@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SVMS v5.0 – Intelligence Governance</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" />
+  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pusher/8.3.0/pusher.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
+  <style>
+    :root {
+      --bg: #020617;
+      --card: #0f172a;
+      --border: #1e293b;
+      --primary: #6366f1;
+      --accent: #d946ef;
+      --text: #f8fafc;
+      --muted: #64748b;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --basah: #38bdf8;
+      --kering: #4ade80;
+      --kuliner: #fb923c;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      height: 64px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+    .logo { display: flex; align-items: center; gap: 12px; }
+    .logo-icon {
+      width: 42px; height: 42px; border-radius: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; box-shadow: 0 0 40px rgba(99, 102, 241, 0.4);
+    }
+    .logo-text { font-weight: 800; font-size: 26px; letter-spacing: -0.04em; }
+
+    .tabs {
+      display: flex; background: var(--card); border-bottom: 1px solid var(--border);
+      padding: 0 32px; gap: 24px; flex-shrink: 0; overflow-x: auto;
+    }
+    .tab {
+      padding: 16px 4px; font-size: 13px; font-weight: 600; color: var(--muted);
+      cursor: pointer; border-bottom: 2px solid transparent; transition: 0.3s;
+      white-space: nowrap;
+    }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    .main { display: flex; flex: 1; overflow: hidden; }
+
+    .sidebar {
+      width: 500px; background: var(--card); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow-y: auto;
+    }
+    .sidebar-section { padding: 24px; border-bottom: 1px solid var(--border); }
+    .sidebar-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 16px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    /* Executive Stats */
+    .pulse-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .pulse-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 18px;
+      padding: 20px; border-top: 4px solid var(--primary);
+    }
+    .pulse-val { font-size: 24px; font-weight: 800; margin-top: 6px; }
+    .pulse-lbl { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+
+    /* Grid & Zoning */
+    .grid-container {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+    }
+    .grid-box {
+      aspect-ratio: 1; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; transition: 0.2s;
+    }
+    .grid-box.basah { border-color: var(--basah); color: var(--basah); }
+    .grid-box.kering { border-color: var(--kering); color: var(--kering); }
+    .grid-box.kuliner { border-color: var(--kuliner); color: var(--kuliner); }
+    .grid-box.pelataran { border-color: #64748b; color: #64748b; }
+    .grid-box.occupied { background: var(--primary); color: #fff; border-color: var(--primary); }
+    /* Button Action styling */
+    .btn-action {
+        background: var(--primary);
+        color: #fff;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 600;
+        transition: 0.2s;
+        margin: 4px;
+    }
+    .btn-action:hover {
+        opacity: 0.9;
+    }
+
+    .item-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 16px;
+      padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .btn-action {
+      width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary), var(--accent));
+      border: none; border-radius: 14px; color: #fff; font-weight: 700; cursor: pointer; display: inline-block;
+    }
+
+    #map { flex: 1; }
+
+    /* Notifications */
+    .notif-wrapper { position: relative; cursor: pointer; display: flex; align-items: center; margin-left: 20px; }
+    .notif-bell { font-size: 20px; color: var(--text); transition: transform 0.2s; }
+    .notif-bell:hover { transform: scale(1.1); }
+    .notif-badge {
+      position: absolute; top: -5px; right: -5px; background: var(--danger);
+      color: #fff; font-size: 10px; font-weight: 700; border-radius: 50%;
+      width: 16px; height: 16px; display: none; align-items: center; justify-content: center;
+      border: 2px solid var(--card);
+    }
+    .notif-dropdown {
+      position: absolute; top: 100%; right: 0; width: 300px; background: var(--card);
+      border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      z-index: 1001; display: none; flex-direction: column; overflow: hidden; margin-top: 10px;
+    }
+    .notif-dropdown.show { display: flex; }
+    .notif-header { padding: 12px; border-bottom: 1px solid var(--border); font-weight: 700; font-size: 12px; display: flex; justify-content: space-between; }
+    .notif-item { padding: 12px; border-bottom: 1px solid var(--border); font-size: 11px; cursor: pointer; transition: background 0.2s; }
+    .notif-item:hover { background: rgba(255,255,255,0.05); }
+    .notif-item.unread { border-left: 3px solid var(--primary); }
+    .notif-footer { padding: 8px; text-align: center; font-size: 10px; color: var(--primary); cursor: pointer; }
+
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+      z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(10px);
+    }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: 28px; padding: 32px; width: 500px; }
+    .form-group { margin-bottom: 16px; }
+    .form-input {
+      width: 100%; padding: 12px 16px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 12px; color: var(--text); font-size: 14px; outline: none; margin-top: 8px;
+      transition: all 0.2s ease;
+    }
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+    /* Porter Portal High-Fidelity Styles */
+    .porter-portal {
+      background: #f8fafc; border-radius: 20px; padding: 20px; color: #1e293b;
+      margin-top: 15px; font-family: 'Inter', sans-serif;
+    }
+    .porter-card {
+      background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px;
+      padding: 15px; margin-bottom: 12px; transition: all 0.2s;
+    }
+    .porter-card:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .porter-stat-grid { display: grid; grid-cols: 2; gap: 10px; margin-bottom: 15px; }
+    .porter-stat-box { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center; }
+    .porter-stat-val { font-size: 16px; font-weight: 800; color: #0f172a; }
+    .porter-stat-lbl { font-size: 10px; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
+    
+    .porter-tab-bar { display: flex; gap: 5px; background: #e2e8f0; padding: 4px; border-radius: 10px; margin-bottom: 15px; }
+    .porter-subtab { 
+      flex: 1; padding: 6px; text-align: center; font-size: 10px; font-weight: 700; 
+      border-radius: 7px; cursor: pointer; transition: 0.2s; color: #64748b;
+    }
+    .porter-subtab.active { background: #fff; color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    
+    .progress-ring { width: 40px; height: 40px; }
+    .progress-ring__circle {
+      transition: stroke-dashoffset 0.35s; transform: rotate(-90deg); transform-origin: 50% 50%;
+    }
+    
+    .weight-pill { font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: 700; }
+    .weight-light { background: #f0fdf4; color: #16a34a; }
+    .weight-medium { background: #eff6ff; color: #2563eb; }
+    .weight-heavy { background: #fff7ed; color: #ea580c; }
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      background-size: 16px;
+      padding-right: 40px;
+      cursor: pointer;
+    }
+    select.form-input:hover {
+      border-color: var(--primary);
+    }
+    .modal-label {
+      font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 8px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🧠</div>
+      <div class="logo-text">SV<span>MS</span> <small style="font-size: 10px; opacity: 0.5; font-weight: 400; margin-left: 4px;">v5.0 - Intelligence Edition</small></div>
+    </div>
+    <div style="display: flex; align-items: center;">
+      <div style="font-size:11px; color:var(--success); font-weight:700">● REAL-TIME ANALYTICS ACTIVE</div>
+      <div class="notif-wrapper" onclick="toggleNotif()">
+        <span class="notif-bell">🔔</span>
+        <div class="notif-badge" id="notif-badge">0</div>
+        <div class="notif-dropdown" id="notif-dropdown">
+          <div class="notif-header">
+            <span>NOTIFIKASI BARU</span>
+            <span onclick="markAllRead(event)" style="color:var(--primary); cursor:pointer; font-size:10px;">Tandai Dibaca</span>
+          </div>
+          <div id="notif-items">
+            <!-- Notifications will be injected here -->
+            <div class="notif-item" style="text-align:center; color:var(--text-dim)">Tidak ada notifikasi baru</div>
+          </div>
+          <div class="notif-footer">Lihat Semua Riwayat Audit</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-pulse" onclick="switchTab('pulse')">⚡ EXECUTIVE PULSE</div>
+    <div class="tab" id="tab-grid" onclick="switchTab('grid')">🔳 ZONASI & LAPAK</div>
+    <div class="tab" id="tab-vendors" onclick="switchTab('vendors')">👤 DAFTAR PEDAGANG</div>
+    <div class="tab" id="tab-permits" onclick="switchTab('permits')">📜 MANAJEMEN IZIN</div>
+    <div class="tab" id="tab-porter" onclick="switchTab('porter')">📦 KULI PANGGUL</div>
+
+    <div class="tab" id="tab-pemberdayaan" onclick="switchTab('pemberdayaan')">🚀 PEMBERDAYAAN UMKM</div>
+    <div class="tab" id="tab-complaints" onclick="switchTab('complaints')">🚨 PENGADUAN</div>
+    <div class="tab" id="tab-arrears" onclick="switchTab('arrears')">💸 TUNGGAKAN</div>
+    <div class="tab" id="tab-audit" onclick="switchTab('audit')">🛡️ AUDIT & KEAMANAN</div>
+  </div>
+
+  <div class="main">
+    <div class="sidebar">
+      
+      <!-- 1. Executive Pulse (Intelligence) -->
+      <div id="sidebar-pulse">
+        <div class="sidebar-section">
+          <div class="sidebar-title">RINGKASAN EKSEKUTIF (HARI INI) 📊</div>
+          <div class="pulse-grid">
+            <div class="pulse-card"><div class="pulse-lbl">Revenue Today</div><div class="pulse-val" id="rev-val">Rp 0</div></div>
+            <div class="pulse-card" style="border-top-color:var(--accent)"><div class="pulse-lbl">Revenue Month</div><div class="pulse-val" id="rev-month">Rp 0</div></div>
+            <div class="pulse-card" style="border-top-color:var(--success)"><div class="pulse-lbl">Compliance</div><div class="pulse-val" id="comp-rate">0%</div></div>
+            <div class="pulse-card"><div class="pulse-lbl">Lapak Terisi</div><div class="pulse-val" id="fill-rate">0%</div></div>
+          </div>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-title">OPERASIONAL & PENGADUAN 🚨</div>
+          <div class="pulse-grid">
+            <div class="pulse-card" style="border-top-color:var(--danger)"><div class="pulse-lbl">Pengaduan Aktif</div><div class="pulse-val" id="active-complaints">0</div></div>
+            <div class="pulse-card" style="border-top-color:var(--basah)"><div class="pulse-lbl">Total Pedagang</div><div class="pulse-val" id="total-traders">0</div></div>
+          </div>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-title">TREN PENDAPATAN MINGGUAN 📈</div>
+          <div style="height: 100px; display: flex; align-items: flex-end; gap: 8px; padding-top: 10px;">
+            <div style="flex:1; height:40%; background:var(--primary); border-radius:4px 4px 0 0;"></div>
+            <div style="flex:1; height:60%; background:var(--primary); border-radius:4px 4px 0 0;"></div>
+            <div style="flex:1; height:50%; background:var(--primary); border-radius:4px 4px 0 0;"></div>
+            <div style="flex:1; height:80%; background:var(--primary); border-radius:4px 4px 0 0;"></div>
+            <div style="flex:1; height:90%; background:var(--accent); border-radius:4px 4px 0 0;"></div>
+            <div style="flex:1; height:10%; background:var(--muted); border-radius:4px 4px 0 0;"></div>
+            <div style="flex:1; height:5%; background:var(--muted); border-radius:4px 4px 0 0;"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:8px; color:var(--muted); margin-top:8px;">
+            <span>SEN</span><span>SEL</span><span>RAB</span><span>KAM</span><span>JUM</span><span>SAB</span><span>MIN</span>
+          </div>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-title">NOTIFIKASI WHATSAPP PEDAGANG 🔔</div>
+          <p style="font-size: 12px; color: var(--muted);">Sistem akan otomatis mengirimkan bukti bayar digital ke nomor WhatsApp pedagang yang valid.</p>
+        </div>
+      </div>
+
+      <!-- 2. Grid & Zoning -->
+      <div class="sidebar-section">
+          <button class="btn-action" id="pelataran-toggle" onclick="togglePelataranFilter()">🔶 FILTER PELATARAN (OFF)</button>
+          <button class="btn-action" onclick="exportPelataranReport()">⬇️ EXPORT PELATARAN CSV</button>
+      </div>
+      <div id="sidebar-grid" style="display: none;">
+        <div class="sidebar-section">
+          <div class="sidebar-title">KONTROL LAPANGAN 🔳 <button onclick="openModal('add-slot')" style="background:none; border:none; color:var(--primary); font-size:10px; cursor:pointer;">+ ADD SLOT</button></div>
+          <div class="grid-container" id="grid-view"></div>
+          <div style="display:flex; gap:10px; margin-top:12px; font-size:8px; font-weight:800;">
+            <div style="display:flex; align-items:center; gap:4px;"><div style="width:8px; height:8px; background:var(--basah); border-radius:2px;"></div> BASAH</div>
+            <div style="display:flex; align-items:center; gap:4px;"><div style="width:8px; height:8px; background:var(--kering); border-radius:2px;"></div> KERING</div>
+            <div style="display:flex; align-items:center; gap:4px;"><div style="width:8px; height:8px; background:var(--kuliner); border-radius:2px;"></div> KULINER</div>
+            <div style="display:flex; align-items:center; gap:4px;"><div style="width:8px; height:8px; background:#64748b; border-radius:2px;"></div> PELATARAN</div>
+          </div>
+        </div>
+        <div class="sidebar-section" id="grid-detail-panel">
+          <div class="sidebar-title">DETAIL PENEMPATAN & ANTI-FRAUD</div>
+          <div id="placement-detail" style="font-size:12px; color:var(--muted)">Klik slot untuk manajemen.</div>
+        </div>
+      </div>
+
+      <!-- 3. Vendors -->
+      <div id="sidebar-vendors" style="display: none;">
+        <div class="sidebar-section">
+          <button class="btn-action" onclick="openModal('vendor')">+ REGISTRASI PEDAGANG BARU</button>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-title">DAFTAR PEDAGANG VALID 👤</div>
+          <div id="vendor-list"></div>
+        </div>
+      </div>
+
+      <!-- 4. Permits -->
+      <div id="sidebar-permits" style="display: none;">
+        <div class="sidebar-section">
+          <div class="sidebar-title">DAFTAR IZIN TERBIT (REALTIME) 📜</div>
+          <div id="permit-list"></div>
+        </div>
+      </div>
+
+      <!-- 5. Audit -->
+      <div id="sidebar-audit" style="display: none;">
+        <div class="sidebar-section">
+          <div class="sidebar-title">SISTEM AUDIT TRANSPARAN 🛡️</div>
+          <div id="audit-list" style="font-family:monospace; font-size:10px; background:#020617; padding:15px; border-radius:12px; max-height:400px; overflow-y:auto;">
+            Memuat audit log...
+          </div>
+        </div>
+      <!-- Porter Module (Kuli Panggul) - High Fidelity Portal -->
+      <div id="sidebar-porter" style="display: none;">
+        <div class="porter-portal">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <div style="font-weight:800; font-size:16px; letter-spacing:-0.5px;">Porter Portal</div>
+            <button class="btn-action" style="padding:6px 12px; font-size:10px; width:auto;" onclick="openAssignPorterModal()">+ ORDER</button>
+          </div>
+
+          <div class="porter-tab-bar">
+            <div class="porter-subtab active" onclick="switchPorterSubTab('dash')">Dashboard</div>
+            <div class="porter-subtab" onclick="switchPorterSubTab('inc')">Insentif</div>
+            <div class="porter-subtab" onclick="switchPorterSubTab('mgt')">Manajemen</div>
+          </div>
+
+          <!-- Porter Dash View -->
+          <div id="porter-view-dash">
+            <div class="porter-stat-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
+              <div class="porter-stat-box">
+                <div class="porter-stat-lbl">Job Selesai</div>
+                <div class="porter-stat-val" id="porter-total-jobs">0</div>
+              </div>
+              <div class="porter-stat-box">
+                <div class="porter-stat-lbl">Rating Avg</div>
+                <div class="porter-stat-val" id="porter-avg-rating">5.0</div>
+              </div>
+            </div>
+            
+            <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:10px; text-transform:uppercase;">Order Aktif Saat Ini</div>
+            <div id="porter-active-jobs">
+              <p style="font-size:11px; color:#94a3b8; text-align:center; padding:20px;">Memuat antrean...</p>
+            </div>
+          </div>
+
+          <!-- Porter Management View -->
+          <div id="porter-view-mgt" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Status Personel</div>
+              <button class="btn-action" style="padding:4px 8px; font-size:9px; width:auto; background:#10b981;" onclick="openRegisterPorterModal()">+ REGISTRASI</button>
+            </div>
+            <div id="porter-list">
+              Memuat kuli...
+            </div>
+          </div>
+          
+          <!-- Porter Incentive View -->
+          <div id="porter-view-inc" style="display:none;">
+            <div class="porter-card" style="background: linear-gradient(135deg, #6366f1, #a855f7); color:#fff; border:none;">
+              <div style="font-size:10px; opacity:0.8; font-weight:700; text-transform:uppercase;">Tier Terkini</div>
+              <div style="font-size:20px; font-weight:800; margin:5px 0;">🥇 Gold Tier</div>
+              <div style="font-size:11px; opacity:0.9;">Potensi Bonus: Rp 100.000</div>
+            </div>
+            <div id="porter-inc-list">
+               <!-- Incentive details -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Pemberdayaan UMKM -->
+      <div id="sidebar-pemberdayaan" style="display: none;">
+        <div class="sidebar-section">
+          <button class="btn-action" onclick="openModal('training')">+ BUAT PELATIHAN BARU</button>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-title">PROGRAM PELATIHAN & BANTUAN 🎓</div>
+          <div id="training-list">Memuat pelatihan...</div>
+        </div>
+      </div>
+
+      <!-- 7. Complaints -->
+      <div id="sidebar-complaints" style="display: none;">
+        <div class="sidebar-section">
+          <div class="sidebar-title">PENGADUAN & KERUSAKAN 🚨</div>
+          <div id="complaint-list" style="font-size:12px;">Memuat pengaduan...</div>
+        </div>
+      </div>
+
+      <!-- 8. Arrears -->
+      <div id="sidebar-arrears" style="display: none;">
+        <div class="sidebar-section">
+          <div class="sidebar-title">MONITORING TUNGGAKAN REALTIME 💸</div>
+          <div id="arrears-list" style="font-size:12px;">Memuat tunggakan...</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="map"></div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal" id="modal-content"></div>
+  </div>
+
+  <script>
+    const API = 'http://103.175.219.57:8001/api';
+    let traders = [];
+    let slots = [];
+    let map;
+    let traderPage = 1;
+    let lastNotifId = 0;
+
+    // Polling Notifications every 30 seconds
+    setInterval(fetchNotifications, 30000);
+    // Initial fetch
+    setTimeout(fetchNotifications, 2000);
+
+    function toggleNotif() {
+      const dropdown = document.getElementById('notif-dropdown');
+      dropdown.classList.toggle('show');
+    }
+
+    async function fetchNotifications() {
+      try {
+        const res = await fetch(`${API}/market/notifications?limit=5`);
+        const notifications = await res.json();
+        
+        const badge = document.getElementById('notif-badge');
+        const container = document.getElementById('notif-items');
+        
+        if (notifications.length > 0) {
+          badge.textContent = notifications.length;
+          badge.style.display = 'flex';
+          
+          container.innerHTML = notifications.map(n => `
+            <div class="notif-item unread" onclick="handleNotifClick('${n.id}')">
+              <div style="font-weight:700; color:var(--primary); margin-bottom:4px;">${n.module || 'SYSTEM'}</div>
+              <div>${n.message || 'Pesan otomatis sistem'}</div>
+              <div style="font-size:9px; color:var(--text-dim); margin-top:6px;">${new Date(n.created_at).toLocaleTimeString()}</div>
+            </div>
+          `).join('');
+        } else {
+          badge.style.display = 'none';
+          container.innerHTML = '<div class="notif-item" style="text-align:center; color:var(--text-dim)">Tidak ada notifikasi baru</div>';
+        }
+      } catch (e) {
+        console.warn("Notification polling failed", e);
+      }
+    }
+
+    function markAllRead(e) {
+      if (e) e.stopPropagation();
+      document.getElementById('notif-badge').style.display = 'none';
+      document.querySelectorAll('.notif-item').forEach(el => el.classList.remove('unread'));
+    }
+
+    function handleNotifClick(id) {
+      // In a real app, mark this specific ID as read on server
+      Toastify({ text: "Membuka detail audit...", gravity: "top", position: "right", backgroundColor: "var(--primary)" }).showToast();
+      switchTab('audit');
+      toggleNotif();
+    }
+
+
+    map = new maplibregl.Map({
+      container: 'map',
+      style: {
+        version: 8, sources: { osm: { type: 'raster', tiles: ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'], tileSize: 256 } },
+        layers: [{ id: 'osm', type: 'raster', source: 'osm' }]
+      },
+      center: [127.385, 0.793], zoom: 14
+    });
+
+    map.on('load', () => { refreshAll(); });
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(`tab-${tab}`).classList.add('active');
+      ['pulse', 'grid', 'vendors', 'permits', 'audit', 'pemberdayaan', 'complaints', 'arrears', 'porter'].forEach(k => {
+        const el = document.getElementById(`sidebar-${k}`);
+        if (el) el.style.display = tab === k ? 'block' : 'none';
+      });
+      
+      if (tab === 'pulse') fetchIntel();
+      if (tab === 'grid') fetchSlots();
+      if (tab === 'vendors') fetchTraders();
+      if (tab === 'permits') fetchPermits();
+      if (tab === 'audit') fetchAudit();
+      if (tab === 'pemberdayaan') fetchTrainings();
+      if (tab === 'complaints') fetchComplaints();
+      if (tab === 'arrears') fetchArrears();
+      if (tab === 'porter') fetchPorters();
+    }
+
+
+    async function refreshAll() { fetchIntel(); fetchTraders(traderPage); fetchSlots(); fetchPermits(); }
+
+    async function fetchIntel() {
+      const res = await fetch(`${API}/command-center/stats`);
+      const data = await res.json();
+      
+      document.getElementById('rev-val').textContent = 'Rp ' + parseFloat(data.revenue_today).toLocaleString();
+      document.getElementById('rev-month').textContent = 'Rp ' + parseFloat(data.revenue_month).toLocaleString();
+      document.getElementById('comp-rate').textContent = data.compliance_rate + '%';
+      document.getElementById('fill-rate').textContent = data.occupancy_rate + '%';
+      document.getElementById('active-complaints').textContent = data.active_complaints;
+      document.getElementById('total-traders').textContent = data.total_traders;
+    }
+
+    function switchPorterSubTab(sub) {
+      document.querySelectorAll('.porter-subtab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      ['dash', 'inc', 'mgt'].forEach(k => {
+        document.getElementById(`porter-view-${k}`).style.display = sub === k ? 'block' : 'none';
+      });
+      if (sub === 'mgt') fetchPortersList();
+      if (sub === 'dash') fetchPorterJobs();
+    }
+
+    async function fetchPorters() {
+      // Just a trigger for initial view
+      fetchPorterJobs();
+      fetchPorterStats();
+    }
+
+    async function fetchPorterStats() {
+      const res = await fetch(`${API}/porters`);
+      const porters = await res.json();
+      const totalJobs = porters.reduce((acc, p) => acc + (p.daily_earnings / 15000), 0); // Mock calculation
+      const avgRating = porters.reduce((acc, p) => acc + parseFloat(p.rating), 0) / porters.length;
+      
+      document.getElementById('porter-total-jobs').textContent = Math.round(totalJobs);
+      document.getElementById('porter-avg-rating').textContent = avgRating.toFixed(1);
+    }
+
+    async function fetchPortersList() {
+      const res = await fetch(`${API}/porters`);
+      const porters = await res.json();
+      const list = document.getElementById('porter-list');
+      list.innerHTML = porters.map(p => `
+        <div class="porter-card">
+          <div style="display:flex; justify-content:space-between; align-items:start;">
+            <div>
+              <div style="font-weight:700; font-size:13px; color:#1e293b;">${p.name}</div>
+              <div style="font-size:10px; color:#64748b; margin-top:2px;">ID: ${p.id_number}</div>
+            </div>
+            <span class="weight-pill" style="background:${p.status === 'available' ? '#f0fdf4' : '#eff6ff'}; color:${p.status === 'available' ? '#16a34a' : '#2563eb'};">
+              ${p.status.toUpperCase()}
+            </span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:1px solid #f1f5f9;">
+            <div style="font-size:11px; font-weight:600; color:#475569;">⭐ ${parseFloat(p.rating).toFixed(1)}</div>
+            <button onclick="viewPorterDetail(${p.id})" style="font-size:10px; font-weight:700; color:var(--primary); background:none; border:none; cursor:pointer;">MANAGE</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function fetchPorterJobs() {
+      const res = await fetch(`${API}/jobs`);
+      const jobs = await res.json();
+      const active = jobs.filter(j => j.status !== 'completed');
+      
+      const list = document.getElementById('porter-active-jobs');
+      if (active.length === 0) {
+        list.innerHTML = '<p style="font-size:11px; color:#94a3b8; text-align:center; padding:20px;">Semua tugas telah selesai</p>';
+        return;
+      }
+
+      list.innerHTML = active.map(j => `
+        <div class="porter-card" style="border-left:4px solid #6366f1;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+             <span class="weight-pill weight-${j.weight_category.toLowerCase()}">${j.weight_category}</span>
+             <span style="font-weight:800; font-size:12px; color:#0f172a;">Rp ${parseFloat(j.fee).toLocaleString()}</span>
+          </div>
+          <div style="font-size:12px; font-weight:700; margin-bottom:4px;">${j.customer_name || 'Pelanggan'}</div>
+          <div style="font-size:10px; color:#64748b; display:flex; align-items:center; gap:5px;">
+            📍 ${j.location_from} <span style="color:#cbd5e1;">→</span> ${j.location_to}
+          </div>
+          <div style="margin-top:12px; display:flex; gap:8px;">
+            <button onclick="updateJobStatus(${j.id}, 'completed')" style="flex:1; background:#6366f1; color:#fff; border:none; padding:6px; border-radius:6px; font-size:10px; font-weight:700; cursor:pointer;">SELESAI</button>
+            <button onclick="cancelJob(${j.id})" style="background:#f1f5f9; color:#64748b; border:none; padding:6px; border-radius:6px; font-size:10px; font-weight:700; cursor:pointer;">BATAL</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openAssignPorterModal() {
+      openModal('assign-porter');
+      const content = document.getElementById('modal-content');
+      content.innerHTML = `
+        <div style="padding:10px;">
+          <h3 style="margin-bottom:15px; font-weight:800; letter-spacing:-0.5px;">Input Order Panggul Baru</h3>
+          <div class="form-group">
+            <label class="modal-label">Pilih Personel Tersedia</label>
+            <select id="porter-id" class="form-input"></select>
+          </div>
+          <div class="form-group">
+            <label class="modal-label">Target Lokasi (Toko/Blok)</label>
+            <input type="text" id="target-loc" class="form-input" placeholder="Misal: Toko B-12">
+          </div>
+          <div class="grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="form-group">
+              <label class="modal-label">Kategori Berat</label>
+              <select id="porter-weight" class="form-input" onchange="updatePorterFee()">
+                <option value="Light">Ringan (1-10kg)</option>
+                <option value="Medium" selected>Sedang (11-25kg)</option>
+                <option value="Heavy">Berat (26-50kg)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="modal-label">Ongkos (Rp)</label>
+              <input type="number" id="porter-fee" class="form-input" value="15000">
+            </div>
+          </div>
+          <button class="btn-action" style="margin-top:10px;" onclick="submitPorterJob()">KIRIM PENUGASAN</button>
+        </div>
+      `;
+      
+      fetch(`${API}/porters`).then(r => r.json()).then(porters => {
+        const sel = document.getElementById('porter-id');
+        sel.innerHTML = porters.filter(p => p.status === 'available').map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+      });
+    }
+
+    function updatePorterFee() {
+      const wt = document.getElementById('porter-weight').value;
+      const feeInput = document.getElementById('porter-fee');
+      if (wt === 'Light') feeInput.value = 10000;
+      if (wt === 'Medium') feeInput.value = 15000;
+      if (wt === 'Heavy') feeInput.value = 25000;
+    }
+
+    async function submitPorterJob() {
+      const data = {
+        porter_id: document.getElementById('porter-id').value,
+        location_to: document.getElementById('target-loc').value,
+        weight_category: document.getElementById('porter-weight').value,
+        fee: document.getElementById('porter-fee').value,
+        status: 'in_progress'
+      };
+
+      await fetch(`${API}/jobs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      closeModal();
+      Toastify({ text: "Order panggul berhasil ditugaskan!", backgroundColor: "#6366f1" }).showToast();
+      fetchPorterJobs();
+      fetchPorterStats();
+    }
+
+    function openRegisterPorterModal() {
+      openModal('register-porter');
+      const content = document.getElementById('modal-content');
+      content.innerHTML = `
+        <div style="padding:10px;">
+          <h3 style="margin-bottom:15px; font-weight:800; letter-spacing:-0.5px;">Registrasi Personel Kuli Baru</h3>
+          <div class="form-group">
+            <label class="modal-label">Nama Lengkap</label>
+            <input type="text" id="reg-porter-name" class="form-input" placeholder="Nama Lengkap">
+          </div>
+          <div class="form-group">
+            <label class="modal-label">Nomor ID / No. Kuli</label>
+            <input type="text" id="reg-porter-id" class="form-input" placeholder="Misal: KP-005">
+          </div>
+          <div class="form-group">
+            <label class="modal-label">Nomor WhatsApp / HP</label>
+            <input type="text" id="reg-porter-phone" class="form-input" placeholder="08xxxxxxxxx">
+          </div>
+          <button class="btn-action" style="margin-top:10px; background:#10b981;" onclick="submitRegisterPorter()">SIMPAN DATA KULI</button>
+        </div>
+      `;
+    }
+
+    async function submitRegisterPorter() {
+      const name = document.getElementById('reg-porter-name').value;
+      const id_number = document.getElementById('reg-porter-id').value;
+      const phone = document.getElementById('reg-porter-phone').value;
+
+      if (!name || !id_number || !phone) {
+        Toastify({ text: "Harap isi semua field!", backgroundColor: "#ef4444" }).showToast();
+        return;
+      }
+
+      await fetch(`${API}/porters`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, id_number, phone, daily_target: 100000 })
+      });
+      
+      closeModal();
+      Toastify({ text: "Personel baru berhasil terdaftar!", backgroundColor: "#10b981" }).showToast();
+      fetchPortersList();
+    }
+
+    async function updateJobStatus(id, status) {
+      await fetch(`${API}/jobs`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status })
+      });
+      Toastify({ text: "Pekerjaan Selesai! Pendapatan dicatat.", backgroundColor: "#16a34a" }).showToast();
+      fetchPorterJobs();
+      fetchPorterStats();
+    }
+
+
+
+    async function fetchTraders(page = 1) {
+      traderPage = page;
+      const res = await fetch(`${API}/vendors?page=${page}&t=${Date.now()}`);
+      const result = await res.json();
+      
+      // Handle both paginated and non-paginated response
+      const data = result.data ? result.data : result;
+      traders = data;
+
+      document.getElementById('vendor-list').innerHTML = data.map(t => `
+        <div class="item-card">
+          <div><b>${t.name}</b><br><small>${t.nik || 'No NIK'} | ${t.type ? t.type.toUpperCase() : 'UMUM'}</small></div>
+          <div style="display:flex; gap:8px;">
+            <button style="color:var(--primary); font-size:10px; font-weight:700; background:none; border:none; cursor:pointer;" onclick="viewIdCard('${t.id}')">🆔 ID CARD</button>
+            <button style="color:var(--warning); font-size:10px; font-weight:700; background:none; border:none; cursor:pointer;" onclick="openRelocateModal('${t.id}')">🔄 RELOKASI</button>
+            <button style="color:var(--muted); font-size:10px; font-weight:700; background:none; border:none; cursor:pointer;" onclick="openEditTrader('${t.id}')">EDIT</button>
+          </div>
+        </div>
+      `).join('');
+
+      if (result.current_page) {
+        document.getElementById('vendor-list').innerHTML += `
+          <div style="display:flex; justify-content:center; gap:20px; margin-top:20px; padding:10px; border-top:1px solid var(--border);">
+            <button class="btn-action" style="padding:6px 12px; font-size:11px; background:${result.prev_page_url ? 'var(--primary)' : 'var(--muted)'}" ${result.prev_page_url ? '' : 'disabled'} onclick="fetchTraders(${result.current_page - 1})">← Prev</button>
+            <span style="font-size:12px; font-weight:700; color:var(--primary)">Hal ${result.current_page} / ${result.last_page}</span>
+            <button class="btn-action" style="padding:6px 12px; font-size:11px; background:${result.next_page_url ? 'var(--primary)' : 'var(--muted)'}" ${result.next_page_url ? '' : 'disabled'} onclick="fetchTraders(${result.current_page + 1})">Next →</button>
+          </div>
+        `;
+      }
+    }
+
+    function viewIdCard(id) {
+      const baseUrl = API.replace('/api', '');
+      window.open(`${baseUrl}/trader/${id}/id-card`, '_blank');
+    }
+
+    function printPermit(id) {
+      const baseUrl = API.replace('/api', '');
+      window.open(`${API}/permits/${id}/export`, '_blank');
+    }
+
+    async function fetchPermits() {
+      const res = await fetch(`${API}/permits?t=${Date.now()}`);
+      const data = await res.json();
+      document.getElementById('permit-list').innerHTML = data.map(p => `
+        <div class="item-card">
+          <div>
+            <b>${p.trader ? p.trader.name : 'N/A'}</b><br>
+            <small>${p.slot ? p.slot.code : 'N/A'} | ${p.slot && p.slot.zone ? p.slot.zone.name : 'N/A'}</small>
+          </div>
+          <div style="text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+            <div>
+              <div style="font-size:10px; color:var(--primary); font-weight:800;">${p.permit_number}</div>
+              <small style="font-size:9px; color:var(--muted);">Exp: ${p.expires_at}</small>
+            </div>
+            <button style="color:var(--accent); font-size:10px; font-weight:800; background:none; border:none; cursor:pointer;" onclick="printPermit('${p.id}')">🖨️ CETAK IZIN</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    let pelataranFilterActive = false;
+
+    async function togglePelataranFilter() {
+      pelataranFilterActive = !pelataranFilterActive;
+      const btn = document.getElementById('pelataran-toggle');
+      btn.textContent = pelataranFilterActive ? '🔶 FILTER PELATARAN (ON)' : '🔶 FILTER PELATARAN (OFF)';
+      if (pelataranFilterActive) {
+        await fetchPelataran();
+      } else {
+        await fetchSlots();
+      }
+    }
+
+    async function fetchPelataran() {
+      const res = await fetch(`${API}/grid-slots/pelataran`);
+      slots = await res.json();
+      document.getElementById('grid-view').innerHTML = slots.map(s => `
+        <div class="grid-box pelataran ${s.status === 'occupied' ? 'occupied' : ''}" onclick="selectSlot('${s.id}')">
+          <div style="font-size:13px; font-weight:900;">${s.code}</div>
+        </div>
+      `).join('');
+    }
+
+    async function exportPelataranReport() {
+      // Trigger download of CSV generated by backend
+      const link = document.createElement('a');
+      link.href = `${API}/reports/pelataran/export`;
+      link.download = 'pelataran_report.csv';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    async function fetchSlots() {
+      const res = await fetch(`${API}/grid-slots?t=${Date.now()}`);
+      slots = await res.json();
+      document.getElementById('grid-view').innerHTML = slots.map(s => `
+        <div class="grid-box ${s.category || 'umum'} ${s.status === 'active' ? '' : 'occupied'}" onclick="selectSlot('${s.id}')">
+          <div style="font-size:13px; font-weight:900;">${s.code}</div>
+        </div>
+      `).join('');
+    }
+
+    function selectSlot(id) {
+      const slot = slots.find(s => String(s.id) === String(id));
+      if (!slot) return;
+      
+      const occupant = slot.trader ? slot.trader.name : 'KOSONG';
+      const owner = slot.owner_name || 'PEMERINTAH / PASAR';
+
+      document.getElementById('placement-detail').innerHTML = `
+        <div class="item-card">
+          <div>
+            <b>Slot ${slot.code}</b><br>
+            <small>Zona: ${slot.zone ? slot.zone.name : '-'}</small><br>
+            <small>Blok: ${slot.block ? slot.block.name : '-'}</small>
+          </div>
+          <button style="color:var(--primary); font-size:10px; font-weight:700; background:none; border:none; cursor:pointer;" onclick="openEditSlot('${slot.id}')">EDIT</button>
+        </div>
+        <div style="margin-top:10px; padding:12px; background:rgba(255,255,255,0.03); border-radius:8px; font-size:11px;">
+          <div style="margin-bottom:8px;">👤 <span style="color:var(--muted)">PEMILIK:</span> <b style="color:var(--primary)">${owner}</b></div>
+          <div>👤 <span style="color:var(--muted)">PEDAGANG:</span> <b style="color:var(--accent)">${occupant}</b></div>
+        </div>
+        <button class="btn-action" style="margin-top:10px;" onclick="openModal('booking', '${slot.id}')">PROSES IZIN & WHATSAPP</button>
+      `;
+    }
+
+    function openModal(type, slotId) {
+      const modal = document.getElementById('modal');
+      const content = document.getElementById('modal-content');
+      modal.classList.add('open');
+      if (type === 'booking') {
+        content.innerHTML = `<h3>Kirim Izin Digital (WA Ready)</h3>
+          <select class="form-input" id="b-vendor">${traders.map(v=>`<option value="${v.id}">${v.name}</option>`).join('')}</select>
+          <select class="form-input" id="b-shift" style="margin-top:10px"><option value="pagi">Shift Pagi</option><option value="siang">Shift Siang</option><option value="malam">Shift Malam</option><option value="full-day">Full Day (Pagi-Malam)</option></select>
+          <div id="qr-display" style="display:none; text-align:center;"><div id="qrcode" style="display:inline-block; padding:15px; background:#fff; margin:20px; border-radius:12px;"></div><br><small style="color:var(--success); font-weight:700">✅ BUKTI BAYAR DIKIRIM KE WHATSAPP</small><br><button class="btn-action" style="background:var(--success); margin-top:15px;" onclick="closeModal()">Selesai</button></div>
+          <div id="booking-actions" style="display:flex;gap:10px;margin-top:20px;"><button class="btn-action" style="background:#334155" onclick="closeModal()">Batal</button><button class="btn-action" onclick="processBooking('${slotId}')">Konfirmasi & Kirim WA</button></div>`;
+      } else if (type === 'vendor') {
+        const slotOptions = slots.filter(s => s.status === 'empty' || s.status === 'available').map(s => {
+          const z = s.zone ? s.zone.name : 'Unknown Zone';
+          const b = s.block ? s.block.name : 'No Block';
+          return `<option value="${s.id}">${z} ➜ ${b} ➜ Lapak ${s.code}</option>`;
+        }).join('');
+
+        content.innerHTML = `<h3>Registrasi Baru</h3>
+          <input class="form-input" id="v-name" placeholder="Nama">
+          <input class="form-input" id="v-nik" placeholder="NIK">
+          <input class="form-input" id="v-wa" placeholder="No WhatsApp (08...)">
+          
+          <select class="form-input" id="v-loc-type" style="margin-top:10px;">
+            <option value="kios">Kios (Bangunan Tetap)</option>
+            <option value="jalanan">Pelataran (Area Terbuka)</option>
+          </select>
+
+          <select class="form-input" id="v-slot" style="margin-top:10px;">
+            <option value="">-- Tanpa Penempatan (Daftar Saja) --</option>
+            ${slotOptions}
+          </select>
+
+          <select class="form-input" id="v-shift" style="margin-top:10px;">
+            <option value="pagi">Shift Pagi</option>
+            <option value="siang">Shift Siang</option>
+            <option value="malam">Shift Malam</option>
+            <option value="full-day">Full Day (Pagi-Malam)</option>
+          </select>
+
+          <div style="display:flex;gap:10px;margin-top:20px;">
+            <button class="btn-action" style="background:#334155" onclick="closeModal()">Batal</button>
+            <button class="btn-action" onclick="saveVendor()">Simpan & Proses</button>
+          </div>`;
+      } else if (type === 'training') {
+        content.innerHTML = `<h3>Buat Program Pelatihan</h3>
+          <input class="form-input" id="tr-judul" placeholder="Judul Pelatihan">
+          <input class="form-input" id="tr-tgl" type="date" placeholder="Tanggal">
+          <input class="form-input" id="tr-pem" placeholder="Nama Pemateri">
+          <input class="form-input" id="tr-kat" placeholder="Kategori (UMKM/Kebersihan/dll)">
+          <input class="form-input" id="tr-lok" placeholder="Lokasi Pelatihan">
+          <div style="display:flex;gap:10px;margin-top:20px;"><button class="btn-action" style="background:#334155" onclick="closeModal()">Batal</button><button class="btn-action" onclick="saveTraining()">Simpan Program</button></div>`;
+      }
+    }
+
+    async function processBooking(slotId) {
+      const body = { slot_id:slotId, vendor_id:document.getElementById('b-vendor').value, shift:document.getElementById('b-shift').value, date:new Date().toISOString().split('T')[0] };
+      const res = await fetch(`${API}/grid-book`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      const data = await res.json();
+      document.getElementById('booking-actions').style.display='none';
+      document.getElementById('qr-display').style.display='block';
+      new QRCode(document.getElementById("qrcode"), { text: data.qr_code, width: 200, height: 200 });
+    }
+
+    async function saveVendor() {
+      const name = document.getElementById('v-name').value;
+      const nik = document.getElementById('v-nik').value;
+      const wa = document.getElementById('v-wa').value;
+      const locType = document.getElementById('v-loc-type').value;
+      const slotId = document.getElementById('v-slot').value;
+      const shift = document.getElementById('v-shift').value;
+      
+      const res = await fetch(`${API}/vendors`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, nik, phone: wa, type: 'umum', location_type: locType })
+      });
+      
+      if (res.ok && slotId) {
+        const vendor = await res.json();
+        const body = { slot_id: slotId, vendor_id: vendor.id, shift: shift, date: new Date().toISOString().split('T')[0] };
+        await fetch(`${API}/grid-book`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      }
+
+      closeModal();
+      refreshAll();
+    }
+
+    function openEditTrader(id) {
+      const t = traders.find(x => String(x.id) === String(id));
+      if(!t) return;
+      const modal = document.getElementById('modal');
+      const content = document.getElementById('modal-content');
+      modal.classList.add('open');
+      content.innerHTML = `
+        <h3 style="font-size:18px; font-weight:800; margin-bottom:20px;">Edit Data Pedagang</h3>
+        <div class="form-group">
+          <label style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em;">Nama Lengkap</label>
+          <input class="form-input" id="e-v-name" value="${t.name || ''}" placeholder="Nama Lengkap">
+        </div>
+        <div class="form-group">
+          <label style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em;">NIK</label>
+          <input class="form-input" id="e-v-nik" value="${t.nik || ''}" placeholder="NIK (16 digit)">
+        </div>
+        <div class="form-group">
+          <label style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em;">No. WhatsApp <span style="color:var(--success)">📱</span></label>
+          <input class="form-input" id="e-v-phone" value="${t.phone || ''}" placeholder="Contoh: 08123456789">
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px;">
+          <button class="btn-action" style="background:#334155" onclick="closeModal()">Batal</button>
+          <button class="btn-action" onclick="updateTrader('${id}')">💾 Simpan</button>
+        </div>`;
+    }
+
+    async function updateTrader(id) {
+      const name = document.getElementById('e-v-name').value;
+      const nik = document.getElementById('e-v-nik').value;
+      const phone = document.getElementById('e-v-phone').value;
+      const res = await fetch(`${API}/vendors/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, nik, phone })
+      });
+      if (res.ok) {
+        closeModal();
+        refreshAll();
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        const msg = errorData.message || errorData.error || 'Terjadi kesalahan sistem';
+        alert('Gagal menyimpan data: ' + msg);
+      }
+    }
+
+    function openEditSlot(id) {
+      const s = slots.find(x => String(x.id) === String(id));
+      if(!s) return;
+      const modal = document.getElementById('modal');
+      const content = document.getElementById('modal-content');
+      modal.classList.add('open');
+      content.innerHTML = `<h3>Edit Detail Lapak</h3>
+        <input class="form-input" id="e-s-code" value="${s.code}" placeholder="Kode Lapak">
+        <select class="form-input" id="e-s-cat" style="margin-top:10px">
+          <option value="basah" ${s.category==='basah'?'selected':''}>Basah</option>
+          <option value="kering" ${s.category==='kering'?'selected':''}>Kering</option>
+          <option value="kuliner" ${s.category==='kuliner'?'selected':''}>Kuliner</option>
+        </select>
+        <div style="display:flex;gap:10px;margin-top:20px;"><button class="btn-action" style="background:#334155" onclick="closeModal()">Batal</button><button class="btn-action" onclick="updateSlot('${id}')">Simpan</button></div>`;
+    }
+
+    async function updateSlot(id) {
+      const code = document.getElementById('e-s-code').value;
+      const category = document.getElementById('e-s-cat').value;
+      await fetch(`${API}/stalls/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, category })
+      });
+      closeModal();
+      refreshAll();
+    }
+
+    async function saveSlot() {
+      const code = document.getElementById('a-s-code').value;
+      const category = document.getElementById('a-s-cat').value;
+      await fetch(`${API}/stalls`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, category })
+      });
+      closeModal();
+      refreshAll();
+    }
+
+    async function fetchAudit() {
+      const res = await fetch(`${API}/market/audit`);
+      const logs = await res.json();
+      document.getElementById('audit-list').innerHTML = logs.map(l => `
+        <div style="margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:4px;">
+          <span style="color:var(--primary)">[${new Date(l.created_at).toLocaleString()}]</span> <b>${l.action}</b><br>
+          <small style="color:var(--muted)">${l.data}</small>
+        </div>
+      `).join('');
+    }
+
+    async function fetchTrainings() {
+      const res = await fetch(`${API}/pelatihan`);
+      const data = await res.json();
+      document.getElementById('training-list').innerHTML = data.map(p => `
+        <div class="item-card">
+          <div><b>${p.judul}</b><br><small>${p.tanggal} | ${p.pemateri}</small></div>
+          <div style="font-size:10px; color:var(--success)">${p.traders_count} Terdaftar</div>
+        </div>
+      `).join('');
+    }
+
+    function openRelocateModal(id) {
+    const t = traders.find(v => v.id === id);
+    const content = `
+        <div class="modal-header">RELOKASI PEDAGANG: ${t.name}</div>
+        <div style="padding:20px;">
+            <p style="font-size:11px; color:var(--muted); margin-bottom:15px;">
+                Lapak Saat Ini: <b>${t.stall_id || 'Belum ada'}</b>
+            </p>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:8px; font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em;">Pilih Lapak Baru (Hirarki Enterprise)</label>
+                <select id="rel-new-slot" style="width:100%; padding:14px 16px; background-color:var(--bg); border:1px solid var(--border); border-radius:12px; color:var(--text); font-size:14px; outline:none; appearance:none; -webkit-appearance:none; background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM2MzY2ZjEiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cG9seWxpbmUgcG9pbnRzPSI2IDkgMTIgMTUgMTggOSI+PC9wb2x5bGluZT48L3N2Zz4='); background-repeat:no-repeat; background-position:right 16px center; background-size:16px; cursor:pointer; box-sizing:border-box;">
+                    <option value="" disabled selected>-- Pilih Lapak Baru --</option>
+                    ${slots.filter(s => s.status === 'empty' || s.status === 'available').map(s => {
+                        const z = s.zone ? s.zone.name : 'Unknown Zone';
+                        const b = s.block ? s.block.name : 'No Block';
+                        return `<option value="${s.id}">${z} ➜ ${b} ➜ Lapak ${s.code}</option>`;
+                    }).join('') || '<option value="" disabled>Tidak ada lapak tersedia</option>'}
+                </select>
+            </div>
+            <div style="margin-top:20px; padding:15px; background:rgba(245,158,11,0.1); border-left:4px solid var(--warning); font-size:11px;">
+                <b>PERINGATAN:</b> Relokasi akan otomatis memperbarui status lapak lama menjadi KOSONG dan lapak baru menjadi TERISI.
+            </div>
+            <div style="display:flex; gap:10px; margin-top:20px; justify-content:flex-end;">
+                <button class="btn-action" style="background:var(--muted);" onclick="closeModal()">BATAL</button>
+                <button class="btn-action" onclick="executeRelocate('${id}')">KONFIRMASI PERPINDAHAN</button>
+            </div>
+        </div>
+    `;
+    document.getElementById('modal-content').innerHTML = content;
+    document.getElementById('modal').classList.add('open');
+}
+
+
+    async function fetchComplaints() {
+      const res = await fetch(`${API}/market/complaints`); // Need to ensure route exists
+      const data = await res.json();
+      document.getElementById('complaint-list').innerHTML = data.map(c => `
+        <div class="item-card" style="border-left:3px solid var(--danger)">
+          <div><b>${c.subject || 'Laporan Kerusakan'}</b><br><small>${c.trader?.name || 'Anonim'} | ${c.status}</small></div>
+        </div>
+      `).join('');
+    }
+
+    async function fetchArrears() {
+      // Fetch traders with arrears > 0
+      const res = await fetch(`${API}/vendors?t=${Date.now()}`); 
+      const all = await res.json();
+      const data = all.data ? all.data.filter(v => parseFloat(v.arrears) > 0) : all.filter(v => parseFloat(v.arrears) > 0);
+      document.getElementById('arrears-list').innerHTML = data.map(v => `
+        <div class="item-card" style="border-left:3px solid var(--warning)">
+          <div><b>${v.name}</b><br><small>Tunggakan: <span style="color:var(--danger)">Rp ${parseFloat(v.arrears).toLocaleString()}</span></small></div>
+          <button style="color:var(--primary); font-size:10px; font-weight:700; background:none; border:none; cursor:pointer;">TAGIH WA</button>
+        </div>
+      `).join('');
+    }
+
+    async function executeRelocate(id) {
+      const new_slot_id = document.getElementById('rel-new-slot').value;
+      const res = await fetch(`${API}/vendors/${id}/relocate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ new_slot_id })
+      });
+      if (res.ok) {
+        closeModal();
+        refreshAll();
+      } else {
+        alert('Gagal merelokasi pedagang.');
+      }
+    }
+
+    async function saveTraining() {
+      const judul = document.getElementById('tr-judul').value;
+      const tanggal = document.getElementById('tr-tgl').value;
+      const pemateri = document.getElementById('tr-pem').value;
+      const kategori = document.getElementById('tr-kat').value;
+      const lokasi = document.getElementById('tr-lok').value;
+      await fetch(`${API}/pelatihan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ judul, tanggal, pemateri, kategori, lokasi })
+      });
+      closeModal();
+      fetchTrainings();
+    }
+
+    function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+    // Real-time implementation
+    window.Pusher = Pusher;
+    window.Echo = new Echo({
+        broadcaster: 'reverb',
+        key: 'uytyh1lwr7ce3qoaxygb',
+        wsHost: '103.175.219.57',
+        wsPort: 8081,
+        forceTLS: false,
+        enabledTransports: ['ws', 'wss'],
+    });
+
+    window.Echo.channel('svms-channel')
+        .listen('.MarketDataUpdated', (e) => {
+            console.log('Realtime update received:', e);
+            Toastify({
+                text: e.message,
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                style: {
+                    background: e.type === 'success' ? "var(--success)" : "var(--primary)",
+                    borderRadius: "10px",
+                    fontWeight: "bold"
+                }
+            }).showToast();
+            refreshAll();
+        });
+  </script>
+</body>
+</html>
