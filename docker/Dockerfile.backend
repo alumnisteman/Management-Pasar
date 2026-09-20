@@ -1,29 +1,44 @@
-FROM php:8.4-fpm
+FROM php:8.3-cli
 
-# Install dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    zip \
-    unzip \
-    git \
-    curl
-
-# Install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd pdo pdo_mysql \
+    libpng-dev libjpeg-dev libfreetype6-dev libzip-dev libpq-dev \
+    zip unzip git curl \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd pdo pdo_mysql zip bcmath pcntl \
     && pecl install redis \
-    && docker-php-ext-enable redis
+    && docker-php-ext-enable redis \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www
+WORKDIR /var/www/html
 
+# Copy project files
 COPY . .
 
-RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache \
-    && chmod -R 777 storage bootstrap/cache
+# Install Laravel skeleton if artisan is missing, then install dependencies
+RUN if [ ! -f artisan ]; then \
+        COMPOSER_ALLOW_SUPERUSER=1 composer create-project laravel/laravel /tmp/laravel-base --prefer-dist --no-progress -q 2>/dev/null; \
+        # Copy Laravel skeleton files (without overwriting our app files)
+        for dir in bootstrap public; do \
+            [ ! -d "/var/www/html/$dir" ] && cp -r "/tmp/laravel-base/$dir" "/var/www/html/$dir"; \
+        done; \
+        [ ! -f "/var/www/html/artisan" ] && cp /tmp/laravel-base/artisan /var/www/html/artisan; \
+        [ ! -f "/var/www/html/.env.example" ] && cp /tmp/laravel-base/.env.example /var/www/html/.env.example; \
+        rm -rf /tmp/laravel-base; \
+    fi
 
-CMD ["php", "-S", "0.0.0.0:8000"]
+# Install Composer dependencies
+RUN COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-interaction 2>&1 || \
+    COMPOSER_ALLOW_SUPERUSER=1 composer install --no-interaction
+
+# Setup Laravel
+RUN cp .env.example .env 2>/dev/null || true \
+    && mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache \
+               storage/logs bootstrap/cache \
+    && chmod -R 777 storage bootstrap/cache \
+    && php artisan key:generate --ansi 2>/dev/null || true
+
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
