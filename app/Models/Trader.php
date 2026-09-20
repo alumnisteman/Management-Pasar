@@ -4,12 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
-use Laravel\Scout\Searchable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Trader extends Model
 {
-    use Searchable, SoftDeletes;
+    use SoftDeletes;
 
     public $incrementing = false;
     protected $keyType = 'string';

@@ -4,11 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
-use Laravel\Scout\Searchable;
 
 class Slot extends Model
 {
-    use Searchable;
     public $incrementing = false;
     protected $keyType = 'string';
     protected $fillable = ['id', 'market_id', 'zone_id', 'code', 'x_position', 'y_position', 'type', 'category', 'status', 'price'];
