@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
@@ -12,17 +13,47 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         $this->call(RolesAndPermissionsSeeder::class);
+
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         DB::table('payments')->truncate();
         DB::table('bills')->truncate();
         DB::table('patrol_logs')->truncate();
+        DB::table('inspections')->truncate();
         DB::table('complaints')->truncate();
         DB::table('permits')->truncate();
         DB::table('traders')->truncate();
         DB::table('slots')->truncate();
         DB::table('zones')->truncate();
         DB::table('markets')->truncate();
+        DB::table('users')->truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        // 0. Buat Users Default
+        $adminId = (string) Str::uuid();
+        $officerId = (string) Str::uuid();
+
+        DB::table('users')->insert([
+            [
+                'id' => $adminId,
+                'name' => 'Admin Utama',
+                'email' => 'admin@svms.id',
+                'password' => Hash::make('admin123'),
+                'role' => 'admin',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => $officerId,
+                'name' => 'Petugas Lapangan',
+                'email' => 'officer@svms.id',
+                'password' => Hash::make('officer123'),
+                'role' => 'officer',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        ]);
 
         // 1. Buat Market
         $marketId = (string) Str::uuid();
@@ -71,6 +102,7 @@ class DatabaseSeeder extends Seeder
                 'y_position' => ($i % 5) * 10,
                 'status' => $status,
                 'category' => $commodity,
+                'price' => 450000 + rand(10000, 50000),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -81,10 +113,14 @@ class DatabaseSeeder extends Seeder
                 $traderName = $traderNames[$i % count($traderNames)];
                 DB::table('traders')->insert([
                     'id' => $traderId,
+                    'market_id' => $marketId,
+                    'stall_id' => $slotId,
                     'name' => $traderName,
                     'nik' => '31710' . rand(10000000000, 99999999999),
                     'phone' => '08' . rand(1111111111, 9999999999),
+                    'jenis_dagangan' => $commodity,
                     'reputation_score' => rand(70, 100),
+                    'status' => 'active',
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -104,10 +140,14 @@ class DatabaseSeeder extends Seeder
 
                 // Buat Tagihan (Bills)
                 $billStatus = ($i % 6 == 0) ? 'overdue' : (($i % 4 == 0) ? 'unpaid' : 'paid');
+                $billAmount = 450000 + rand(10000, 50000);
+                $billId = (string) Str::uuid();
                 DB::table('bills')->insert([
-                    'id' => (string) Str::uuid(),
+                    'id' => $billId,
                     'permit_id' => $permitId,
-                    'amount' => 450000 + rand(10000, 50000),
+                    'trader_id' => $traderId,
+                    'slot_id' => $slotId,
+                    'amount' => $billAmount,
                     'type' => 'rent',
                     'status' => $billStatus,
                     'due_date' => now()->addDays(rand(-10, 10)),
@@ -115,14 +155,41 @@ class DatabaseSeeder extends Seeder
                     'updated_at' => now(),
                 ]);
 
-                // Inspeksi Patrol
+                if ($billStatus === 'paid') {
+                    DB::table('payments')->insert([
+                        'id' => (string) Str::uuid(),
+                        'bill_id' => $billId,
+                        'trader_id' => $traderId,
+                        'amount_paid' => $billAmount,
+                        'payment_method' => ($i % 2 == 0) ? 'QRIS' : 'Cash',
+                        'paid_at' => now()->subDays(rand(1, 5)),
+                        'status' => 'success',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+
+                // Inspeksi Patrol & Inspections
                 DB::table('patrol_logs')->insert([
                     'id' => (string) Str::uuid(),
                     'slot_id' => $slotId,
-                    'officer_id' => (string) Str::uuid(), // dummy
-                    'cleanliness_score' => rand(1, 5),
+                    'officer_id' => $officerId,
+                    'cleanliness_score' => rand(3, 5),
                     'security_status' => 'secure',
                     'notes' => 'Pemeriksaan rutin berjalan baik.',
+                    'created_at' => now()->subDays(rand(1, 5)),
+                    'updated_at' => now(),
+                ]);
+
+                DB::table('inspections')->insert([
+                    'id' => (string) Str::uuid(),
+                    'slot_id' => $slotId,
+                    'trader_id' => $traderId,
+                    'inspector_id' => $officerId,
+                    'cleanliness_score' => rand(3, 5),
+                    'security_status' => 'secure',
+                    'notes' => 'Pemeriksaan kepatuhan berjalan lancar.',
+                    'status' => 'COMPLETED',
                     'created_at' => now()->subDays(rand(1, 5)),
                     'updated_at' => now(),
                 ]);
@@ -133,7 +200,10 @@ class DatabaseSeeder extends Seeder
                         'id' => (string) Str::uuid(),
                         'trader_id' => $traderId,
                         'slot_id' => $slotId,
+                        'market_id' => $marketId,
+                        'zone_id' => $zoneId,
                         'ticket_number' => 'TCK-' . rand(1000, 9999),
+                        'category' => 'Fasilitas',
                         'description' => 'Ada kerusakan pada saluran pembuangan air.',
                         'priority' => 'high',
                         'status' => 'open',
