@@ -33,9 +33,9 @@ class FinanceController extends Controller
 
         // Trend bulanan 6 bulan terakhir
         $monthly = DB::table('bills')
-            ->selectRaw("DATE_FORMAT(created_at, '%b %Y') as month, SUM(amount) as total, SUM(CASE WHEN status='paid' THEN amount ELSE 0 END) as paid")
+            ->selectRaw("DATE_FORMAT(created_at, '%b %Y') as month, DATE_FORMAT(created_at, '%Y-%m') as ym, SUM(amount) as total, SUM(CASE WHEN status='paid' THEN amount ELSE 0 END) as paid")
             ->where('created_at', '>=', now()->subMonths(6))
-            ->groupByRaw("DATE_FORMAT(created_at, '%Y-%m')")
+            ->groupByRaw("DATE_FORMAT(created_at, '%Y-%m'), DATE_FORMAT(created_at, '%b %Y')")
             ->orderByRaw("DATE_FORMAT(created_at, '%Y-%m')")
             ->get();
 
