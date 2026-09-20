@@ -77,7 +77,51 @@ class GridController extends Controller
         return response()->json(['qr_code' => $qrPayload, 'permit' => $permit]);
     }
 
-    public function slots() { return Slot::with(['priceLogs', 'zone', 'trader'])->get(); }
+    public function slots()
+    {
+        $slots = Slot::with(['priceLogs', 'zone'])
+            ->leftJoin('permits', function ($join) {
+                $join->on('permits.slot_id', '=', 'slots.id')
+                     ->where('permits.status', '=', 'active')
+                     ->whereNull('permits.deleted_at');
+            })
+            ->leftJoin('traders', 'traders.id', '=', 'permits.trader_id')
+            ->select(
+                'slots.*',
+                'traders.id as trader_id',
+                'traders.name as trader_name',
+                'traders.phone as trader_phone',
+                'permits.permit_number',
+                'permits.status as permit_status'
+            )
+            ->get();
+
+        return response()->json($slots);
+    }
+
+    public function pelataranSlots()
+    {
+        $slots = Slot::with(['zone'])
+            ->where(function ($q) {
+                $q->where('slots.category', 'pelataran')
+                  ->orWhere('slots.type', 'pelataran');
+            })
+            ->leftJoin('permits', function ($join) {
+                $join->on('permits.slot_id', '=', 'slots.id')
+                     ->where('permits.status', '=', 'active')
+                     ->whereNull('permits.deleted_at');
+            })
+            ->leftJoin('traders', 'traders.id', '=', 'permits.trader_id')
+            ->select(
+                'slots.*',
+                'traders.id as trader_id',
+                'traders.name as trader_name',
+                'permits.permit_number'
+            )
+            ->get();
+
+        return response()->json($slots);
+    }
 
     public function heatmap()
     {
